@@ -16,9 +16,9 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - name: Restore dependencies
-        run: dotnet restore api/RentLanka.Api.csproj
+        run: dotnet restore api/RentLanka.slnx
       - name: Build
-        run: dotnet build api/RentLanka.Api.csproj --no-restore --configuration Release
+        run: dotnet build api/RentLanka.slnx --no-restore --configuration Release
 
   frontend-build:
     runs-on: ubuntu-latest
