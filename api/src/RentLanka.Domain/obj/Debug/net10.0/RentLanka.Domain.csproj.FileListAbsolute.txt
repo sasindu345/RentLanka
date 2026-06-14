@@ -1,0 +1,12 @@
+/Users/oneionei/MyProjects/RentLanka/api/src/RentLanka.Domain/bin/Debug/net10.0/RentLanka.Domain.deps.json
+/Users/oneionei/MyProjects/RentLanka/api/src/RentLanka.Domain/bin/Debug/net10.0/RentLanka.Domain.dll
+/Users/oneionei/MyProjects/RentLanka/api/src/RentLanka.Domain/bin/Debug/net10.0/RentLanka.Domain.pdb
+/Users/oneionei/MyProjects/RentLanka/api/src/RentLanka.Domain/obj/Debug/net10.0/RentLanka.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/Users/oneionei/MyProjects/RentLanka/api/src/RentLanka.Domain/obj/Debug/net10.0/RentLanka.Domain.AssemblyInfoInputs.cache
+/Users/oneionei/MyProjects/RentLanka/api/src/RentLanka.Domain/obj/Debug/net10.0/RentLanka.Domain.AssemblyInfo.cs
+/Users/oneionei/MyProjects/RentLanka/api/src/RentLanka.Domain/obj/Debug/net10.0/RentLanka.Domain.csproj.CoreCompileInputs.cache
+/Users/oneionei/MyProjects/RentLanka/api/src/RentLanka.Domain/obj/Debug/net10.0/RentLanka.Domain.sourcelink.json
+/Users/oneionei/MyProjects/RentLanka/api/src/RentLanka.Domain/obj/Debug/net10.0/RentLanka.Domain.dll
+/Users/oneionei/MyProjects/RentLanka/api/src/RentLanka.Domain/obj/Debug/net10.0/refint/RentLanka.Domain.dll
+/Users/oneionei/MyProjects/RentLanka/api/src/RentLanka.Domain/obj/Debug/net10.0/RentLanka.Domain.pdb
+/Users/oneionei/MyProjects/RentLanka/api/src/RentLanka.Domain/obj/Debug/net10.0/ref/RentLanka.Domain.dll

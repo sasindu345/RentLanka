@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RentLanka.Api/RentLanka.Api.csproj" />
+    <Project Path="src/RentLanka.Application/RentLanka.Application.csproj" />
+    <Project Path="src/RentLanka.Domain/RentLanka.Domain.csproj" />
+    <Project Path="src/RentLanka.Infrastructure/RentLanka.Infrastructure.csproj" />
+  </Folder>
+</Solution>
