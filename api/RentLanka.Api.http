@@ -1,0 +1,6 @@
+@RentLanka.Api_HostAddress = http://localhost:5021
+
+GET {{RentLanka.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
