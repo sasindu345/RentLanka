@@ -28,7 +28,7 @@ namespace RentLanka.Api.Migrations
                     PricePerDay = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     SecurityDeposit = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     Rules = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    Location = table.Column<Point>(type: "geometry(Point, 4326)", nullable: false),
+                    Location = table.Column<Point>(type: "geography(Point, 4326)", nullable: false),
                     District = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Images = table.Column<List<string>>(type: "text[]", nullable: false),
                     IsPaused = table.Column<bool>(type: "boolean", nullable: false),

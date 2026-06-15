@@ -14,7 +14,7 @@ using RentLanka.Api.Data;
 namespace RentLanka.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260614201051_AddListingsPostgis")]
+    [Migration("20260615054606_AddListingsPostgis")]
     partial class AddListingsPostgis
     {
         /// <inheritdoc />
@@ -61,7 +61,7 @@ namespace RentLanka.Api.Migrations
 
                     b.Property<Point>("Location")
                         .IsRequired()
-                        .HasColumnType("geometry(Point, 4326)");
+                        .HasColumnType("geography(Point, 4326)");
 
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid");

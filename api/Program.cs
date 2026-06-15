@@ -61,6 +61,7 @@ public class Program
         // Register Dependency Injection Services
         builder.Services.AddScoped<IIdentityService, IdentityService>();
         builder.Services.AddScoped<IVerificationService, VerificationService>();
+        builder.Services.AddScoped<IListingService, ListingService>();
         builder.Services.AddSingleton<IFileStorageService, S3FileStorageService>();
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

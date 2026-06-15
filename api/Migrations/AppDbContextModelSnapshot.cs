@@ -58,7 +58,7 @@ namespace RentLanka.Api.Migrations
 
                     b.Property<Point>("Location")
                         .IsRequired()
-                        .HasColumnType("geometry(Point, 4326)");
+                        .HasColumnType("geography(Point, 4326)");
 
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid");

@@ -44,8 +44,8 @@ public class AppDbContext : DbContext
             entity.Property(l => l.Rules).HasMaxLength(1000);
             entity.Property(l => l.District).IsRequired().HasMaxLength(100);
             
-            // Map location property to PostGIS point geometry with SRID 4326
-            entity.Property(l => l.Location).HasColumnType("geometry(Point, 4326)");
+            // Map location property to PostGIS geography point with SRID 4326
+            entity.Property(l => l.Location).HasColumnType("geography(Point, 4326)");
         });
     }
 }
