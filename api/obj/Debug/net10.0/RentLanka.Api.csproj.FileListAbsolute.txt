@@ -133,3 +133,8 @@
 /Users/oneionei/MyProjects/RentLanka/api/obj/Debug/net10.0/RentLanka.Api.pdb
 /Users/oneionei/MyProjects/RentLanka/api/obj/Debug/net10.0/RentLanka.Api.genruntimeconfig.cache
 /Users/oneionei/MyProjects/RentLanka/api/obj/Debug/net10.0/ref/RentLanka.Api.dll
+/Users/oneionei/MyProjects/RentLanka/api/bin/Debug/net10.0/NetTopologySuite.dll
+/Users/oneionei/MyProjects/RentLanka/api/bin/Debug/net10.0/NetTopologySuite.IO.PostGis.dll
+/Users/oneionei/MyProjects/RentLanka/api/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite.dll
+/Users/oneionei/MyProjects/RentLanka/api/bin/Debug/net10.0/Npgsql.NetTopologySuite.dll
+/Users/oneionei/MyProjects/RentLanka/api/obj/Debug/net10.0/EFCoreNpgsqlNetTopologySuite.cs

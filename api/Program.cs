@@ -26,7 +26,11 @@ public class Program
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString,
-                npgsqlOptions => npgsqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
+                npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
+                    npgsqlOptions.UseNetTopologySuite();
+                }));
 
         // Configure Authentication
         var secret = builder.Configuration["JwtSettings:Secret"] ?? "super_secret_key_rentlanka_1234567890_long_enough";
