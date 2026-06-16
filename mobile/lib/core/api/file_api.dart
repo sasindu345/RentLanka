@@ -24,4 +24,18 @@ class FileApi {
     final data = response.data as Map<String, dynamic>;
     return data['imageUrl'] as String;
   }
+
+  Future<String> uploadAvatar(String filePath) async {
+    final fileName = filePath.split('/').last;
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath, filename: fileName),
+    });
+    final response = await _dio.post(
+      '/api/file/avatar',
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+    final data = response.data as Map<String, dynamic>;
+    return data['avatarUrl'] as String;
+  }
 }

@@ -1,9 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/listings_api.dart';
+import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
@@ -164,7 +166,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 CircleAvatar(
                   radius: 32,
                   backgroundColor: AppTheme.primary,
-                  child: Text(user.firstName[0], style: const TextStyle(fontSize: 24, color: Colors.white)),
+                  backgroundImage: user.avatarUrl != null
+                      ? CachedNetworkImageProvider(resolveMediaUrl(user.avatarUrl!))
+                      : null,
+                  child: user.avatarUrl == null
+                      ? Text(user.firstName[0], style: const TextStyle(fontSize: 24, color: Colors.white))
+                      : null,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -174,10 +181,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Text('${user.firstName} ${user.lastName}',
                           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                       Text(user.email, style: const TextStyle(color: AppTheme.muted)),
+                      if (user.phoneNumber.isNotEmpty)
+                        Text(user.phoneNumber, style: const TextStyle(color: AppTheme.muted, fontSize: 13)),
                       if (user.isTrustedUser)
                         const Text('Trusted member', style: TextStyle(color: AppTheme.primary, fontSize: 12)),
                     ],
                   ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  onPressed: () async {
+                    final updated = await context.push<bool>('/app/profile/edit');
+                    if (updated == true && mounted) _load();
+                  },
                 ),
               ],
             ),

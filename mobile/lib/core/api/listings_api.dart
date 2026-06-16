@@ -55,6 +55,19 @@ class ListingsApi {
     return UserProfile.fromJson(response.data as Map<String, dynamic>);
   }
 
+  Future<UserProfile> updateProfile({
+    required String firstName,
+    required String lastName,
+    required String phoneNumber,
+  }) async {
+    final response = await _dio.patch('/api/users/me', data: {
+      'firstName': firstName,
+      'lastName': lastName,
+      'phoneNumber': phoneNumber,
+    });
+    return UserProfile.fromJson(response.data as Map<String, dynamic>);
+  }
+
   Future<PaginatedListings> searchListings({
     String? query,
     String? category,
