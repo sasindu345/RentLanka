@@ -21,47 +21,58 @@ class ListingCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AspectRatio(
-              aspectRatio: 4 / 3,
+            Expanded(
               child: imageUrl != null
                   ? CachedNetworkImage(
                       imageUrl: imageUrl,
+                      width: double.infinity,
                       fit: BoxFit.cover,
                       placeholder: (_, __) => Container(color: Colors.grey.shade200),
                       errorWidget: (_, __, ___) => const Icon(Icons.image_not_supported),
                     )
                   : Container(
+                      width: double.infinity,
                       color: Colors.grey.shade200,
                       child: const Center(child: Icon(Icons.image_outlined, color: AppTheme.muted)),
                     ),
             ),
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     listing.category.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.primary,
                       letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     listing.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    listing.district,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: AppTheme.muted, fontSize: 12),
                   ),
                   const SizedBox(height: 4),
-                  Text(listing.district, style: const TextStyle(color: AppTheme.muted, fontSize: 13)),
-                  const SizedBox(height: 8),
                   Text(
                     '${ListingsApi.formatPrice(listing.pricePerDay)} / day',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                 ],
               ),

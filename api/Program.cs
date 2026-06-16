@@ -84,6 +84,9 @@ public class Program
 
         var app = builder.Build();
 
+        var webRoot = app.Environment.WebRootPath ?? Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+        Directory.CreateDirectory(Path.Combine(webRoot, "uploads"));
+
         // Configure the HTTP request pipeline.
         app.UseMiddleware<ExceptionMiddleware>();
 

@@ -3,7 +3,9 @@ using System.IO;
 using System.Threading.Tasks;
 using Amazon.S3;
 using Amazon.S3.Transfer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using RentLanka.Api.Services.Interfaces;
 
 namespace RentLanka.Api.Services.Implementations;
@@ -16,7 +18,7 @@ public class S3FileStorageService : IFileStorageService
     private readonly bool _useLocalFallback;
     private readonly string _localUploadPath;
 
-    public S3FileStorageService(IConfiguration configuration)
+    public S3FileStorageService(IConfiguration configuration, IWebHostEnvironment environment)
     {
         _configuration = configuration;
         var accessKey = _configuration["AWS:AccessKey"];
@@ -24,7 +26,8 @@ public class S3FileStorageService : IFileStorageService
         var region = _configuration["AWS:Region"] ?? "us-east-1";
         _bucketName = _configuration["AWS:BucketName"] ?? "rentlanka-uploads";
 
-        _localUploadPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "uploads");
+        var webRoot = environment.WebRootPath ?? Path.Combine(environment.ContentRootPath, "wwwroot");
+        _localUploadPath = Path.Combine(webRoot, "uploads");
 
         if (string.IsNullOrEmpty(accessKey) || string.IsNullOrEmpty(secretKey))
         {

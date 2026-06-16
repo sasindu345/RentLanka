@@ -95,6 +95,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             _VerificationStep(label: 'Phone verified', done: user.verificationLevel >= 1),
             _VerificationStep(label: 'NIC submitted', done: user.verificationLevel >= 2),
             _VerificationStep(label: 'Face verified', done: user.verificationLevel >= 3),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () async {
+                final refreshed = await context.push<bool>('/app/profile/verification');
+                if (refreshed == true && mounted) _load();
+              },
+              icon: const Icon(Icons.verified_user_outlined, size: 18),
+              label: Text(user.verificationLevel >= 3 ? 'View verification' : 'Complete verification'),
+            ),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

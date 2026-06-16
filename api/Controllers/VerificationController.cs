@@ -2,7 +2,9 @@ using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using RentLanka.Api.Models.Requests;
 using RentLanka.Api.Services.Interfaces;
 
@@ -14,10 +16,12 @@ namespace RentLanka.Api.Controllers;
 public class VerificationController : ControllerBase
 {
     private readonly IVerificationService _verificationService;
+    private readonly IWebHostEnvironment _environment;
 
-    public VerificationController(IVerificationService verificationService)
+    public VerificationController(IVerificationService verificationService, IWebHostEnvironment environment)
     {
         _verificationService = verificationService;
+        _environment = environment;
     }
 
     [HttpPost("send-email-token")]
@@ -25,10 +29,12 @@ public class VerificationController : ControllerBase
     {
         var userId = GetUserId();
         var token = await _verificationService.GenerateEmailVerificationTokenAsync(userId);
-        
-        // Console simulation
-        Console.WriteLine($"[EMAIL GATEWAY SIMULATION] Sending verification token {token} to user {userId}");
-        
+
+        if (_environment.IsDevelopment())
+        {
+            return Ok(new { Message = "Email verification token generated.", DevToken = token });
+        }
+
         return Ok(new { Message = "Email verification token generated." });
     }
 
@@ -50,11 +56,11 @@ public class VerificationController : ControllerBase
     public async Task<IActionResult> SendSmsOtp([FromBody] SendSmsOtpRequest request)
     {
         var userId = GetUserId();
-        var success = await _verificationService.SendSmsOtpAsync(userId, request.PhoneNumber);
+        var otp = await _verificationService.SendSmsOtpAsync(userId, request.PhoneNumber);
 
-        if (!success)
+        if (_environment.IsDevelopment())
         {
-            return BadRequest(new { Error = "Failed to send SMS OTP." });
+            return Ok(new { Message = "SMS OTP sent successfully.", DevOtp = otp });
         }
 
         return Ok(new { Message = "SMS OTP sent successfully." });

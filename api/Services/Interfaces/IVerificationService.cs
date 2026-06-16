@@ -8,7 +8,7 @@ public interface IVerificationService
     Task<string> GenerateEmailVerificationTokenAsync(Guid userId);
     Task<bool> VerifyEmailAsync(Guid userId, string token);
     
-    Task<bool> SendSmsOtpAsync(Guid userId, string phoneNumber);
+    Task<string> SendSmsOtpAsync(Guid userId, string phoneNumber);
     Task<bool> VerifySmsOtpAsync(Guid userId, string code);
 
     Task<bool> SubmitNicVerificationAsync(Guid userId, string nicNumber, string documentUrl);

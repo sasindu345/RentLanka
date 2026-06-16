@@ -138,3 +138,4 @@
 /Users/oneionei/MyProjects/RentLanka/api/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite.dll
 /Users/oneionei/MyProjects/RentLanka/api/bin/Debug/net10.0/Npgsql.NetTopologySuite.dll
 /Users/oneionei/MyProjects/RentLanka/api/obj/Debug/net10.0/EFCoreNpgsqlNetTopologySuite.cs
+/Users/oneionei/MyProjects/RentLanka/api/bin/Debug/net10.0/RentLanka.Api.staticwebassets.runtime.json

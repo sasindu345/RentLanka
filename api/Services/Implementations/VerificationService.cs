@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using RentLanka.Api.Data;
 using RentLanka.Api.Models.Entities;
 using RentLanka.Api.Services.Interfaces;
@@ -11,20 +12,23 @@ namespace RentLanka.Api.Services.Implementations;
 public class VerificationService : IVerificationService
 {
     private readonly AppDbContext _context;
+    private readonly ILogger<VerificationService> _logger;
     
     // In-memory cache for demo/development OTP and verification tokens
     private static readonly ConcurrentDictionary<Guid, (string Code, DateTime Expiry)> SmsOtps = new();
     private static readonly ConcurrentDictionary<Guid, (string Token, DateTime Expiry)> EmailTokens = new();
 
-    public VerificationService(AppDbContext context)
+    public VerificationService(AppDbContext context, ILogger<VerificationService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public Task<string> GenerateEmailVerificationTokenAsync(Guid userId)
     {
         var token = Guid.NewGuid().ToString("N");
         EmailTokens[userId] = (token, DateTime.UtcNow.AddHours(24));
+        _logger.LogInformation("[EMAIL GATEWAY SIMULATION] Verification token {Token} for user {UserId}", token, userId);
         return Task.FromResult(token);
     }
 
@@ -48,15 +52,15 @@ public class VerificationService : IVerificationService
         return false;
     }
 
-    public Task<bool> SendSmsOtpAsync(Guid userId, string phoneNumber)
+    public Task<string> SendSmsOtpAsync(Guid userId, string phoneNumber)
     {
         var random = new Random();
         var otp = random.Next(100000, 999999).ToString();
         
         SmsOtps[userId] = (otp, DateTime.UtcNow.AddMinutes(10));
-        Console.WriteLine($"[SMS GATEWAY SIMULATION] Sending OTP {otp} to {phoneNumber}");
+        _logger.LogInformation("[SMS GATEWAY SIMULATION] OTP {Otp} sent to {PhoneNumber} for user {UserId}", otp, phoneNumber, userId);
         
-        return Task.FromResult(true);
+        return Task.FromResult(otp);
     }
 
     public async Task<bool> VerifySmsOtpAsync(Guid userId, string code)

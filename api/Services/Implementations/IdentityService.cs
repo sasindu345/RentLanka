@@ -47,6 +47,7 @@ public class IdentityService : IIdentityService
             FirstName = firstName,
             LastName = lastName,
             PhoneNumber = phoneNumber,
+            VerificationLevel = VerificationLevel.Unverified,
             CreatedAt = DateTime.UtcNow
         };
 

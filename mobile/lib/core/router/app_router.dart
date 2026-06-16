@@ -11,6 +11,7 @@ import 'package:mobile/features/explore/screens/listing_detail_screen.dart';
 import 'package:mobile/features/explore/screens/search_results_screen.dart';
 import 'package:mobile/features/listings/screens/create_listing_screen.dart';
 import 'package:mobile/features/profile/screens/profile_screen.dart';
+import 'package:mobile/features/profile/screens/verification_screen.dart';
 import 'package:mobile/features/saved/screens/wishlist_screen.dart';
 import 'package:mobile/shared/widgets/bottom_nav_shell.dart';
 
@@ -113,6 +114,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/app/profile',
                 builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'verification',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const VerificationScreen(),
+                  ),
+                ],
               ),
             ],
           ),

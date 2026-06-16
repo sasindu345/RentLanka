@@ -11,7 +11,7 @@ public class User
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
-    public VerificationLevel VerificationLevel { get; set; } = VerificationLevel.Level0;
+    public VerificationLevel VerificationLevel { get; set; } = VerificationLevel.Unverified;
     public bool IsTrustedUser { get; set; } = false;
     public string? NICNumber { get; set; }
     public string? NicDocumentUrl { get; set; }

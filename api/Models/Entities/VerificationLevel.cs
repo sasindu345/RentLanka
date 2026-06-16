@@ -2,6 +2,7 @@ namespace RentLanka.Api.Models.Entities;
 
 public enum VerificationLevel
 {
+    Unverified = -1,
     Level0 = 0, // Email Verified
     Level1 = 1, // Mobile Verified
     Level2 = 2, // NIC Verified
