@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/listings_api.dart';
+import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
@@ -78,7 +79,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
             if (imageUrl != null)
               AspectRatio(
                 aspectRatio: 16 / 10,
-                child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.cover),
+                child: CachedNetworkImage(imageUrl: resolveMediaUrl(imageUrl), fit: BoxFit.cover),
               ),
             Padding(
               padding: const EdgeInsets.all(16),

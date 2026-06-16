@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/listings_api.dart';
+import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
@@ -24,7 +25,7 @@ class ListingCard extends StatelessWidget {
             Expanded(
               child: imageUrl != null
                   ? CachedNetworkImage(
-                      imageUrl: imageUrl,
+                      imageUrl: resolveMediaUrl(imageUrl),
                       width: double.infinity,
                       fit: BoxFit.cover,
                       placeholder: (_, __) => Container(color: Colors.grey.shade200),

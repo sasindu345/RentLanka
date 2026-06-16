@@ -1,10 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile/core/api/api_client.dart';
+import 'package:mobile/core/api/file_api.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CreateListingScreen extends ConsumerStatefulWidget {
   const CreateListingScreen({super.key});
@@ -19,10 +22,16 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   final _priceController = TextEditingController();
   final _depositController = TextEditingController();
   final _rulesController = TextEditingController();
+  final _picker = ImagePicker();
+
   String _category = categories.first;
   String _district = districts.first;
+  final List<String> _imageUrls = [];
   bool _loading = false;
+  bool _uploadingImage = false;
   String? _error;
+
+  static const _maxImages = 5;
 
   @override
   void dispose() {
@@ -34,7 +43,68 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    if (_imageUrls.length >= _maxImages) {
+      setState(() => _error = 'Maximum $_maxImages photos per listing.');
+      return;
+    }
+
+    final picked = await _picker.pickImage(
+      source: source,
+      maxWidth: 1920,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+
+    setState(() {
+      _uploadingImage = true;
+      _error = null;
+    });
+
+    try {
+      final url = await ref.read(fileApiProvider).uploadListingImage(picked.path);
+      setState(() => _imageUrls.add(url));
+    } on DioException catch (e) {
+      setState(() => _error = extractError(e));
+    } finally {
+      if (mounted) setState(() => _uploadingImage = false);
+    }
+  }
+
+  Future<void> _showImageSourcePicker() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Choose from gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Take a photo'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _submit() async {
+    if (_imageUrls.isEmpty) {
+      setState(() => _error = 'Add at least one photo.');
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -50,7 +120,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
         'latitude': 6.9271,
         'longitude': 79.8612,
         'district': _district,
-        'images': <String>[],
+        'images': _imageUrls,
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -61,6 +131,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
         _priceController.clear();
         _depositController.clear();
         _rulesController.clear();
+        setState(() => _imageUrls.clear());
       }
     } on DioException catch (e) {
       setState(() => _error = extractError(e));
@@ -81,6 +152,90 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
             const Text(
               'Phone verification (Level 1) is required to publish.',
               style: TextStyle(color: AppTheme.muted, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            const Text('Photos', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            const Text(
+              'Stored locally on the dev server (api/wwwroot/uploads).',
+              style: TextStyle(color: AppTheme.muted, fontSize: 12),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 100,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  ..._imageUrls.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final url = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: CachedNetworkImage(
+                              imageUrl: resolveMediaUrl(url),
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                              placeholder: (_, __) => Container(
+                                width: 100,
+                                height: 100,
+                                color: Colors.grey.shade200,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: GestureDetector(
+                              onTap: () => setState(() => _imageUrls.removeAt(index)),
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black54,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.close, size: 16, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  if (_imageUrls.length < _maxImages)
+                    InkWell(
+                      onTap: _uploadingImage ? null : _showImageSourcePicker,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          borderRadius: BorderRadius.circular(8),
+                          color: AppTheme.card,
+                        ),
+                        child: _uploadingImage
+                            ? const Center(child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ))
+                            : const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_a_photo_outlined, color: AppTheme.primary),
+                                  SizedBox(height: 4),
+                                  Text('Add', style: TextStyle(fontSize: 12, color: AppTheme.muted)),
+                                ],
+                              ),
+                      ),
+                    ),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
             TextField(controller: _titleController, decoration: const InputDecoration(labelText: 'Title')),
@@ -126,7 +281,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: _loading ? null : _submit,
+                onPressed: (_loading || _uploadingImage) ? null : _submit,
                 style: FilledButton.styleFrom(backgroundColor: AppTheme.accent),
                 child: Text(_loading ? 'Publishing...' : 'Publish listing'),
               ),
