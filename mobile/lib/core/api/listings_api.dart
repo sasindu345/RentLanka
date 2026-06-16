@@ -84,6 +84,11 @@ class ListingsApi {
     return Listing.fromJson(response.data as Map<String, dynamic>);
   }
 
+  Future<Listing> updateListing(String id, Map<String, dynamic> data) async {
+    final response = await _dio.put('/api/listings/$id', data: data);
+    return Listing.fromJson(response.data as Map<String, dynamic>);
+  }
+
   Future<List<Listing>> getMyListings() async {
     final response = await _dio.get('/api/listings/mine');
     return (response.data as List<dynamic>)

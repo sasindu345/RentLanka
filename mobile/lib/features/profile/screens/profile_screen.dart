@@ -122,6 +122,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     trailing: l.isPaused
                         ? const Chip(label: Text('Paused', style: TextStyle(fontSize: 11)))
                         : const Chip(label: Text('Active', style: TextStyle(fontSize: 11))),
+                    onTap: () async {
+                      final updated = await context.push<bool>('/app/profile/listing/${l.id}/edit');
+                      if (updated == true && mounted) _load();
+                    },
                   )),
           ],
         ),
