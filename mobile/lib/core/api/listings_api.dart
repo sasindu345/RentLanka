@@ -89,6 +89,15 @@ class ListingsApi {
     return Listing.fromJson(response.data as Map<String, dynamic>);
   }
 
+  Future<Listing> togglePauseListing(String id) async {
+    final response = await _dio.patch('/api/listings/$id/pause');
+    return Listing.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<void> deleteListing(String id) async {
+    await _dio.delete('/api/listings/$id');
+  }
+
   Future<List<Listing>> getMyListings() async {
     final response = await _dio.get('/api/listings/mine');
     return (response.data as List<dynamic>)

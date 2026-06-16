@@ -1,6 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -41,6 +43,97 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _logout() async {
     await ref.read(listingsApiProvider).logout();
     if (mounted) context.go('/welcome');
+  }
+
+  Future<void> _togglePause(Listing listing) async {
+    try {
+      await ref.read(listingsApiProvider).togglePauseListing(listing.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(listing.isPaused ? 'Listing resumed' : 'Listing paused')),
+        );
+        _load();
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(extractError(e))),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmDelete(Listing listing) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete listing?'),
+        content: Text('Remove "${listing.title}"? This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await ref.read(listingsApiProvider).deleteListing(listing.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Listing deleted')),
+        );
+        _load();
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(extractError(e))),
+        );
+      }
+    }
+  }
+
+  void _showListingActions(Listing listing) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: const Text('Edit listing'),
+              onTap: () async {
+                Navigator.pop(context);
+                final updated = await context.push<bool>('/app/profile/listing/${listing.id}/edit');
+                if (updated == true && mounted) _load();
+              },
+            ),
+            ListTile(
+              leading: Icon(listing.isPaused ? Icons.play_arrow_outlined : Icons.pause_outlined),
+              title: Text(listing.isPaused ? 'Resume listing' : 'Pause listing'),
+              onTap: () {
+                Navigator.pop(context);
+                _togglePause(listing);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline, color: Colors.red),
+              title: const Text('Delete listing', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(context);
+                _confirmDelete(listing);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -116,16 +209,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             if (_myListings.isEmpty)
               const Text('No listings yet. Tap List tab to publish.', style: TextStyle(color: AppTheme.muted))
             else
-              ..._myListings.map((l) => ListTile(
-                    title: Text(l.title),
-                    subtitle: Text('${l.category} · ${ListingsApi.formatPrice(l.pricePerDay)}/day'),
-                    trailing: l.isPaused
-                        ? const Chip(label: Text('Paused', style: TextStyle(fontSize: 11)))
-                        : const Chip(label: Text('Active', style: TextStyle(fontSize: 11))),
-                    onTap: () async {
-                      final updated = await context.push<bool>('/app/profile/listing/${l.id}/edit');
-                      if (updated == true && mounted) _load();
-                    },
+              ..._myListings.map((l) => Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      title: Text(l.title),
+                      subtitle: Text('${l.category} · ${ListingsApi.formatPrice(l.pricePerDay)}/day'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Chip(
+                            label: Text(
+                              l.isPaused ? 'Paused' : 'Active',
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                            backgroundColor: l.isPaused ? Colors.orange.shade50 : Colors.green.shade50,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.more_vert),
+                            onPressed: () => _showListingActions(l),
+                          ),
+                        ],
+                      ),
+                      onTap: () => _showListingActions(l),
+                    ),
                   )),
           ],
         ),
