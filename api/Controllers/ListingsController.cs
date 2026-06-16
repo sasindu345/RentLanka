@@ -1,5 +1,4 @@
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +9,7 @@ namespace RentLanka.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ListingsController : ControllerBase
+public class ListingsController : AuthorizedControllerBase
 {
     private readonly IListingService _listingService;
 
@@ -25,13 +24,16 @@ public class ListingsController : ControllerBase
     {
         try
         {
-            var userId = GetUserId();
-            var response = await _listingService.CreateListingAsync(userId, request);
+            var response = await _listingService.CreateListingAsync(GetUserId(), request);
             return CreatedAtAction(nameof(GetListingById), new { id = response.Id }, response);
         }
         catch (UnauthorizedAccessException ex)
         {
             return Unauthorized(new { Error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Error = ex.Message });
         }
         catch (Exception ex)
         {
@@ -39,14 +41,28 @@ public class ListingsController : ControllerBase
         }
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetListingById(Guid id)
     {
-        var response = await _listingService.GetListingByIdAsync(id);
+        Guid? ownerId = null;
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            try
+            {
+                ownerId = GetUserId();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                ownerId = null;
+            }
+        }
+
+        var response = await _listingService.GetListingByIdAsync(id, ownerId: ownerId);
         if (response == null)
         {
             return NotFound(new { Error = "Listing not found." });
         }
+
         return Ok(response);
     }
 
@@ -57,11 +73,18 @@ public class ListingsController : ControllerBase
         [FromQuery] string? district,
         [FromQuery] double? lat,
         [FromQuery] double? lon,
-        [FromQuery] double? distanceMeters)
+        [FromQuery] double? distanceMeters,
+        [FromQuery] decimal? minPrice,
+        [FromQuery] decimal? maxPrice,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? sortBy = "newest")
     {
         try
         {
-            var results = await _listingService.SearchListingsAsync(query, category, district, lat, lon, distanceMeters);
+            var results = await _listingService.SearchListingsAsync(
+                query, category, district, lat, lon, distanceMeters,
+                minPrice, maxPrice, page, pageSize, sortBy);
             return Ok(results);
         }
         catch (Exception ex)
@@ -70,13 +93,56 @@ public class ListingsController : ControllerBase
         }
     }
 
-    private Guid GetUserId()
+    [Authorize]
+    [HttpGet("mine")]
+    public async Task<IActionResult> GetMyListings()
     {
-        var claimValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(claimValue))
+        var results = await _listingService.GetMyListingsAsync(GetUserId());
+        return Ok(results);
+    }
+
+    [Authorize]
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateListing(Guid id, [FromBody] UpdateListingRequest request)
+    {
+        var (succeeded, listing, error) = await _listingService.UpdateListingAsync(GetUserId(), id, request);
+        if (!succeeded)
         {
-            throw new UnauthorizedAccessException("User is not authenticated.");
+            return error == "Listing not found."
+                ? NotFound(new { Error = error })
+                : BadRequest(new { Error = error });
         }
-        return Guid.Parse(claimValue);
+
+        return Ok(listing);
+    }
+
+    [Authorize]
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteListing(Guid id)
+    {
+        var (succeeded, error) = await _listingService.DeleteListingAsync(GetUserId(), id);
+        if (!succeeded)
+        {
+            return error == "Listing not found."
+                ? NotFound(new { Error = error })
+                : BadRequest(new { Error = error });
+        }
+
+        return NoContent();
+    }
+
+    [Authorize]
+    [HttpPatch("{id:guid}/pause")]
+    public async Task<IActionResult> TogglePause(Guid id)
+    {
+        var (succeeded, listing, error) = await _listingService.TogglePauseAsync(GetUserId(), id);
+        if (!succeeded)
+        {
+            return error == "Listing not found."
+                ? NotFound(new { Error = error })
+                : BadRequest(new { Error = error });
+        }
+
+        return Ok(listing);
     }
 }

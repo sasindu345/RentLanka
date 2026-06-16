@@ -53,6 +53,9 @@ namespace RentLanka.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text[]");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsPaused")
                         .HasColumnType("boolean");
 
@@ -83,6 +86,16 @@ namespace RentLanka.Api.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("District");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("IsPaused");
+
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Listings");
                 });
@@ -120,6 +133,10 @@ namespace RentLanka.Api.Migrations
                     b.Property<string>("NICNumber")
                         .HasColumnType("text");
 
+                    b.Property<string>("NicDocumentUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
@@ -141,6 +158,73 @@ namespace RentLanka.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("RentLanka.Api.Models.Entities.WishlistItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ListingId");
+
+                    b.HasIndex("UserId", "ListingId")
+                        .IsUnique();
+
+                    b.ToTable("WishlistItems");
+                });
+
+            modelBuilder.Entity("RentLanka.Api.Models.Entities.Listing", b =>
+                {
+                    b.HasOne("RentLanka.Api.Models.Entities.User", "Owner")
+                        .WithMany("Listings")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("RentLanka.Api.Models.Entities.WishlistItem", b =>
+                {
+                    b.HasOne("RentLanka.Api.Models.Entities.Listing", "Listing")
+                        .WithMany("WishlistItems")
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RentLanka.Api.Models.Entities.User", "User")
+                        .WithMany("WishlistItems")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Listing");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RentLanka.Api.Models.Entities.Listing", b =>
+                {
+                    b.Navigation("WishlistItems");
+                });
+
+            modelBuilder.Entity("RentLanka.Api.Models.Entities.User", b =>
+                {
+                    b.Navigation("Listings");
+
+                    b.Navigation("WishlistItems");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace RentLanka.Api.Models.Entities;
 
@@ -13,7 +14,11 @@ public class User
     public VerificationLevel VerificationLevel { get; set; } = VerificationLevel.Level0;
     public bool IsTrustedUser { get; set; } = false;
     public string? NICNumber { get; set; }
+    public string? NicDocumentUrl { get; set; }
     public string? AvatarUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
+
+    public ICollection<Listing> Listings { get; set; } = new List<Listing>();
+    public ICollection<WishlistItem> WishlistItems { get; set; } = new List<WishlistItem>();
 }

@@ -2820,7 +2820,7 @@
     ]
   },
   "packageFolders": {
-    "/Users/oneionei/.nuget/packages/": {}
+    "/var/folders/d5/p0g9yj5d3917zn2rtsww9qs00000gn/T/cursor-sandbox-cache/67936518ee40147e11e3e46cadd321ae/nuget": {}
   },
   "project": {
     "version": "1.0.0",
@@ -2828,7 +2828,7 @@
       "projectUniqueName": "/Users/oneionei/MyProjects/RentLanka/api/RentLanka.Api.csproj",
       "projectName": "RentLanka.Api",
       "projectPath": "/Users/oneionei/MyProjects/RentLanka/api/RentLanka.Api.csproj",
-      "packagesPath": "/Users/oneionei/.nuget/packages/",
+      "packagesPath": "/var/folders/d5/p0g9yj5d3917zn2rtsww9qs00000gn/T/cursor-sandbox-cache/67936518ee40147e11e3e46cadd321ae/nuget",
       "outputPath": "/Users/oneionei/MyProjects/RentLanka/api/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [

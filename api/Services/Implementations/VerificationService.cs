@@ -85,6 +85,7 @@ public class VerificationService : IVerificationService
         if (user != null)
         {
             user.NICNumber = nicNumber;
+            user.NicDocumentUrl = documentUrl;
             if (user.VerificationLevel < VerificationLevel.Level2)
             {
                 user.VerificationLevel = VerificationLevel.Level2;

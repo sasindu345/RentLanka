@@ -21,6 +21,10 @@ public class Listing
     public string District { get; set; } = string.Empty;
     public List<string> Images { get; set; } = new();
     public bool IsPaused { get; set; } = false;
+    public bool IsDeleted { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
+
+    public User Owner { get; set; } = null!;
+    public ICollection<WishlistItem> WishlistItems { get; set; } = new List<WishlistItem>();
 }

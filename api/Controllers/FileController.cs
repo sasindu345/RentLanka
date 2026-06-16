@@ -66,4 +66,28 @@ public class FileController : ControllerBase
 
         return Ok(new { AvatarUrl = avatarUrl, Message = "Avatar updated successfully." });
     }
+
+    [HttpPost("listing-image")]
+    public async Task<IActionResult> UploadListingImage(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest(new { Error = "No file uploaded." });
+        }
+
+        if (!file.ContentType.StartsWith("image/"))
+        {
+            return BadRequest(new { Error = "Only image uploads are allowed." });
+        }
+
+        if (file.Length > 5 * 1024 * 1024)
+        {
+            return BadRequest(new { Error = "Image must be 5MB or smaller." });
+        }
+
+        using var stream = file.OpenReadStream();
+        var imageUrl = await _fileStorage.UploadFileAsync(stream, file.FileName, file.ContentType);
+
+        return Ok(new { ImageUrl = imageUrl, Message = "Listing image uploaded successfully." });
+    }
 }

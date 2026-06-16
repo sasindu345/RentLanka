@@ -13,3 +13,15 @@ public record CreateListingRequest(
     double Longitude,
     string District,
     List<string> Images);
+
+public record UpdateListingRequest(
+    string Title,
+    string Description,
+    string Category,
+    decimal PricePerDay,
+    decimal SecurityDeposit,
+    string Rules,
+    double Latitude,
+    double Longitude,
+    string District,
+    List<string> Images);

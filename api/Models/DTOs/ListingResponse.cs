@@ -6,6 +6,7 @@ namespace RentLanka.Api.Models.DTOs;
 public record ListingResponse(
     Guid Id,
     Guid OwnerId,
+    OwnerSummary Owner,
     string Title,
     string Description,
     string Category,

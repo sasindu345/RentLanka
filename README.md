@@ -17,8 +17,8 @@ RentLanka/
 │   ├── Data/             # Database context (EF Core)
 │   ├── Middleware/       # Global pipelines (Exception handling, etc.)
 │   └── Migrations/       # Database schema migrations
-├── web/                  # Web Frontend (Next.js 15)
-├── mobile/               # Mobile App (Flutter)
+├── web/                  # Admin Dashboard (Next.js 15) — ops team only, NOT a public consumer site
+├── mobile/               # User App (Flutter) — renters & owners
 ├── doc/                  # Roadmap, market analysis, and project specifications
 └── .github/              # CI/CD Workflows
 ```
@@ -36,12 +36,14 @@ RentLanka/
 - **Authentication**: JWT Bearer Tokens & BCrypt password hashing
 - **File Storage**: AWS S3 integration with a local disk upload fallback during development
 
-### Web Frontend (`/web`)
-- Next.js 15
-- Vanilla CSS / HSL Tailored palettes for vibrant premium UI look
+### Web — Admin Dashboard (`/web`)
+- Next.js 15, Tailwind CSS 4
+- **Admin-only** internal dashboard: KYC review, disputes, moderation, analytics
+- Not a public consumer website — users interact via the mobile app
 
-### Mobile App (`/mobile`)
+### Mobile App — User Product (`/mobile`)
 - Flutter (Dart) for Android and iOS
+- **Primary client** for renters and owners: discover, list, book, pay, chat
 
 ---
 
@@ -108,5 +110,23 @@ RentLanka/
 
 ### Listings (`/api/listings`)
 * `POST /api/listings` *(Authorized)* - Submits a new rental item with location coordinates.
-* `GET /api/listings/{id}` - Retrieves listing details.
-* `GET /api/listings/search` - Searches listings by `query`, `category`, `district`, or spatial distance parameters (`lat`, `lon`, `distanceMeters`).
+* `GET /api/listings/{id}` - Retrieves listing details (includes owner summary).
+* `GET /api/listings/search` - Searches listings with pagination, price filters, and spatial distance.
+* `GET /api/listings/mine` *(Authorized)* - Returns the current user's listings.
+* `PUT /api/listings/{id}` *(Authorized)* - Updates a listing (owner only).
+* `DELETE /api/listings/{id}` *(Authorized)* - Soft-deletes a listing (owner only).
+* `PATCH /api/listings/{id}/pause` *(Authorized)* - Toggles listing pause state.
+
+### Users (`/api/users`)
+* `GET /api/users/me` *(Authorized)* - Returns the authenticated user's profile.
+* `PATCH /api/users/me` *(Authorized)* - Updates name or phone number.
+* `GET /api/users/{id}` - Returns a public user profile.
+
+### Wishlist (`/api/wishlist`)
+* `GET /api/wishlist` *(Authorized)* - Returns paginated saved listings.
+* `POST /api/wishlist/{listingId}` *(Authorized)* - Saves a listing to wishlist.
+* `DELETE /api/wishlist/{listingId}` *(Authorized)* - Removes a listing from wishlist.
+
+### Files (`/api/file`)
+* `POST /api/file/avatar` *(Authorized)* - Upload user avatar.
+* `POST /api/file/listing-image` *(Authorized)* - Upload a listing photo.

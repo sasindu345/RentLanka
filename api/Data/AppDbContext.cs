@@ -12,15 +12,14 @@ public class AppDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Listing> Listings => Set<Listing>();
+    public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Enable PostGIS extension
         modelBuilder.HasPostgresExtension("postgis");
-        
-        // Apply configurations directly
+
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(u => u.Id);
@@ -30,12 +29,12 @@ public class AppDbContext : DbContext
             entity.Property(u => u.FirstName).IsRequired().HasMaxLength(100);
             entity.Property(u => u.LastName).IsRequired().HasMaxLength(100);
             entity.Property(u => u.PhoneNumber).HasMaxLength(20);
+            entity.Property(u => u.NicDocumentUrl).HasMaxLength(2048);
         });
 
         modelBuilder.Entity<Listing>(entity =>
         {
             entity.HasKey(l => l.Id);
-            entity.Property(l => l.OwnerId).IsRequired();
             entity.Property(l => l.Title).IsRequired().HasMaxLength(200);
             entity.Property(l => l.Description).HasMaxLength(2000);
             entity.Property(l => l.Category).IsRequired().HasMaxLength(100);
@@ -43,9 +42,33 @@ public class AppDbContext : DbContext
             entity.Property(l => l.SecurityDeposit).HasColumnType("numeric(18,2)");
             entity.Property(l => l.Rules).HasMaxLength(1000);
             entity.Property(l => l.District).IsRequired().HasMaxLength(100);
-            
-            // Map location property to PostGIS geography point with SRID 4326
             entity.Property(l => l.Location).HasColumnType("geography(Point, 4326)");
+
+            entity.HasIndex(l => l.Category);
+            entity.HasIndex(l => l.District);
+            entity.HasIndex(l => l.IsPaused);
+            entity.HasIndex(l => l.IsDeleted);
+
+            entity.HasOne(l => l.Owner)
+                .WithMany(u => u.Listings)
+                .HasForeignKey(l => l.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<WishlistItem>(entity =>
+        {
+            entity.HasKey(w => w.Id);
+            entity.HasIndex(w => new { w.UserId, w.ListingId }).IsUnique();
+
+            entity.HasOne(w => w.User)
+                .WithMany(u => u.WishlistItems)
+                .HasForeignKey(w => w.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(w => w.Listing)
+                .WithMany(l => l.WishlistItems)
+                .HasForeignKey(w => w.ListingId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

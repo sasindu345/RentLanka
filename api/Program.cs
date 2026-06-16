@@ -22,6 +22,19 @@ public class Program
         // Add services to the container.
         builder.Services.AddControllers();
 
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("RentLankaClients", policy =>
+            {
+                policy.WithOrigins(
+                        "http://localhost:3000",
+                        "http://127.0.0.1:3000")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
+
         // Database context registration
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
         builder.Services.AddDbContext<AppDbContext>(options =>
@@ -60,8 +73,10 @@ public class Program
 
         // Register Dependency Injection Services
         builder.Services.AddScoped<IIdentityService, IdentityService>();
+        builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IVerificationService, VerificationService>();
         builder.Services.AddScoped<IListingService, ListingService>();
+        builder.Services.AddScoped<IWishlistService, WishlistService>();
         builder.Services.AddSingleton<IFileStorageService, S3FileStorageService>();
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -76,6 +91,8 @@ public class Program
         {
             app.MapOpenApi();
         }
+
+        app.UseCors("RentLankaClients");
 
         app.UseStaticFiles();
 
