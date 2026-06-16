@@ -1,12 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/listings_api.dart';
-import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/shared/widgets/listing_image.dart';
 
 class ListingDetailScreen extends ConsumerStatefulWidget {
   final String id;
@@ -76,11 +75,10 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (imageUrl != null)
-              AspectRatio(
-                aspectRatio: 16 / 10,
-                child: CachedNetworkImage(imageUrl: resolveMediaUrl(imageUrl), fit: BoxFit.cover),
-              ),
+            AspectRatio(
+              aspectRatio: 16 / 10,
+              child: ListingImage(url: imageUrl, width: double.infinity),
+            ),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(

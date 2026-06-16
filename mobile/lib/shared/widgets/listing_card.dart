@@ -1,10 +1,9 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/listings_api.dart';
-import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/shared/widgets/listing_image.dart';
 
 class ListingCard extends StatelessWidget {
   final Listing listing;
@@ -23,19 +22,10 @@ class ListingCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: imageUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: resolveMediaUrl(imageUrl),
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(color: Colors.grey.shade200),
-                      errorWidget: (_, __, ___) => const Icon(Icons.image_not_supported),
-                    )
-                  : Container(
-                      width: double.infinity,
-                      color: Colors.grey.shade200,
-                      child: const Center(child: Icon(Icons.image_outlined, color: AppTheme.muted)),
-                    ),
+              child: ListingImage(
+                url: imageUrl,
+                width: double.infinity,
+              ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
