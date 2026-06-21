@@ -13,6 +13,10 @@ public class AppDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Listing> Listings => Set<Listing>();
     public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
+    public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<AvailabilityBlock> AvailabilityBlocks => Set<AvailabilityBlock>();
+    public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<Payout> Payouts => Set<Payout>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -86,6 +90,66 @@ public class AppDbContext : DbContext
                 .WithMany(l => l.WishlistItems)
                 .HasForeignKey(w => w.ListingId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Booking>(entity =>
+        {
+            entity.HasKey(b => b.Id);
+            entity.Property(b => b.TotalPrice).HasColumnType("numeric(18,2)");
+            entity.Property(b => b.SecurityDeposit).HasColumnType("numeric(18,2)");
+
+            entity.HasOne(b => b.Listing)
+                .WithMany()
+                .HasForeignKey(b => b.ListingId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(b => b.Renter)
+                .WithMany()
+                .HasForeignKey(b => b.RenterId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AvailabilityBlock>(entity =>
+        {
+            entity.HasKey(ab => ab.Id);
+
+            entity.HasOne(ab => ab.Listing)
+                .WithMany()
+                .HasForeignKey(ab => ab.ListingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(ab => ab.Booking)
+                .WithMany()
+                .HasForeignKey(ab => ab.BookingId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(ab => new { ab.ListingId, ab.StartDate, ab.EndDate });
+        });
+
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Amount).HasColumnType("numeric(18,2)");
+            entity.Property(p => p.TransactionReference).HasMaxLength(100);
+
+            entity.HasOne(p => p.Booking)
+                .WithMany()
+                .HasForeignKey(p => p.BookingId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Payout>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Amount).HasColumnType("numeric(18,2)");
+            entity.Property(p => p.BankName).IsRequired().HasMaxLength(100);
+            entity.Property(p => p.AccountNumber).IsRequired().HasMaxLength(50);
+            entity.Property(p => p.AccountName).IsRequired().HasMaxLength(100);
+
+            entity.HasOne(p => p.Owner)
+                .WithMany()
+                .HasForeignKey(p => p.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
