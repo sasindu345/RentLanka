@@ -13,10 +13,17 @@ namespace RentLanka.Api.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly IAdminService _adminService;
+    private readonly IBookingService _bookingService;
+    private readonly IEarningsService _earningsService;
 
-    public AdminController(IAdminService adminService)
+    public AdminController(
+        IAdminService adminService,
+        IBookingService bookingService,
+        IEarningsService earningsService)
     {
         _adminService = adminService;
+        _bookingService = bookingService;
+        _earningsService = earningsService;
     }
 
     [HttpGet("dashboard")]
@@ -130,5 +137,37 @@ public class AdminController : ControllerBase
             return BadRequest(new { Error = "Failed to reject KYC. Check if user is in Level 2 (NIC Submitted)." });
         }
         return Ok(new { Message = "KYC rejected successfully." });
+    }
+
+    [HttpGet("bookings")]
+    public async Task<IActionResult> GetAllBookings()
+    {
+        var bookings = await _bookingService.GetAllBookingsAsync();
+        return Ok(bookings);
+    }
+
+    [HttpGet("payments")]
+    public async Task<IActionResult> GetAllPayments()
+    {
+        var payments = await _earningsService.GetAllPaymentsAsync();
+        return Ok(payments);
+    }
+
+    [HttpGet("payouts")]
+    public async Task<IActionResult> GetAllPayouts()
+    {
+        var payouts = await _earningsService.GetAllPayoutsAsync();
+        return Ok(payouts);
+    }
+
+    [HttpPatch("payouts/{id:guid}/approve")]
+    public async Task<IActionResult> ApprovePayout(Guid id)
+    {
+        var (succeeded, error) = await _earningsService.ApprovePayoutAsync(id);
+        if (!succeeded)
+        {
+            return BadRequest(new { Error = error });
+        }
+        return Ok(new { Message = "Payout approved successfully." });
     }
 }

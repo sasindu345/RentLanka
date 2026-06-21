@@ -12,10 +12,12 @@ namespace RentLanka.Api.Controllers;
 public class ListingsController : AuthorizedControllerBase
 {
     private readonly IListingService _listingService;
+    private readonly IBookingService _bookingService;
 
-    public ListingsController(IListingService listingService)
+    public ListingsController(IListingService listingService, IBookingService bookingService)
     {
         _listingService = listingService;
+        _bookingService = bookingService;
     }
 
     [Authorize]
@@ -144,5 +146,38 @@ public class ListingsController : AuthorizedControllerBase
         }
 
         return Ok(listing);
+    }
+
+    [HttpGet("{id:guid}/availability")]
+    public async Task<IActionResult> GetListingAvailability(Guid id)
+    {
+        var blocks = await _bookingService.GetListingAvailabilityAsync(id);
+        return Ok(blocks);
+    }
+
+    [Authorize]
+    [HttpPost("{id:guid}/availability/block")]
+    public async Task<IActionResult> CreateManualBlock(Guid id, [FromBody] ManualBlockRequest request)
+    {
+        var (succeeded, error) = await _bookingService.CreateManualBlockAsync(GetUserId(), id, request.StartDate, request.EndDate);
+        if (!succeeded)
+        {
+            return error == "Unauthorized" ? Forbid() : BadRequest(new { Error = error });
+        }
+
+        return NoContent();
+    }
+
+    [Authorize]
+    [HttpDelete("{id:guid}/availability/block/{blockId:guid}")]
+    public async Task<IActionResult> DeleteManualBlock(Guid id, Guid blockId)
+    {
+        var (succeeded, error) = await _bookingService.DeleteManualBlockAsync(GetUserId(), blockId);
+        if (!succeeded)
+        {
+            return error == "Unauthorized" ? Forbid() : BadRequest(new { Error = error });
+        }
+
+        return NoContent();
     }
 }

@@ -201,12 +201,13 @@ public class AdminService : IAdminService
         var totalUsers = await _context.Users.CountAsync();
         var activeListings = await _context.Listings.CountAsync(l => !l.IsDeleted && !l.IsPaused);
         var pendingKycCount = await _context.Users.CountAsync(u => u.VerificationLevel == VerificationLevel.Level2 && !u.IsBanned);
+        var totalBookings = await _context.Bookings.CountAsync();
 
         return new AdminDashboardStats(
             totalUsers,
             activeListings,
             pendingKycCount,
-            0,
+            totalBookings,
             0
         );
     }

@@ -13,10 +13,12 @@ namespace RentLanka.Api.Controllers;
 public class UsersController : AuthorizedControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IEarningsService _earningsService;
 
-    public UsersController(IUserService userService)
+    public UsersController(IUserService userService, IEarningsService earningsService)
     {
         _userService = userService;
+        _earningsService = earningsService;
     }
 
     [HttpGet("me")]
@@ -54,5 +56,24 @@ public class UsersController : AuthorizedControllerBase
         }
 
         return Ok(user);
+    }
+
+    [HttpGet("me/earnings")]
+    public async Task<IActionResult> GetMyEarnings()
+    {
+        var earnings = await _earningsService.GetHostEarningsAsync(GetUserId());
+        return Ok(earnings);
+    }
+
+    [HttpPost("me/payouts")]
+    public async Task<IActionResult> RequestPayout([FromBody] PayoutRequest request)
+    {
+        var (succeeded, error) = await _earningsService.RequestPayoutAsync(GetUserId(), request);
+        if (!succeeded)
+        {
+            return BadRequest(new { Error = error });
+        }
+
+        return NoContent();
     }
 }
