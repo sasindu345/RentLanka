@@ -8,12 +8,14 @@ import 'package:mobile/features/auth/screens/register_screen.dart';
 import 'package:mobile/features/auth/screens/welcome_screen.dart';
 import 'package:mobile/features/explore/screens/home_feed_screen.dart';
 import 'package:mobile/features/explore/screens/listing_detail_screen.dart';
+import 'package:mobile/features/explore/screens/booking_request_screen.dart';
 import 'package:mobile/features/explore/screens/search_results_screen.dart';
 import 'package:mobile/features/listings/screens/create_listing_screen.dart';
 import 'package:mobile/features/listings/screens/edit_listing_screen.dart';
 import 'package:mobile/features/profile/screens/edit_profile_screen.dart';
 import 'package:mobile/features/profile/screens/profile_screen.dart';
 import 'package:mobile/features/profile/screens/verification_screen.dart';
+import 'package:mobile/features/profile/screens/earnings_screen.dart';
 import 'package:mobile/features/saved/screens/wishlist_screen.dart';
 import 'package:mobile/shared/widgets/bottom_nav_shell.dart';
 
@@ -82,6 +84,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) {
                       return ListingDetailScreen(id: state.pathParameters['id']!);
                     },
+                    routes: [
+                      GoRoute(
+                        path: 'book',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) {
+                          return BookingRequestScreen(listingId: state.pathParameters['id']!);
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -126,6 +137,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'verification',
                     parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) => const VerificationScreen(),
+                  ),
+                  GoRoute(
+                    path: 'earnings',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const EarningsScreen(),
                   ),
                   GoRoute(
                     path: 'listing/:id/edit',
