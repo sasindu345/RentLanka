@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/api/api_client.dart';
+import 'package:mobile/core/api/bookings_api.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -18,6 +19,7 @@ class ListingDetailScreen extends ConsumerStatefulWidget {
 
 class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
   Listing? _listing;
+  List<AvailabilityBlockResponse> _blocks = [];
   bool _loading = true;
   bool _saving = false;
 
@@ -30,7 +32,13 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
   Future<void> _load() async {
     try {
       final listing = await ref.read(listingsApiProvider).getListing(widget.id);
-      setState(() => _listing = listing);
+      final blocks = await ref.read(bookingsApiProvider).getListingAvailability(widget.id);
+      setState(() {
+        _listing = listing;
+        _blocks = blocks;
+      });
+    } catch (_) {
+      // Ignore if details load fails
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -129,19 +137,44 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'Booking & availability coming in Phase 4',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: AppTheme.muted),
-                    ),
-                  ),
+                  const Text('Listing Availability', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  if (_blocks.isEmpty)
+                    const Text('Available all dates', style: TextStyle(color: Colors.green, fontSize: 14, fontWeight: FontWeight.bold))
+                  else
+                    ..._blocks.map((b) {
+                      final startStr = '${b.startDate.day}/${b.startDate.month}/${b.startDate.year}';
+                      final endStr = '${b.endDate.day}/${b.endDate.month}/${b.endDate.year}';
+                      final isManual = b.type == 'Manual';
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isManual ? Colors.grey.shade100 : Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: isManual ? Colors.grey.shade300 : Colors.red.shade100),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '$startStr - $endStr',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                  color: isManual ? Colors.black87 : Colors.red.shade900),
+                            ),
+                            Text(
+                              isManual ? 'Blocked by Owner' : 'Booked',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: isManual ? Colors.grey.shade700 : Colors.red.shade700),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
                 ],
               ),
             ),
@@ -162,7 +195,9 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: FilledButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.push('/app/explore/listing/${listing.id}/book');
+                  },
                   style: FilledButton.styleFrom(backgroundColor: AppTheme.accent),
                   child: const Text('Request to book'),
                 ),

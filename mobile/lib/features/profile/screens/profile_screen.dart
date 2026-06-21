@@ -214,6 +214,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               label: Text(user.verificationLevel >= 3 ? 'View verification' : 'Complete verification'),
             ),
             const SizedBox(height: 24),
+            const Text('Host Tools', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.account_balance_wallet_outlined, color: AppTheme.primary),
+                title: const Text('Host Earnings & Payouts'),
+                subtitle: const Text('Withdraw funds, view history & balances'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  context.push('/app/profile/earnings');
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
