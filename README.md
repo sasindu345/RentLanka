@@ -111,7 +111,7 @@ RentLanka/
 
 For logging into the admin web panel:
 * **Email:** `admin@rentlanka.lk`
-* **Password:** `admin`
+* **Password:** `password123`
 
 ---
 

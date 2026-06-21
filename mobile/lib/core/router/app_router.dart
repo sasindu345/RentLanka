@@ -20,7 +20,6 @@ import 'package:mobile/features/saved/screens/wishlist_screen.dart';
 import 'package:mobile/shared/widgets/bottom_nav_shell.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final api = ref.watch(listingsApiProvider);
