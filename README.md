@@ -92,6 +92,27 @@ RentLanka/
    ```
    The API will start listening locally (defaulting to `http://localhost:5021`).
 
+### Frontend Admin Dashboard Setup
+
+1. **Install Dependencies**
+   From the repository root:
+   ```bash
+   cd web
+   npm install
+   ```
+
+2. **Start Development Server**
+   ```bash
+   npm run dev
+   ```
+   The dashboard will start listening locally (defaulting to `http://localhost:3000` or `http://localhost:3001`).
+
+### Default Admin Credentials
+
+For logging into the admin web panel:
+* **Email:** `admin@rentlanka.lk`
+* **Password:** `admin`
+
 ---
 
 ## 🔌 API Endpoints Reference
