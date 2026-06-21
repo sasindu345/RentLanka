@@ -70,6 +70,10 @@ public class UserService : IUserService
             (int)user.VerificationLevel,
             user.IsTrustedUser,
             user.AvatarUrl,
-            user.CreatedAt);
+            user.CreatedAt,
+            user.Role,
+            user.IsBanned,
+            user.NICNumber,
+            user.NicDocumentUrl);
     }
 }

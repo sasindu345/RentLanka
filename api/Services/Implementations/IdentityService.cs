@@ -65,6 +65,11 @@ public class IdentityService : IIdentityService
             return (false, null, "Invalid email or password.");
         }
 
+        if (user.IsBanned)
+        {
+            return (false, null, "Your account has been banned.");
+        }
+
         var token = GenerateJwtToken(user);
         return (true, token, null);
     }
@@ -87,7 +92,8 @@ public class IdentityService : IIdentityService
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim("firstName", user.FirstName),
                 new Claim("lastName", user.LastName),
-                new Claim("verificationLevel", ((int)user.VerificationLevel).ToString())
+                new Claim("verificationLevel", ((int)user.VerificationLevel).ToString()),
+                new Claim(ClaimTypes.Role, user.Role)
             }),
             Expires = DateTime.UtcNow.AddMinutes(expiryInMinutes),
             Issuer = issuer,

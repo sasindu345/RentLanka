@@ -30,6 +30,23 @@ public class AppDbContext : DbContext
             entity.Property(u => u.LastName).IsRequired().HasMaxLength(100);
             entity.Property(u => u.PhoneNumber).HasMaxLength(20);
             entity.Property(u => u.NicDocumentUrl).HasMaxLength(2048);
+            entity.Property(u => u.Role).IsRequired().HasMaxLength(50).HasDefaultValue("User");
+            entity.Property(u => u.IsBanned).HasDefaultValue(false);
+        });
+
+        modelBuilder.Entity<User>().HasData(new User
+        {
+            Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+            Email = "admin@rentlanka.lk",
+            PasswordHash = "$2a$11$wE56M9gY0H6zZ94.yG7/feYV3YFhN27xKj5f0FwPzQ1g.b/X7S0.G",
+            FirstName = "RentLanka",
+            LastName = "Admin",
+            PhoneNumber = "0771234567",
+            VerificationLevel = VerificationLevel.Level3,
+            IsTrustedUser = true,
+            Role = "Admin",
+            IsBanned = false,
+            CreatedAt = new DateTime(2026, 6, 21, 0, 0, 0, DateTimeKind.Utc)
         });
 
         modelBuilder.Entity<Listing>(entity =>

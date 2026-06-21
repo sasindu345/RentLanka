@@ -16,6 +16,8 @@ public class User
     public string? NICNumber { get; set; }
     public string? NicDocumentUrl { get; set; }
     public string? AvatarUrl { get; set; }
+    public string Role { get; set; } = "User";
+    public bool IsBanned { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 

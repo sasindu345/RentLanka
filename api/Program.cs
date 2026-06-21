@@ -77,6 +77,7 @@ public class Program
         builder.Services.AddScoped<IVerificationService, VerificationService>();
         builder.Services.AddScoped<IListingService, ListingService>();
         builder.Services.AddScoped<IWishlistService, WishlistService>();
+        builder.Services.AddScoped<IAdminService, AdminService>();
         builder.Services.AddSingleton<IFileStorageService, S3FileStorageService>();
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

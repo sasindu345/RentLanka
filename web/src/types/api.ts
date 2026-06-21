@@ -43,6 +43,10 @@ export interface UserProfile {
   isTrustedUser: boolean;
   avatarUrl: string | null;
   createdAt: string;
+  role: string;
+  isBanned: boolean;
+  nicNumber: string | null;
+  nicDocumentUrl: string | null;
 }
 
 export interface AuthResponse {
@@ -51,4 +55,19 @@ export interface AuthResponse {
 
 export interface ApiError {
   error: string;
+}
+
+export interface AdminDashboardStats {
+  totalUsers: number;
+  activeListings: number;
+  pendingKycCount: number;
+  totalBookingsCount: number;
+  openDisputesCount: number;
+}
+
+export interface PaginatedUsers {
+  items: UserProfile[];
+  total: number;
+  page: number;
+  pageSize: number;
 }

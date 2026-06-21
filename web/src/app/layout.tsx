@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
 import "./globals.css";
 
 const inter = Inter({
@@ -10,9 +8,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "RentLanka — Rent Equipment in Sri Lanka",
-  description:
-    "Peer-to-peer marketplace to rent cameras, tools, camping gear and more across Sri Lanka.",
+  title: "RentLanka Admin — Platform Operations",
+  description: "Internal operations dashboard for RentLanka.",
 };
 
 export default function RootLayout({
@@ -22,10 +19,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} flex min-h-screen flex-col antialiased`}>
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+      <body className={`${inter.variable} min-h-screen bg-slate-950 text-slate-50 antialiased`}>
+        {children}
       </body>
     </html>
   );

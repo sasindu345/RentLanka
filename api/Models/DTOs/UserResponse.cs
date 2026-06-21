@@ -11,4 +11,8 @@ public record UserResponse(
     int VerificationLevel,
     bool IsTrustedUser,
     string? AvatarUrl,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    string Role,
+    bool IsBanned,
+    string? NicNumber,
+    string? NicDocumentUrl);
