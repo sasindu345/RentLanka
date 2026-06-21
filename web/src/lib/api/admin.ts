@@ -4,6 +4,9 @@ import type {
   PaginatedUsers,
   PaginatedListings,
   UserProfile,
+  BookingResponse,
+  PaymentResponse,
+  PayoutResponse,
 } from "@/types/api";
 
 export function getAdminDashboardStats() {
@@ -78,6 +81,25 @@ export function approveKyc(userId: string) {
 
 export function rejectKyc(userId: string) {
   return apiRequest<{ message: string }>(`/api/admin/kyc/${userId}/reject`, {
+    method: "PATCH",
+    auth: true,
+  });
+}
+
+export function getAdminBookings() {
+  return apiRequest<BookingResponse[]>("/api/admin/bookings", { auth: true });
+}
+
+export function getAdminPayments() {
+  return apiRequest<PaymentResponse[]>("/api/admin/payments", { auth: true });
+}
+
+export function getAdminPayouts() {
+  return apiRequest<PayoutResponse[]>("/api/admin/payouts", { auth: true });
+}
+
+export function approveAdminPayout(id: string) {
+  return apiRequest<{ message: string }>(`/api/admin/payouts/${id}/approve`, {
     method: "PATCH",
     auth: true,
   });

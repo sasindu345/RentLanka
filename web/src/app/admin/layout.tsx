@@ -48,6 +48,8 @@ export default function AdminLayout({
     { label: "Users List", href: "/admin/users", icon: "👥" },
     { label: "KYC Queue", href: "/admin/kyc", icon: "📄" },
     { label: "Listings Moderation", href: "/admin/listings", icon: "🏷️" },
+    { label: "Bookings List", href: "/admin/bookings", icon: "📅" },
+    { label: "Payments & Payouts", href: "/admin/payments", icon: "💳" },
   ];
 
   return (

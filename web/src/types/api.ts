@@ -71,3 +71,45 @@ export interface PaginatedUsers {
   page: number;
   pageSize: number;
 }
+
+export interface BookingResponse {
+  id: string;
+  listingId: string;
+  listingTitle: string;
+  listingImage: string | null;
+  renterId: string;
+  renterName: string;
+  ownerId: string;
+  ownerName: string;
+  startDate: string;
+  endDate: string;
+  totalPrice: number;
+  securityDeposit: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface PaymentResponse {
+  id: string;
+  bookingId: string;
+  listingTitle: string;
+  renterName: string;
+  amount: number;
+  status: string;
+  transactionReference: string;
+  createdAt: string;
+}
+
+export interface PayoutResponse {
+  id: string;
+  ownerId: string;
+  ownerName: string;
+  amount: number;
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string | null;
+}
