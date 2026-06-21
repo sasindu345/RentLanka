@@ -255,7 +255,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: Border.all(color: Colors.grey.shade100),
+        side: BorderSide(color: Colors.grey.shade100),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),

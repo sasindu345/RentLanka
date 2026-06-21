@@ -306,7 +306,7 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
                 color: Colors.grey.shade50,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: Border.all(color: Colors.grey.shade200),
+                  side: BorderSide(color: Colors.grey.shade200),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
