@@ -38,7 +38,7 @@ public class AppDbContext : DbContext
         {
             Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             Email = "admin@rentlanka.lk",
-            PasswordHash = "$2a$11$wE56M9gY0H6zZ94.yG7/feYV3YFhN27xKj5f0FwPzQ1g.b/X7S0.G",
+            PasswordHash = "$2a$11$6injpEU/eL1GA1EToj1rfu4AgtOLEmXKuRi4yiwwQQsqeukzts0iG",
             FirstName = "RentLanka",
             LastName = "Admin",
             PhoneNumber = "0771234567",
