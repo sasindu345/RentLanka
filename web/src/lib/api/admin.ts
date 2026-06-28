@@ -7,6 +7,7 @@ import type {
   BookingResponse,
   PaymentResponse,
   PayoutResponse,
+  ReviewResponse,
 } from "@/types/api";
 
 export function getAdminDashboardStats() {
@@ -117,4 +118,8 @@ export function rejectListing(id: string) {
     method: "PATCH",
     auth: true,
   });
+}
+
+export function getUserReviews(userId: string) {
+  return apiRequest<ReviewResponse[]>(`/api/reviews/users/${userId}`, { auth: true });
 }

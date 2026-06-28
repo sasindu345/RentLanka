@@ -82,6 +82,7 @@ public class Program
         builder.Services.AddScoped<IAdminService, AdminService>();
         builder.Services.AddScoped<IBookingService, BookingService>();
         builder.Services.AddScoped<IEarningsService, EarningsService>();
+        builder.Services.AddScoped<IReviewService, ReviewService>();
         builder.Services.AddSingleton<IFileStorageService, S3FileStorageService>();
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

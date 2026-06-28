@@ -2,14 +2,16 @@
 
 import { use, useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { getAdminUser, overrideUserVerification, toggleUserBan } from "@/lib/api/admin";
-import type { UserProfile } from "@/types/api";
+import { getAdminUser, overrideUserVerification, toggleUserBan, getUserReviews } from "@/lib/api/admin";
+import type { UserProfile, ReviewResponse } from "@/types/api";
 
 export default function AdminUserDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id: userId } = use(params);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [reviews, setReviews] = useState<ReviewResponse[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
   
   // Form override states
   const [overrideLevel, setOverrideLevel] = useState<number>(0);
@@ -32,6 +34,14 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     loadUser();
   }, [loadUser]);
+
+  useEffect(() => {
+    setReviewsLoading(true);
+    getUserReviews(userId)
+      .then((res) => setReviews(res))
+      .catch((err) => console.error("Failed to load user reviews", err))
+      .finally(() => setReviewsLoading(false));
+  }, [userId]);
 
   async function handleOverride(e: React.FormEvent) {
     e.preventDefault();
@@ -182,6 +192,46 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
                 <p className="text-sm text-slate-500 mt-2">
                   User has not submitted National Identity Card (NIC) details yet.
                 </p>
+              </div>
+            )}
+          </div>
+
+          {/* User Reviews Card */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/10 p-6 backdrop-blur-md space-y-6">
+            <h3 className="text-lg font-bold text-slate-200 border-b border-slate-800 pb-3">
+              User Reviews & Ratings
+            </h3>
+
+            {reviewsLoading ? (
+              <div className="flex justify-center py-6">
+                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-teal-500"></div>
+              </div>
+            ) : reviews.length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-4">No reviews have been left for this user yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((r) => (
+                  <div key={r.id} className="p-4 rounded-xl border border-slate-800 bg-slate-900/30 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm font-semibold text-slate-200">{r.reviewerName}</span>
+                        <span className="text-xs text-slate-500 ml-2">
+                          ({r.isRenterReview ? "Renter Review" : "Owner Review"})
+                        </span>
+                      </div>
+                      <div className="text-yellow-500 font-bold font-mono text-sm">
+                        {"★".repeat(r.rating)}
+                        {"☆".repeat(5 - r.rating)}
+                      </div>
+                    </div>
+                    {r.comment && (
+                      <p className="text-sm text-slate-300 italic">&ldquo;{r.comment}&rdquo;</p>
+                    )}
+                    <p className="text-[10px] text-slate-500 font-mono">
+                      Date: {new Date(r.createdAt).toLocaleDateString()} · Booking ID: {r.bookingId}
+                    </p>
+                  </div>
+                ))}
               </div>
             )}
           </div>

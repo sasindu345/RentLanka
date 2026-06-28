@@ -7,6 +7,7 @@ import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/shared/widgets/listing_image.dart';
 import 'package:mobile/core/providers/app_mode_provider.dart';
+import 'package:mobile/core/api/reviews_api.dart';
 
 class ActivityScreen extends ConsumerStatefulWidget {
   const ActivityScreen({super.key});
@@ -21,6 +22,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
   List<BookingResponse> _renterBookings = [];
   List<BookingResponse> _ownerBookings = [];
   bool _loading = true;
+  final Map<String, List<ReviewResponse>> _bookingReviews = {};
 
   @override
   void initState() {
@@ -39,8 +41,21 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
     setState(() => _loading = true);
     try {
       final api = ref.read(bookingsApiProvider);
+      final reviewsApi = ref.read(reviewsApiProvider);
       final renter = await api.getRenterBookings();
       final owner = await api.getOwnerBookings();
+
+      final allCompletedBookings = [...renter, ...owner]
+          .where((b) => b.status.toLowerCase() == 'completed');
+
+      _bookingReviews.clear();
+      await Future.wait(allCompletedBookings.map((b) async {
+        try {
+          final list = await reviewsApi.getBookingReviews(b.id);
+          _bookingReviews[b.id] = list;
+        } catch (_) {}
+      }));
+
       setState(() {
         _renterBookings = renter;
         _ownerBookings = owner;
@@ -246,6 +261,108 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
     }
   }
 
+  void _showLeaveReviewDialog(BookingResponse booking, bool isOwnerView) {
+    int selectedRating = 5;
+    final commentController = TextEditingController();
+    bool submittingReview = false;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Leave a Review'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Select Rating:'),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      final starValue = index + 1;
+                      return IconButton(
+                        icon: Icon(
+                          starValue <= selectedRating ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                          size: 32,
+                        ),
+                        onPressed: () {
+                          setDialogState(() {
+                            selectedRating = starValue;
+                          });
+                        },
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: commentController,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      hintText: 'Share your feedback...',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: submittingReview ? null : () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: submittingReview
+                      ? null
+                      : () async {
+                          setDialogState(() => submittingReview = true);
+                          try {
+                            await ref.read(reviewsApiProvider).createReview(
+                                  booking.id,
+                                  selectedRating,
+                                  commentController.text,
+                                );
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Thank you! Review submitted successfully.'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                            _loadAll();
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Failed to submit review.'),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                            }
+                          } finally {
+                            setDialogState(() => submittingReview = false);
+                          }
+                        },
+                  child: submittingReview
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text('Submit'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildBookingCard(BookingResponse booking, bool isOwnerView) {
     final startStr = '${booking.startDate.day}/${booking.startDate.month}/${booking.startDate.year}';
     final endStr = '${booking.endDate.day}/${booking.endDate.month}/${booking.endDate.year}';
@@ -390,6 +507,33 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                   ),
                 ),
               ],
+              if (booking.status.toLowerCase() == 'completed') ...[
+                const SizedBox(height: 16),
+                (() {
+                  final reviews = _bookingReviews[booking.id] ?? [];
+                  final hasReviewed = reviews.any((r) => !r.isRenterReview);
+                  if (hasReviewed) {
+                    final rating = reviews.firstWhere((r) => !r.isRenterReview).rating;
+                    return Row(
+                      children: [
+                        const Icon(Icons.check_circle, color: Colors.green, size: 16),
+                        const SizedBox(width: 6),
+                        Text('Review Submitted: $rating ⭐', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 13)),
+                      ],
+                    );
+                  }
+                  return FilledButton.icon(
+                    onPressed: () => _showLeaveReviewDialog(booking, true),
+                    icon: const Icon(Icons.rate_review_outlined),
+                    label: const Text('Leave Renter Review'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(40),
+                      backgroundColor: AppTheme.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  );
+                }()),
+              ],
             ] else ...[
               if (booking.status.toLowerCase() == 'approved') ...[
                 const SizedBox(height: 16),
@@ -416,6 +560,33 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
+              ],
+              if (booking.status.toLowerCase() == 'completed') ...[
+                const SizedBox(height: 16),
+                (() {
+                  final reviews = _bookingReviews[booking.id] ?? [];
+                  final hasReviewed = reviews.any((r) => r.isRenterReview);
+                  if (hasReviewed) {
+                    final rating = reviews.firstWhere((r) => r.isRenterReview).rating;
+                    return Row(
+                      children: [
+                        const Icon(Icons.check_circle, color: Colors.green, size: 16),
+                        const SizedBox(width: 6),
+                        Text('Review Submitted: $rating ⭐', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 13)),
+                      ],
+                    );
+                  }
+                  return FilledButton.icon(
+                    onPressed: () => _showLeaveReviewDialog(booking, false),
+                    icon: const Icon(Icons.rate_review_outlined),
+                    label: const Text('Leave Equipment Review'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(40),
+                      backgroundColor: AppTheme.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  );
+                }()),
               ],
             ],
           ],

@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<AvailabilityBlock> AvailabilityBlocks => Set<AvailabilityBlock>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Payout> Payouts => Set<Payout>();
+    public DbSet<Review> Reviews => Set<Review>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -155,6 +156,30 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(p => p.OwnerId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Review>(entity =>
+        {
+            entity.HasKey(r => r.Id);
+            entity.Property(r => r.Comment).HasMaxLength(2000);
+
+            entity.HasOne(r => r.Booking)
+                .WithMany()
+                .HasForeignKey(r => r.BookingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(r => r.Reviewer)
+                .WithMany()
+                .HasForeignKey(r => r.ReviewerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(r => r.TargetUser)
+                .WithMany()
+                .HasForeignKey(r => r.TargetUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(r => new { r.BookingId, r.ReviewerId }).IsUnique();
+            entity.HasIndex(r => r.TargetUserId);
         });
     }
 }

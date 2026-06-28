@@ -114,3 +114,15 @@ export interface PayoutResponse {
   createdAt: string;
   updatedAt: string | null;
 }
+
+export interface ReviewResponse {
+  id: string;
+  bookingId: string;
+  reviewerId: string;
+  reviewerName: string;
+  targetUserId: string;
+  rating: number;
+  comment: string;
+  isRenterReview: boolean;
+  createdAt: string;
+}

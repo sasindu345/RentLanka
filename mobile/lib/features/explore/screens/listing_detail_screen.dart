@@ -8,6 +8,7 @@ import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/shared/widgets/listing_image.dart';
+import 'package:mobile/core/api/reviews_api.dart';
 
 class ListingDetailScreen extends ConsumerStatefulWidget {
   final String id;
@@ -21,6 +22,8 @@ class ListingDetailScreen extends ConsumerStatefulWidget {
 class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
   Listing? _listing;
   List<AvailabilityBlockResponse> _blocks = [];
+  List<ReviewResponse> _reviews = [];
+  double _averageRating = 0.0;
   bool _loading = true;
   bool _saving = false;
 
@@ -34,9 +37,16 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
     try {
       final listing = await ref.read(listingsApiProvider).getListing(widget.id);
       final blocks = await ref.read(bookingsApiProvider).getListingAvailability(widget.id);
+      final reviewsApi = ref.read(reviewsApiProvider);
+      
+      final reviews = await reviewsApi.getListingReviews(widget.id);
+      final averageRating = await reviewsApi.getListingAverageRating(widget.id);
+
       setState(() {
         _listing = listing;
         _blocks = blocks;
+        _reviews = reviews;
+        _averageRating = averageRating;
       });
     } catch (_) {
       // Ignore if details load fails
@@ -99,7 +109,23 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(listing.title, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        _averageRating > 0 ? _averageRating.toString() : 'New',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '· ${_reviews.length} ${_reviews.length == 1 ? 'review' : 'reviews'}',
+                        style: const TextStyle(color: AppTheme.muted, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
                   Text(listing.district, style: const TextStyle(color: AppTheme.muted)),
                   const SizedBox(height: 16),
                   Text(
@@ -176,6 +202,50 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                         ),
                       );
                     }),
+                  const SizedBox(height: 24),
+                  const Text('Customer Reviews', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const SizedBox(height: 8),
+                  if (_reviews.isEmpty)
+                    const Text('No reviews for this equipment yet.', style: TextStyle(color: AppTheme.muted, fontSize: 13))
+                  else
+                    ..._reviews.map((r) => Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    r.reviewerName,
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                  ),
+                                  Row(
+                                    children: List.generate(5, (index) => Icon(
+                                      index < r.rating ? Icons.star : Icons.star_border,
+                                      color: Colors.amber,
+                                      size: 14,
+                                    )),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              if (r.comment.isNotEmpty)
+                                Text(r.comment, style: const TextStyle(fontSize: 13, height: 1.4)),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${r.createdAt.day}/${r.createdAt.month}/${r.createdAt.year}',
+                                style: const TextStyle(color: AppTheme.muted, fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        )),
                 ],
               ),
             ),
