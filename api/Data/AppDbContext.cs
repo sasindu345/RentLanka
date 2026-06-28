@@ -18,6 +18,8 @@ public class AppDbContext : DbContext
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Payout> Payouts => Set<Payout>();
     public DbSet<Review> Reviews => Set<Review>();
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+    public DbSet<Message> Messages => Set<Message>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -180,6 +182,48 @@ public class AppDbContext : DbContext
 
             entity.HasIndex(r => new { r.BookingId, r.ReviewerId }).IsUnique();
             entity.HasIndex(r => r.TargetUserId);
+        });
+
+        modelBuilder.Entity<Conversation>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.LastMessageContent).HasMaxLength(1000);
+
+            entity.HasOne(c => c.UserOne)
+                .WithMany()
+                .HasForeignKey(c => c.UserOneId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(c => c.UserTwo)
+                .WithMany()
+                .HasForeignKey(c => c.UserTwoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(c => c.Listing)
+                .WithMany()
+                .HasForeignKey(c => c.ListingId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(c => c.LastMessageAt);
+            entity.HasIndex(c => new { c.UserOneId, c.UserTwoId, c.ListingId }).IsUnique();
+        });
+
+        modelBuilder.Entity<Message>(entity =>
+        {
+            entity.HasKey(m => m.Id);
+            entity.Property(m => m.Content).IsRequired().HasMaxLength(2000);
+
+            entity.HasOne(m => m.Conversation)
+                .WithMany(c => c.Messages)
+                .HasForeignKey(m => m.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(m => m.CreatedAt);
         });
     }
 }

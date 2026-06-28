@@ -9,6 +9,7 @@ import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/shared/widgets/listing_image.dart';
 import 'package:mobile/core/api/reviews_api.dart';
+import 'package:mobile/core/api/chats_api.dart';
 
 class ListingDetailScreen extends ConsumerStatefulWidget {
   final String id;
@@ -26,6 +27,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
   double _averageRating = 0.0;
   bool _loading = true;
   bool _saving = false;
+  bool _messaging = false;
 
   @override
   void initState() {
@@ -72,6 +74,24 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
       }
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _startMessage() async {
+    setState(() => _messaging = true);
+    try {
+      final chat = await ref.read(chatsApiProvider).getOrCreateConversation(widget.id);
+      if (mounted) {
+        context.push('/app/activity/messages/thread/${chat.id}');
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to initiate conversation.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _messaging = false);
     }
   }
 
@@ -262,6 +282,13 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                 icon: _saving
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.favorite_border),
+              ),
+              const SizedBox(width: 8),
+              IconButton.outlined(
+                onPressed: _messaging ? null : _startMessage,
+                icon: _messaging
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.chat_bubble_outline),
               ),
               const SizedBox(width: 12),
               Expanded(

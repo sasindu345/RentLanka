@@ -18,6 +18,8 @@ import 'package:mobile/features/profile/screens/verification_screen.dart';
 import 'package:mobile/features/profile/screens/earnings_screen.dart';
 import 'package:mobile/features/saved/screens/wishlist_screen.dart';
 import 'package:mobile/shared/widgets/bottom_nav_shell.dart';
+import 'package:mobile/features/chat/screens/inbox_screen.dart';
+import 'package:mobile/features/chat/screens/chat_thread_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -118,6 +120,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/app/activity',
                 builder: (context, state) => const ActivityScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'messages',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const InboxScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'thread/:conversationId',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) {
+                          final conversationId = state.pathParameters['conversationId']!;
+                          return ChatThreadScreen(conversationId: conversationId);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),

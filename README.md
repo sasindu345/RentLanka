@@ -118,6 +118,12 @@ For logging into the admin web panel:
 * **Email:** `admin@rentlanka.lk`
 * **Password:** `RentLankaAdmin123!`
 
+### Mobile App Testing Credentials
+
+For logging into the mobile application (already pre-verified as KYC Level 2 in database):
+* **Email:** `jayamadusasindu5@gmail.com`
+* **Password:** `Sj@2951053`
+
 ---
 
 ## 🔌 API Endpoints Reference

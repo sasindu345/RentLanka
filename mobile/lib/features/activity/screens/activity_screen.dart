@@ -8,6 +8,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/shared/widgets/listing_image.dart';
 import 'package:mobile/core/providers/app_mode_provider.dart';
 import 'package:mobile/core/api/reviews_api.dart';
+import 'package:mobile/features/chat/screens/inbox_screen.dart';
 
 class ActivityScreen extends ConsumerStatefulWidget {
   const ActivityScreen({super.key});
@@ -656,11 +657,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
             ),
 
             // Messages tab content
-            const _EmptyState(
-              icon: Icons.chat_bubble_outline,
-              title: 'No messages yet',
-              subtitle: 'In-app chat arrives in Phase 5.',
-            ),
+            const InboxScreen(),
           ],
         ),
       ),

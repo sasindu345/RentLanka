@@ -42,17 +42,22 @@ class ListingImage extends StatelessWidget {
   }
 
   Widget _placeholder() {
+    final isSmall = width != null && width! <= 60;
     return Container(
       width: width,
       height: height,
       color: Colors.grey.shade200,
-      child: const Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.image_outlined, size: 40, color: AppTheme.muted),
-          SizedBox(height: 8),
-          Text('No photo', style: TextStyle(color: AppTheme.muted, fontSize: 13)),
-        ],
+      child: Center(
+        child: isSmall
+            ? const Icon(Icons.image_outlined, size: 24, color: AppTheme.muted)
+            : const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.image_outlined, size: 40, color: AppTheme.muted),
+                  SizedBox(height: 8),
+                  Text('No photo', style: TextStyle(color: AppTheme.muted, fontSize: 13)),
+                ],
+              ),
       ),
     );
   }
