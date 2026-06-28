@@ -87,8 +87,13 @@ RentLanka/
    ```
 
 3. **Start the API Server**
+   From the repository root:
    ```bash
    dotnet run --project api/RentLanka.Api.csproj
+   ```
+   Or if you are inside the `api` folder:
+   ```bash
+   dotnet run
    ```
    The API will start listening locally (defaulting to `http://localhost:5021`).
 

@@ -57,6 +57,13 @@ class ReviewsApi {
     return ReviewResponse.fromJson(response.data as Map<String, dynamic>);
   }
 
+  Future<List<ReviewResponse>> getBookingReviews(String bookingId) async {
+    final response = await _dio.get('/api/reviews/bookings/$bookingId');
+    return (response.data as List<dynamic>)
+        .map((e) => ReviewResponse.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<ReviewResponse>> getUserReviews(String userId) async {
     final response = await _dio.get('/api/reviews/users/$userId');
     return (response.data as List<dynamic>)
