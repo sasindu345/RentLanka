@@ -126,3 +126,17 @@ export interface ReviewResponse {
   isRenterReview: boolean;
   createdAt: string;
 }
+
+export interface DisputeResponse {
+  id: string;
+  bookingId: string;
+  listingTitle: string;
+  createdById: string;
+  createdByName: string;
+  reason: string;
+  isResolved: boolean;
+  adminDecision: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+  resolvedByName: string | null;
+}

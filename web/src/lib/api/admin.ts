@@ -8,6 +8,7 @@ import type {
   PaymentResponse,
   PayoutResponse,
   ReviewResponse,
+  DisputeResponse,
 } from "@/types/api";
 
 export function getAdminDashboardStats() {
@@ -122,4 +123,16 @@ export function rejectListing(id: string) {
 
 export function getUserReviews(userId: string) {
   return apiRequest<ReviewResponse[]>(`/api/reviews/users/${userId}`, { auth: true });
+}
+
+export function getAdminDisputes() {
+  return apiRequest<DisputeResponse[]>("/api/admin/disputes", { auth: true });
+}
+
+export function resolveDispute(id: string, data: { adminDecision: string; refundRenter: boolean }) {
+  return apiRequest<DisputeResponse>(`/api/admin/disputes/${id}/resolve`, {
+    method: "PATCH",
+    auth: true,
+    body: data,
+  });
 }

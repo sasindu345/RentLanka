@@ -9,6 +9,7 @@ import 'package:mobile/shared/widgets/listing_image.dart';
 import 'package:mobile/core/providers/app_mode_provider.dart';
 import 'package:mobile/core/api/reviews_api.dart';
 import 'package:mobile/features/chat/screens/inbox_screen.dart';
+import 'package:mobile/core/api/disputes_api.dart';
 
 class ActivityScreen extends ConsumerStatefulWidget {
   const ActivityScreen({super.key});
@@ -257,6 +258,8 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
         return Colors.grey;
       case 'rejected':
         return Colors.red;
+      case 'disputed':
+        return Colors.deepOrange;
       default:
         return Colors.black;
     }
@@ -355,6 +358,95 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
                       : const Text('Submit'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showDisputeDialog(BookingResponse booking) {
+    final reasonController = TextEditingController();
+    bool submittingDispute = false;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('File a Dispute', style: TextStyle(fontWeight: FontWeight.bold)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Provide details on why you are filing a dispute. An administrator will review your claim and make a final resolution.',
+                    style: TextStyle(fontSize: 13, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: reasonController,
+                    maxLines: 4,
+                    decoration: InputDecoration(
+                      hintText: 'Describe the issue in detail...',
+                      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.redAccent),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                ),
+                FilledButton(
+                  style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
+                  onPressed: submittingDispute
+                      ? null
+                      : () async {
+                          final text = reasonController.text.trim();
+                          if (text.isEmpty) return;
+
+                          setDialogState(() => submittingDispute = true);
+                          try {
+                            await ref.read(disputesApiProvider).fileDispute(booking.id, text);
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Dispute filed successfully. Booking is now frozen.'),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                              _loadAll();
+                            }
+                          } catch (_) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Failed to file dispute.'),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                            }
+                          } finally {
+                            setDialogState(() => submittingDispute = false);
+                          }
+                        },
+                  child: submittingDispute
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text('Submit Dispute'),
                 ),
               ],
             );
@@ -589,6 +681,45 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                   );
                 }()),
               ],
+            ],
+            if (booking.status.toLowerCase() == 'disputed') ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.shade200),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Colors.deepOrange, size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Booking under dispute review by RentLanka Admin.',
+                        style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ] else if (booking.status.toLowerCase() == 'paid' || 
+                       booking.status.toLowerCase() == 'active' || 
+                       booking.status.toLowerCase() == 'completed') ...[
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () => _showDisputeDialog(booking),
+                  icon: const Icon(Icons.warning_amber_rounded, size: 16, color: Colors.redAccent),
+                  label: const Text('File a Dispute', style: TextStyle(color: Colors.redAccent, fontSize: 13)),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ),
             ],
           ],
         ),

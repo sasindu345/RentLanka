@@ -50,6 +50,7 @@ export default function AdminLayout({
     { label: "Listings Moderation", href: "/admin/listings", icon: "🏷️" },
     { label: "Bookings List", href: "/admin/bookings", icon: "📅" },
     { label: "Payments & Payouts", href: "/admin/payments", icon: "💳" },
+    { label: "Disputes Queue", href: "/admin/disputes", icon: "⚠️" },
   ];
 
   return (

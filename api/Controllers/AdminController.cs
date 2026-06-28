@@ -15,15 +15,18 @@ public class AdminController : ControllerBase
     private readonly IAdminService _adminService;
     private readonly IBookingService _bookingService;
     private readonly IEarningsService _earningsService;
+    private readonly IDisputeService _disputeService;
 
     public AdminController(
         IAdminService adminService,
         IBookingService bookingService,
-        IEarningsService earningsService)
+        IEarningsService earningsService,
+        IDisputeService disputeService)
     {
         _adminService = adminService;
         _bookingService = bookingService;
         _earningsService = earningsService;
+        _disputeService = disputeService;
     }
 
     [HttpGet("dashboard")]
@@ -192,5 +195,48 @@ public class AdminController : ControllerBase
             return BadRequest(new { Error = error });
         }
         return Ok(new { Message = "Payout approved successfully." });
+    }
+
+    [HttpGet("disputes")]
+    public async Task<IActionResult> GetDisputes()
+    {
+        var disputes = await _disputeService.GetAdminDisputesAsync();
+        return Ok(disputes);
+    }
+
+    [HttpPatch("disputes/{id:guid}/resolve")]
+    public async Task<IActionResult> ResolveDispute(Guid id, [FromBody] ResolveDisputeRequest request)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var adminId))
+            {
+                return Unauthorized();
+            }
+
+            var response = await _disputeService.ResolveDisputeAsync(id, adminId, request);
+            return Ok(response);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { Error = ex.Message });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Error = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { Error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Error = ex.Message });
+        }
     }
 }

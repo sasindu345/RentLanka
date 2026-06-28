@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<Message> Messages => Set<Message>();
+    public DbSet<Dispute> Disputes => Set<Dispute>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -224,6 +225,31 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(m => m.CreatedAt);
+        });
+
+        modelBuilder.Entity<Dispute>(entity =>
+        {
+            entity.HasKey(d => d.Id);
+            entity.Property(d => d.Reason).IsRequired().HasMaxLength(2000);
+            entity.Property(d => d.AdminDecision).HasMaxLength(2000);
+
+            entity.HasOne(d => d.Booking)
+                .WithMany()
+                .HasForeignKey(d => d.BookingId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.CreatedBy)
+                .WithMany()
+                .HasForeignKey(d => d.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.ResolvedBy)
+                .WithMany()
+                .HasForeignKey(d => d.ResolvedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(d => d.BookingId);
+            entity.HasIndex(d => d.CreatedAt);
         });
     }
 }
