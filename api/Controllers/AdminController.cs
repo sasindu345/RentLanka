@@ -110,6 +110,28 @@ public class AdminController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("listings/{id:guid}/approve")]
+    public async Task<IActionResult> ApproveListing(Guid id)
+    {
+        var success = await _adminService.ApproveListingAsync(id);
+        if (!success)
+        {
+            return NotFound(new { Error = "Listing not found or already deleted." });
+        }
+        return Ok(new { Message = "Listing approved successfully." });
+    }
+
+    [HttpPatch("listings/{id:guid}/reject")]
+    public async Task<IActionResult> RejectListing(Guid id)
+    {
+        var success = await _adminService.RejectListingAsync(id);
+        if (!success)
+        {
+            return NotFound(new { Error = "Listing not found or already deleted." });
+        }
+        return Ok(new { Message = "Listing rejected successfully." });
+    }
+
     [HttpGet("kyc")]
     public async Task<IActionResult> GetKycQueue()
     {

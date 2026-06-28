@@ -12,6 +12,8 @@ public class Booking
     public decimal TotalPrice { get; set; }
     public decimal SecurityDeposit { get; set; }
     public BookingStatus Status { get; set; } = BookingStatus.Pending;
+    public bool RenterAgreementSigned { get; set; } = false;
+    public bool OwnerAgreementSigned { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 

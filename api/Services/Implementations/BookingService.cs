@@ -25,13 +25,23 @@ public class BookingService : IBookingService
         var user = await _context.Users.FindAsync(renterId);
         if (user == null) return (false, null, "User not found.");
 
-        if (user.VerificationLevel < VerificationLevel.Level1)
+        if (user.Role == "Owner")
         {
-            return (false, null, "Phone verification (Level 1) is required to request bookings.");
+            return (false, null, "Owner accounts are not allowed to rent or request bookings.");
+        }
+
+        if (user.VerificationLevel < VerificationLevel.Level2)
+        {
+            return (false, null, "KYC verification (Level 2 / NIC verification) is required to request bookings.");
         }
 
         var listing = await _context.Listings.Include(l => l.Owner).FirstOrDefaultAsync(l => l.Id == request.ListingId && !l.IsDeleted);
         if (listing == null) return (false, null, "Listing not found.");
+
+        if (listing.Owner.VerificationLevel < VerificationLevel.Level2)
+        {
+            return (false, null, "The owner of this listing must have KYC verification completed (Level 2) to accept bookings.");
+        }
 
         if (listing.OwnerId == renterId)
         {
@@ -80,6 +90,8 @@ public class BookingService : IBookingService
                 TotalPrice = totalPrice,
                 SecurityDeposit = securityDeposit,
                 Status = BookingStatus.Pending,
+                RenterAgreementSigned = true,
+                OwnerAgreementSigned = false,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -170,6 +182,7 @@ public class BookingService : IBookingService
         if (booking.Status != BookingStatus.Pending) return (false, "Only pending bookings can be approved.");
 
         booking.Status = BookingStatus.Approved;
+        booking.OwnerAgreementSigned = true;
         booking.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
@@ -387,6 +400,8 @@ public class BookingService : IBookingService
             booking.TotalPrice,
             booking.SecurityDeposit,
             booking.Status.ToString(),
+            booking.RenterAgreementSigned,
+            booking.OwnerAgreementSigned,
             booking.CreatedAt,
             booking.UpdatedAt);
     }

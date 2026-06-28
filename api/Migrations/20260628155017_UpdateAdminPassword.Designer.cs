@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -13,9 +14,11 @@ using RentLanka.Api.Data;
 namespace RentLanka.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260628155017_UpdateAdminPassword")]
+    partial class UpdateAdminPassword
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -72,16 +75,6 @@ namespace RentLanka.Api.Migrations
 
                     b.Property<Guid>("ListingId")
                         .HasColumnType("uuid");
-
-                    b.Property<bool>("OwnerAgreementSigned")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("RenterAgreementSigned")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
 
                     b.Property<Guid>("RenterId")
                         .HasColumnType("uuid");
@@ -162,11 +155,6 @@ namespace RentLanka.Api.Migrations
                     b.Property<decimal>("SecurityDeposit")
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<int>("Status")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0);
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -186,8 +174,6 @@ namespace RentLanka.Api.Migrations
                     b.HasIndex("IsPaused");
 
                     b.HasIndex("OwnerId");
-
-                    b.HasIndex("Status");
 
                     b.ToTable("Listings");
                 });
@@ -321,7 +307,7 @@ namespace RentLanka.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
-                        .HasDefaultValue("Renter");
+                        .HasDefaultValue("User");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");

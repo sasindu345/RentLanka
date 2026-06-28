@@ -14,6 +14,8 @@ public interface IAdminService
     Task<PaginatedResponse<ListingResponse>> GetListingsAsync(string? query, bool? isPaused, bool? isDeleted, int page, int pageSize);
     Task<bool> ToggleListingPauseAsync(Guid listingId);
     Task<bool> DeleteListingAsync(Guid listingId);
+    Task<bool> ApproveListingAsync(Guid listingId);
+    Task<bool> RejectListingAsync(Guid listingId);
     Task<IEnumerable<UserResponse>> GetKycQueueAsync();
     Task<bool> ApproveKycAsync(Guid userId);
     Task<bool> RejectKycAsync(Guid userId);

@@ -29,8 +29,14 @@ public class IdentityService : IIdentityService
         string password, 
         string firstName, 
         string lastName, 
-        string phoneNumber)
+        string phoneNumber,
+        string role)
     {
+        if (role != "Renter" && role != "Owner")
+        {
+            return (false, Guid.Empty, "Invalid role. You must register as either Renter or Owner.");
+        }
+
         var existingUser = await _context.Users.AnyAsync(u => u.Email == email);
         if (existingUser)
         {
@@ -47,6 +53,7 @@ public class IdentityService : IIdentityService
             FirstName = firstName,
             LastName = lastName,
             PhoneNumber = phoneNumber,
+            Role = role,
             VerificationLevel = VerificationLevel.Unverified,
             CreatedAt = DateTime.UtcNow
         };

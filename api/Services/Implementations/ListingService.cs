@@ -44,7 +44,7 @@ public class ListingService : IListingService
             return null;
         }
 
-        if (listing.IsPaused && listing.OwnerId != ownerId)
+        if ((listing.IsPaused || listing.Status != ListingStatus.Approved) && listing.OwnerId != ownerId)
         {
             return null;
         }
@@ -70,7 +70,7 @@ public class ListingService : IListingService
 
         var dbQuery = _context.Listings
             .Include(l => l.Owner)
-            .Where(l => !l.IsDeleted && !l.IsPaused)
+            .Where(l => !l.IsDeleted && !l.IsPaused && l.Status == ListingStatus.Approved)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(category))
@@ -243,6 +243,7 @@ public class ListingService : IListingService
             Images = request.Images ?? new List<string>(),
             IsPaused = false,
             IsDeleted = false,
+            Status = ListingStatus.PendingApproval,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -293,6 +294,7 @@ public class ListingService : IListingService
             listing.District,
             listing.Images,
             listing.IsPaused,
+            listing.Status.ToString(),
             listing.CreatedAt,
             listing.UpdatedAt);
     }

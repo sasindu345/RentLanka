@@ -34,7 +34,7 @@ public class AppDbContext : DbContext
             entity.Property(u => u.LastName).IsRequired().HasMaxLength(100);
             entity.Property(u => u.PhoneNumber).HasMaxLength(20);
             entity.Property(u => u.NicDocumentUrl).HasMaxLength(2048);
-            entity.Property(u => u.Role).IsRequired().HasMaxLength(50).HasDefaultValue("User");
+            entity.Property(u => u.Role).IsRequired().HasMaxLength(50).HasDefaultValue("Renter");
             entity.Property(u => u.IsBanned).HasDefaultValue(false);
         });
 
@@ -42,7 +42,7 @@ public class AppDbContext : DbContext
         {
             Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             Email = "admin@rentlanka.lk",
-            PasswordHash = "$2a$11$6injpEU/eL1GA1EToj1rfu4AgtOLEmXKuRi4yiwwQQsqeukzts0iG",
+            PasswordHash = "$2a$11$I5A4FyWXZt6gZms37B3/2eXptXczfSN.9Mzgryhs5kGnaPnDzDKBS",
             FirstName = "RentLanka",
             LastName = "Admin",
             PhoneNumber = "0771234567",
@@ -65,10 +65,13 @@ public class AppDbContext : DbContext
             entity.Property(l => l.District).IsRequired().HasMaxLength(100);
             entity.Property(l => l.Location).HasColumnType("geography(Point, 4326)");
 
+            entity.Property(l => l.Status).HasDefaultValue(ListingStatus.PendingApproval);
+
             entity.HasIndex(l => l.Category);
             entity.HasIndex(l => l.District);
             entity.HasIndex(l => l.IsPaused);
             entity.HasIndex(l => l.IsDeleted);
+            entity.HasIndex(l => l.Status);
 
             entity.HasOne(l => l.Owner)
                 .WithMany(u => u.Listings)
@@ -97,6 +100,8 @@ public class AppDbContext : DbContext
             entity.HasKey(b => b.Id);
             entity.Property(b => b.TotalPrice).HasColumnType("numeric(18,2)");
             entity.Property(b => b.SecurityDeposit).HasColumnType("numeric(18,2)");
+            entity.Property(b => b.RenterAgreementSigned).HasDefaultValue(false);
+            entity.Property(b => b.OwnerAgreementSigned).HasDefaultValue(false);
 
             entity.HasOne(b => b.Listing)
                 .WithMany()

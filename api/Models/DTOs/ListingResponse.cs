@@ -18,5 +18,6 @@ public record ListingResponse(
     string District,
     List<string> Images,
     bool IsPaused,
+    string Status,
     DateTime CreatedAt,
     DateTime? UpdatedAt);

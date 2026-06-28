@@ -61,6 +61,7 @@ public class WishlistService : IWishlistService
                 l.District,
                 l.Images,
                 l.IsPaused,
+                l.Status.ToString(),
                 l.CreatedAt,
                 l.UpdatedAt))
             .ToList();

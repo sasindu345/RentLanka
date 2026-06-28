@@ -154,6 +154,34 @@ public class AdminService : IAdminService
         return true;
     }
 
+    public async Task<bool> ApproveListingAsync(Guid listingId)
+    {
+        var listing = await _context.Listings.FirstOrDefaultAsync(l => l.Id == listingId && !l.IsDeleted);
+        if (listing == null)
+        {
+            return false;
+        }
+
+        listing.Status = ListingStatus.Approved;
+        listing.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> RejectListingAsync(Guid listingId)
+    {
+        var listing = await _context.Listings.FirstOrDefaultAsync(l => l.Id == listingId && !l.IsDeleted);
+        if (listing == null)
+        {
+            return false;
+        }
+
+        listing.Status = ListingStatus.Rejected;
+        listing.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<IEnumerable<UserResponse>> GetKycQueueAsync()
     {
         var users = await _context.Users
@@ -253,6 +281,7 @@ public class AdminService : IAdminService
             listing.District,
             listing.Images,
             listing.IsPaused,
+            listing.Status.ToString(),
             listing.CreatedAt,
             listing.UpdatedAt);
     }

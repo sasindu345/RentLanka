@@ -22,6 +22,7 @@ public class Listing
     public List<string> Images { get; set; } = new();
     public bool IsPaused { get; set; } = false;
     public bool IsDeleted { get; set; } = false;
+    public ListingStatus Status { get; set; } = ListingStatus.PendingApproval;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 

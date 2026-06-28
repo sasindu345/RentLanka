@@ -10,7 +10,8 @@ public interface IIdentityService
         string password, 
         string firstName, 
         string lastName, 
-        string phoneNumber);
+        string phoneNumber,
+        string role);
 
     Task<(bool Succeeded, string? Token, string? Error)> LoginAsync(
         string email, 

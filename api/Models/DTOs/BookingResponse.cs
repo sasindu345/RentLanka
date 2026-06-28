@@ -16,5 +16,7 @@ public record BookingResponse(
     decimal TotalPrice,
     decimal SecurityDeposit,
     string Status,
+    bool RenterAgreementSigned,
+    bool OwnerAgreementSigned,
     DateTime CreatedAt,
     DateTime? UpdatedAt);
