@@ -117,6 +117,7 @@ class UserProfile {
   final int verificationLevel;
   final bool isTrustedUser;
   final String? avatarUrl;
+  final String role;
 
   UserProfile({
     required this.id,
@@ -127,6 +128,7 @@ class UserProfile {
     required this.verificationLevel,
     required this.isTrustedUser,
     this.avatarUrl,
+    required this.role,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -139,6 +141,7 @@ class UserProfile {
       verificationLevel: json['verificationLevel'] as int? ?? 0,
       isTrustedUser: json['isTrustedUser'] as bool? ?? false,
       avatarUrl: json['avatarUrl'] as String?,
+      role: json['role'] as String? ?? 'Renter',
     );
   }
 }

@@ -84,7 +84,7 @@ public class AdminService : IAdminService
         return true;
     }
 
-    public async Task<PaginatedResponse<ListingResponse>> GetListingsAsync(string? query, bool? isPaused, bool? isDeleted, int page, int pageSize)
+    public async Task<PaginatedResponse<ListingResponse>> GetListingsAsync(string? query, bool? isPaused, bool? isDeleted, string? status, int page, int pageSize)
     {
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
@@ -102,6 +102,11 @@ public class AdminService : IAdminService
         if (isDeleted.HasValue)
         {
             dbQuery = dbQuery.Where(l => l.IsDeleted == isDeleted.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<ListingStatus>(status, true, out var parsedStatus))
+        {
+            dbQuery = dbQuery.Where(l => l.Status == parsedStatus);
         }
 
         if (!string.IsNullOrWhiteSpace(query))

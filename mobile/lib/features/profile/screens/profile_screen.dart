@@ -8,6 +8,7 @@ import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/providers/app_mode_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -149,6 +150,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       return const Scaffold(body: Center(child: Text('Unable to load profile')));
     }
 
+    final appMode = ref.watch(appModeProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
@@ -198,6 +201,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ],
             ),
             const SizedBox(height: 24),
+            const Text('Application Mode', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Card(
+              child: SwitchListTile(
+                title: const Text('Switch to Owner Mode'),
+                subtitle: Text(appMode == UserAppMode.owner
+                    ? 'Showing hosting tools & listings'
+                    : 'Showing renter explore & wishlist'),
+                value: appMode == UserAppMode.owner,
+                activeColor: AppTheme.primary,
+                onChanged: (val) {
+                  ref.read(appModeProvider.notifier).state =
+                      val ? UserAppMode.owner : UserAppMode.renter;
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
             const Text('Verification', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             _VerificationStep(label: 'Email verified', done: user.verificationLevel >= 0),
@@ -213,56 +233,58 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               icon: const Icon(Icons.verified_user_outlined, size: 18),
               label: Text(user.verificationLevel >= 3 ? 'View verification' : 'Complete verification'),
             ),
-            const SizedBox(height: 24),
-            const Text('Host Tools', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.account_balance_wallet_outlined, color: AppTheme.primary),
-                title: const Text('Host Earnings & Payouts'),
-                subtitle: const Text('Withdraw funds, view history & balances'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  context.push('/app/profile/earnings');
-                },
+            if (appMode == UserAppMode.owner) ...[
+              const SizedBox(height: 24),
+              const Text('Host Tools', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.account_balance_wallet_outlined, color: AppTheme.primary),
+                  title: const Text('Host Earnings & Payouts'),
+                  subtitle: const Text('Withdraw funds, view history & balances'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    context.push('/app/profile/earnings');
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('My listings', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('${_myListings.length} items', style: const TextStyle(color: AppTheme.muted)),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (_myListings.isEmpty)
-              const Text('No listings yet. Tap List tab to publish.', style: TextStyle(color: AppTheme.muted))
-            else
-              ..._myListings.map((l) => Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      title: Text(l.title),
-                      subtitle: Text('${l.category} · ${ListingsApi.formatPrice(l.pricePerDay)}/day'),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Chip(
-                            label: Text(
-                              l.isPaused ? 'Paused' : 'Active',
-                              style: const TextStyle(fontSize: 11),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('My listings', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('${_myListings.length} items', style: const TextStyle(color: AppTheme.muted)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (_myListings.isEmpty)
+                const Text('No listings yet. Tap List tab to publish.', style: TextStyle(color: AppTheme.muted))
+              else
+                ..._myListings.map((l) => Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        title: Text(l.title),
+                        subtitle: Text('${l.category} · ${ListingsApi.formatPrice(l.pricePerDay)}/day'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Chip(
+                              label: Text(
+                                l.isPaused ? 'Paused' : 'Active',
+                                style: const TextStyle(fontSize: 11),
+                              ),
+                              backgroundColor: l.isPaused ? Colors.orange.shade50 : Colors.green.shade50,
                             ),
-                            backgroundColor: l.isPaused ? Colors.orange.shade50 : Colors.green.shade50,
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.more_vert),
-                            onPressed: () => _showListingActions(l),
-                          ),
-                        ],
+                            IconButton(
+                              icon: const Icon(Icons.more_vert),
+                              onPressed: () => _showListingActions(l),
+                            ),
+                          ],
+                        ),
+                        onTap: () => _showListingActions(l),
                       ),
-                      onTap: () => _showListingActions(l),
-                    ),
-                  )),
+                    )),
+            ],
           ],
         ),
       ),

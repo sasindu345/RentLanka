@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RentLanka.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+753ecbad255b6d0cd9acb3f073df819d642c879d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+11b1d91e8132efe8dbbf9d1c1de2d9c06765c975")]
 [assembly: System.Reflection.AssemblyProductAttribute("RentLanka.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RentLanka.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

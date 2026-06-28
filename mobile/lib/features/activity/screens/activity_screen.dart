@@ -6,6 +6,7 @@ import 'package:mobile/core/api/bookings_api.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/shared/widgets/listing_image.dart';
+import 'package:mobile/core/providers/app_mode_provider.dart';
 
 class ActivityScreen extends ConsumerStatefulWidget {
   const ActivityScreen({super.key});
@@ -425,6 +426,9 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
 
   @override
   Widget build(BuildContext context) {
+    final appMode = ref.watch(appModeProvider);
+    final activeSegment = appMode == UserAppMode.owner ? 1 : 0;
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -444,30 +448,13 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
             // Bookings tab content
             Column(
               children: [
-                // Segment Selection
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: SegmentedButton<int>(
-                    segments: const [
-                      ButtonSegment(value: 0, label: Text('Rentals'), icon: Icon(Icons.shopping_bag_outlined)),
-                      ButtonSegment(value: 1, label: Text('Hostings'), icon: Icon(Icons.business_center_outlined)),
-                    ],
-                    selected: {_bookingSegmentIndex},
-                    onSelectionChanged: (set) {
-                      setState(() {
-                        _bookingSegmentIndex = set.first;
-                      });
-                    },
-                  ),
-                ),
-
                 // Bookings list
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _loadAll,
                     child: _loading
                         ? const Center(child: CircularProgressIndicator())
-                        : _bookingSegmentIndex == 0
+                        : activeSegment == 0
                             ? (_renterBookings.isEmpty
                                 ? const _EmptyState(
                                     icon: Icons.calendar_today_outlined,

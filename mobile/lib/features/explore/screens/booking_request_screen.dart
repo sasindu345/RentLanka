@@ -24,6 +24,7 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
   DateTimeRange? _selectedRange;
   bool _loading = true;
   bool _submitting = false;
+  bool _agreementChecked = false;
 
   @override
   void initState() {
@@ -86,10 +87,10 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
   Future<void> _submitRequest() async {
     if (_selectedRange == null || _listing == null || _user == null) return;
 
-    if (_user!.verificationLevel < 1) {
+    if (_user!.verificationLevel < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Verification Level 1 (Phone OTP) is required to request a booking.'),
+          content: Text('KYC Verification Level 2 (NIC Approved) is required to request a booking.'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -141,6 +142,80 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
     }
   }
 
+  void _showAgreementModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'RentLanka System Agreement',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Last Updated: June 2026',
+                  style: TextStyle(color: AppTheme.muted, fontSize: 12),
+                ),
+                const Divider(),
+                Expanded(
+                  child: ListView(
+                    controller: scrollController,
+                    children: const [
+                      Text(
+                        'Welcome to RentLanka. By checking the agreement box and requesting a booking, you agree to comply with and be bound by the following terms of the peer-to-peer equipment rental marketplace:\n\n'
+                        '1. Renter Responsibilities:\n'
+                        'The renter agrees to use the rented equipment solely for its intended purpose and in a careful, safe manner. The renter is responsible for returning the equipment in the same condition as received (reasonable wear and tear excepted) by the end date specified in the booking.\n\n'
+                        '2. Owner Responsibilities:\n'
+                        'The owner guarantees that the equipment is in good working order and conforms to the description provided in the listing. The owner must handover the equipment at the agreed location and time.\n\n'
+                        '3. Payments and Escrow:\n'
+                        'All rental fees and security deposits are processed through RentLanka’s secure payment gateway. The rental fee and security deposit are held in escrow. The rental fee is released to the owner upon successful completion of the rental. The security deposit is returned to the renter within 24 hours of a clean return confirmation.\n\n'
+                        '4. Damaged or Lost Equipment:\n'
+                        'In the event of damage or loss, the owner must submit a dispute report within 24 response of return. RentLanka reserves the right to withhold the security deposit to cover repairs or replacement costs based on review of the dispute.\n\n'
+                        '5. Disputes and Arbitration:\n'
+                        'Any disputes arising from rental agreements will be mediated by RentLanka Admin. By signing, you agree to abide by the administrative resolution decided by the operations team.',
+                        style: TextStyle(fontSize: 14, height: 1.5),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(45)),
+                  child: const Text('Close & I Agree'),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -160,7 +235,7 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
 
     final imageUrl = listing.images.isNotEmpty ? listing.images.first : null;
 
-    final isVerified = user.verificationLevel >= 1;
+    final isVerified = user.verificationLevel >= 2;
 
     return Scaffold(
       appBar: AppBar(
@@ -239,14 +314,14 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'You must complete Phone Verification (Level 1) before booking items.',
+                      'You must complete KYC Verification (Level 2 / NIC Approved) before booking items.',
                       style: TextStyle(fontSize: 13),
                     ),
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
                       onPressed: () => context.push('/app/profile/verification'),
                       icon: const Icon(Icons.verified_user_outlined, size: 16),
-                      label: const Text('Verify Phone Now'),
+                      label: const Text('Complete Verification Now'),
                     ),
                   ],
                 ),
@@ -355,6 +430,42 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 24),
+              const Text(
+                'Terms & Conditions',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const SizedBox(height: 8),
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text(
+                  'I agree to the RentLanka System Agreement and Terms',
+                  style: TextStyle(fontSize: 14),
+                ),
+                value: _agreementChecked,
+                onChanged: (val) {
+                  setState(() {
+                    _agreementChecked = val ?? false;
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+                activeColor: AppTheme.primary,
+                subtitle: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: _showAgreementModal,
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text(
+                      'Read System Agreement',
+                      style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ],
         ),
@@ -363,7 +474,7 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: FilledButton(
-            onPressed: (_selectedRange == null || _submitting || !isVerified) ? null : _submitRequest,
+            onPressed: (_selectedRange == null || _submitting || !isVerified || !_agreementChecked) ? null : _submitRequest,
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(50),
               backgroundColor: AppTheme.primary,

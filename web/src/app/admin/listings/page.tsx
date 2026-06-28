@@ -1,10 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAdminListings, toggleListingPause, deleteListing } from "@/lib/api/admin";
+import {
+  getAdminListings,
+  toggleListingPause,
+  deleteListing,
+  approveListing,
+  rejectListing,
+} from "@/lib/api/admin";
 import type { Listing } from "@/types/api";
 
 export default function AdminListingsModeration() {
+  const [activeTab, setActiveTab] = useState<"pending" | "moderated">("pending");
   const [listings, setListings] = useState<Listing[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -16,20 +23,40 @@ export default function AdminListingsModeration() {
 
   const pageSize = 15;
 
-  function loadListings(currentPage: number, searchQuery: string, filterState: string) {
+  function loadListings(
+    currentPage: number,
+    searchQuery: string,
+    tab: "pending" | "moderated",
+    filterState: string
+  ) {
     setLoading(true);
     setError("");
 
-    const isPaused = filterState === "paused" ? true : filterState === "active" ? false : undefined;
+    const isPaused =
+      tab === "moderated"
+        ? filterState === "paused"
+          ? true
+          : filterState === "active"
+          ? false
+          : undefined
+        : undefined;
+
+    const status = tab === "pending" ? "PendingApproval" : undefined;
 
     getAdminListings({
       page: currentPage,
       pageSize,
       query: searchQuery,
       isPaused,
+      status,
     })
       .then((res) => {
-        setListings(res.items);
+        if (tab === "moderated") {
+          // Only show Approved or Rejected, excluding PendingApproval
+          setListings(res.items.filter((l) => l.status !== "PendingApproval"));
+        } else {
+          setListings(res.items);
+        }
         setTotal(res.total);
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load listings"))
@@ -38,11 +65,40 @@ export default function AdminListingsModeration() {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      loadListings(page, query, pausedFilter);
+      loadListings(page, query, activeTab, pausedFilter);
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [page, query, pausedFilter]);
+  }, [page, query, activeTab, pausedFilter]);
+
+  async function handleApprove(listingId: string) {
+    setActionLoadingId(listingId);
+    try {
+      await approveListing(listingId);
+      setListings((prev) => prev.filter((l) => l.id !== listingId));
+      setTotal((t) => Math.max(0, t - 1));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Approval failed");
+    } finally {
+      setActionLoadingId(null);
+    }
+  }
+
+  async function handleReject(listingId: string) {
+    if (!confirm("Are you sure you want to reject this listing?")) {
+      return;
+    }
+    setActionLoadingId(listingId);
+    try {
+      await rejectListing(listingId);
+      setListings((prev) => prev.filter((l) => l.id !== listingId));
+      setTotal((t) => Math.max(0, t - 1));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Rejection failed");
+    } finally {
+      setActionLoadingId(null);
+    }
+  }
 
   async function handleTogglePause(listingId: string) {
     setActionLoadingId(listingId);
@@ -59,7 +115,11 @@ export default function AdminListingsModeration() {
   }
 
   async function handleDeleteListing(listingId: string) {
-    if (!confirm("Are you sure you want to delete this listing? This soft-deletes it and takes it off the platform permanently.")) {
+    if (
+      !confirm(
+        "Are you sure you want to delete this listing? This soft-deletes it and takes it off the platform permanently."
+      )
+    ) {
       return;
     }
 
@@ -79,6 +139,36 @@ export default function AdminListingsModeration() {
 
   return (
     <div className="space-y-6">
+      {/* Page Tabs */}
+      <div className="flex border-b border-slate-800">
+        <button
+          onClick={() => {
+            setActiveTab("pending");
+            setPage(1);
+          }}
+          className={`px-6 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
+            activeTab === "pending"
+              ? "border-teal-500 text-teal-400"
+              : "border-transparent text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          Pending Verification Queue
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab("moderated");
+            setPage(1);
+          }}
+          className={`px-6 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
+            activeTab === "moderated"
+              ? "border-teal-500 text-teal-400"
+              : "border-transparent text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          Active & Moderated Listings
+        </button>
+      </div>
+
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex flex-wrap gap-3 flex-1 max-w-2xl">
@@ -96,18 +186,20 @@ export default function AdminListingsModeration() {
             <span className="absolute left-3 top-3.5 text-slate-500 text-sm">🔍</span>
           </div>
 
-          <select
-            value={pausedFilter}
-            onChange={(e) => {
-              setPausedFilter(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-2.5 text-sm text-slate-300 outline-none focus:border-teal-500 transition"
-          >
-            <option value="all">All Statuses</option>
-            <option value="active">Active Only</option>
-            <option value="paused">Paused Only</option>
-          </select>
+          {activeTab === "moderated" && (
+            <select
+              value={pausedFilter}
+              onChange={(e) => {
+                setPausedFilter(e.target.value);
+                setPage(1);
+              }}
+              className="rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-2.5 text-sm text-slate-300 outline-none focus:border-teal-500 transition"
+            >
+              <option value="all">All Statuses</option>
+              <option value="active">Active Only</option>
+              <option value="paused">Paused Only</option>
+            </select>
+          )}
         </div>
 
         <div className="text-sm text-slate-400">
@@ -185,6 +277,9 @@ export default function AdminListingsModeration() {
                       <div>
                         {listing.owner.firstName} {listing.owner.lastName}
                       </div>
+                      <span className="text-[10px] text-slate-500 block">
+                        KYC Level {listing.owner.verificationLevel}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-slate-400">{listing.category}</td>
                     <td className="px-6 py-4 font-semibold text-teal-400 font-mono">
@@ -192,8 +287,16 @@ export default function AdminListingsModeration() {
                     </td>
                     <td className="px-6 py-4 text-slate-400">{listing.district}</td>
                     <td className="px-6 py-4">
-                      {listing.isPaused ? (
+                      {listing.status === "PendingApproval" ? (
                         <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-950/40 text-amber-400 border border-amber-500/20">
+                          Pending Verification
+                        </span>
+                      ) : listing.status === "Rejected" ? (
+                        <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-rose-950/40 text-rose-400 border border-rose-500/20">
+                          Rejected
+                        </span>
+                      ) : listing.isPaused ? (
+                        <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-slate-950/40 text-slate-400 border border-slate-500/20">
                           Paused
                         </span>
                       ) : (
@@ -203,28 +306,49 @@ export default function AdminListingsModeration() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
-                      <button
-                        disabled={isActionLoading}
-                        onClick={() => handleTogglePause(listing.id)}
-                        className={`text-xs px-3 py-1.5 rounded-lg border transition duration-150 cursor-pointer ${
-                          listing.isPaused
-                            ? "bg-emerald-950/10 border-emerald-900/30 text-emerald-400 hover:bg-emerald-950/20 hover:border-emerald-800"
-                            : "bg-amber-950/10 border-amber-900/30 text-amber-400 hover:bg-amber-950/20 hover:border-amber-800"
-                        }`}
-                      >
-                        {isActionLoading
-                          ? "Wait..."
-                          : listing.isPaused
-                          ? "Activate"
-                          : "Pause"}
-                      </button>
-                      <button
-                        disabled={isActionLoading}
-                        onClick={() => handleDeleteListing(listing.id)}
-                        className="text-xs px-3 py-1.5 rounded-lg border bg-red-950/10 border-red-900/30 text-red-400 hover:bg-red-950/20 hover:border-red-800 transition duration-150 cursor-pointer"
-                      >
-                        {isActionLoading ? "..." : "Delete"}
-                      </button>
+                      {listing.status === "PendingApproval" ? (
+                        <>
+                          <button
+                            disabled={isActionLoading}
+                            onClick={() => handleApprove(listing.id)}
+                            className="text-xs px-3 py-1.5 rounded-lg border bg-emerald-950/10 border-emerald-900/30 text-emerald-400 hover:bg-emerald-950/20 hover:border-emerald-800 transition duration-150 cursor-pointer"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            disabled={isActionLoading}
+                            onClick={() => handleReject(listing.id)}
+                            className="text-xs px-3 py-1.5 rounded-lg border bg-rose-950/10 border-rose-900/30 text-rose-400 hover:bg-rose-950/20 hover:border-rose-800 transition duration-150 cursor-pointer"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            disabled={isActionLoading}
+                            onClick={() => handleTogglePause(listing.id)}
+                            className={`text-xs px-3 py-1.5 rounded-lg border transition duration-150 cursor-pointer ${
+                              listing.isPaused
+                                ? "bg-emerald-950/10 border-emerald-900/30 text-emerald-400 hover:bg-emerald-950/20 hover:border-emerald-800"
+                                : "bg-amber-950/10 border-amber-900/30 text-amber-400 hover:bg-amber-950/20 hover:border-amber-800"
+                            }`}
+                          >
+                            {isActionLoading
+                              ? "Wait..."
+                              : listing.isPaused
+                              ? "Activate"
+                              : "Pause"}
+                          </button>
+                          <button
+                            disabled={isActionLoading}
+                            onClick={() => handleDeleteListing(listing.id)}
+                            className="text-xs px-3 py-1.5 rounded-lg border bg-red-950/10 border-red-900/30 text-red-400 hover:bg-red-950/20 hover:border-red-800 transition duration-150 cursor-pointer"
+                          >
+                            {isActionLoading ? "..." : "Delete"}
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 );

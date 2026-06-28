@@ -43,7 +43,7 @@ export function overrideUserVerification(id: string, data: { level: number; isTr
   });
 }
 
-export function getAdminListings(params: { query?: string; isPaused?: boolean; page?: number; pageSize?: number } = {}) {
+export function getAdminListings(params: { query?: string; isPaused?: boolean; status?: string; page?: number; pageSize?: number } = {}) {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== "") {
@@ -100,6 +100,20 @@ export function getAdminPayouts() {
 
 export function approveAdminPayout(id: string) {
   return apiRequest<{ message: string }>(`/api/admin/payouts/${id}/approve`, {
+    method: "PATCH",
+    auth: true,
+  });
+}
+
+export function approveListing(id: string) {
+  return apiRequest<{ message: string }>(`/api/admin/listings/${id}/approve`, {
+    method: "PATCH",
+    auth: true,
+  });
+}
+
+export function rejectListing(id: string) {
+  return apiRequest<{ message: string }>(`/api/admin/listings/${id}/reject`, {
     method: "PATCH",
     auth: true,
   });

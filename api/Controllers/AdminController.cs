@@ -81,10 +81,11 @@ public class AdminController : ControllerBase
         [FromQuery] string? query,
         [FromQuery] bool? isPaused,
         [FromQuery] bool? isDeleted,
+        [FromQuery] string? status,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
-        var result = await _adminService.GetListingsAsync(query, isPaused, isDeleted, page, pageSize);
+        var result = await _adminService.GetListingsAsync(query, isPaused, isDeleted, status, page, pageSize);
         return Ok(result);
     }
 

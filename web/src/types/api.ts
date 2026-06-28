@@ -22,6 +22,7 @@ export interface Listing {
   district: string;
   images: string[];
   isPaused: boolean;
+  status: string;
   createdAt: string;
   updatedAt: string | null;
 }

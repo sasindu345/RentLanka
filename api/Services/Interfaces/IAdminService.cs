@@ -11,7 +11,7 @@ public interface IAdminService
     Task<UserResponse?> GetUserByIdAsync(Guid userId);
     Task<bool> ToggleUserBanAsync(Guid userId);
     Task<bool> OverrideUserVerificationAsync(Guid userId, int level, bool isTrusted);
-    Task<PaginatedResponse<ListingResponse>> GetListingsAsync(string? query, bool? isPaused, bool? isDeleted, int page, int pageSize);
+    Task<PaginatedResponse<ListingResponse>> GetListingsAsync(string? query, bool? isPaused, bool? isDeleted, string? status, int page, int pageSize);
     Task<bool> ToggleListingPauseAsync(Guid listingId);
     Task<bool> DeleteListingAsync(Guid listingId);
     Task<bool> ApproveListingAsync(Guid listingId);
