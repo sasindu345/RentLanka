@@ -38,6 +38,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         _user = user;
         _myListings = listings;
       });
+      
+      if (mounted) {
+        final currentAppMode = ref.read(appModeProvider);
+        final backendAppMode = user.role.toLowerCase() == 'owner' ? UserAppMode.owner : UserAppMode.renter;
+        if (currentAppMode != backendAppMode) {
+          ref.read(appModeProvider.notifier).state = backendAppMode;
+        }
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -211,9 +219,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     : 'Showing renter explore & wishlist'),
                 value: appMode == UserAppMode.owner,
                 activeColor: AppTheme.primary,
-                onChanged: (val) {
-                  ref.read(appModeProvider.notifier).state =
-                      val ? UserAppMode.owner : UserAppMode.renter;
+                onChanged: (val) async {
+                  if (_user == null) return;
+                  final newMode = val ? UserAppMode.owner : UserAppMode.renter;
+                  final newRole = val ? 'Owner' : 'Renter';
+                  
+                  setState(() => _loading = true);
+                  try {
+                    await ref.read(listingsApiProvider).updateProfile(
+                      firstName: _user!.firstName,
+                      lastName: _user!.lastName,
+                      phoneNumber: _user!.phoneNumber,
+                      role: newRole,
+                    );
+                    ref.read(appModeProvider.notifier).state = newMode;
+                    await _load();
+                  } on DioException catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(extractError(e))),
+                    );
+                  } finally {
+                    if (mounted) setState(() => _loading = false);
+                  }
                 },
               ),
             ),

@@ -27,7 +27,8 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
   final _rulesController = TextEditingController();
   final _picker = ImagePicker();
 
-  String _category = categories.first;
+  List<String> _dynamicCategories = categories;
+  late String _category;
   String _district = districts.first;
   double _latitude = 6.9271;
   double _longitude = 79.8612;
@@ -43,7 +44,23 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
   @override
   void initState() {
     super.initState();
+    _category = _dynamicCategories.first;
     _loadListing();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final list = await ref.read(listingsApiProvider).getCategories();
+      if (mounted && list.isNotEmpty) {
+        setState(() {
+          _dynamicCategories = list;
+          if (!list.contains(_category)) {
+            _category = list.first;
+          }
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -283,7 +300,7 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
             DropdownButtonFormField<String>(
               value: _category,
               decoration: const InputDecoration(labelText: 'Category'),
-              items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+              items: _dynamicCategories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
               onChanged: (v) => setState(() => _category = v!),
             ),
             const SizedBox(height: 12),

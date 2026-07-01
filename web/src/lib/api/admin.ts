@@ -9,6 +9,7 @@ import type {
   PayoutResponse,
   ReviewResponse,
   DisputeResponse,
+  PlatformSettingResponse,
 } from "@/types/api";
 
 export function getAdminDashboardStats() {
@@ -132,6 +133,18 @@ export function getAdminDisputes() {
 export function resolveDispute(id: string, data: { adminDecision: string; refundRenter: boolean }) {
   return apiRequest<DisputeResponse>(`/api/admin/disputes/${id}/resolve`, {
     method: "PATCH",
+    auth: true,
+    body: data,
+  });
+}
+
+export function getAdminSettings() {
+  return apiRequest<PlatformSettingResponse>("/api/admin/settings", { auth: true });
+}
+
+export function updateAdminSettings(data: { commissionRate: number; categories: string[] }) {
+  return apiRequest<PlatformSettingResponse>("/api/admin/settings", {
+    method: "PUT",
     auth: true,
     body: data,
   });

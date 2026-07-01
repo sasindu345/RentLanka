@@ -53,6 +53,16 @@ public class UserService : IUserService
             user.PhoneNumber = request.PhoneNumber.Trim();
         }
 
+        if (!string.IsNullOrWhiteSpace(request.Role))
+        {
+            var roleTrimmed = request.Role.Trim();
+            if (roleTrimmed != "Renter" && roleTrimmed != "Owner")
+            {
+                return (false, null, "Invalid role. Role must be either Renter or Owner.");
+            }
+            user.Role = roleTrimmed;
+        }
+
         user.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 

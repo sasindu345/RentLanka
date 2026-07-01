@@ -51,6 +51,7 @@ export default function AdminLayout({
     { label: "Bookings List", href: "/admin/bookings", icon: "📅" },
     { label: "Payments & Payouts", href: "/admin/payments", icon: "💳" },
     { label: "Disputes Queue", href: "/admin/disputes", icon: "⚠️" },
+    { label: "Platform Settings", href: "/admin/settings", icon: "⚙️" },
   ];
 
   return (

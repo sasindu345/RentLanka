@@ -18,11 +18,24 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   final _searchController = TextEditingController();
   PaginatedListings? _listings;
   bool _loading = true;
+  List<String> _dynamicCategories = categories;
 
   @override
   void initState() {
     super.initState();
     _loadListings();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final list = await ref.read(listingsApiProvider).getCategories();
+      if (mounted && list.isNotEmpty) {
+        setState(() {
+          _dynamicCategories = list;
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -86,10 +99,10 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: categories.length,
+                  itemCount: _dynamicCategories.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
-                    final category = categories[index];
+                    final category = _dynamicCategories[index];
                     return ActionChip(
                       label: Text(category),
                       onPressed: () => context.push(

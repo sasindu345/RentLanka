@@ -32,6 +32,7 @@ class ListingsApi {
     required String firstName,
     required String lastName,
     required String phoneNumber,
+    required String role,
   }) async {
     await _dio.post('/api/auth/register', data: {
       'email': email,
@@ -39,6 +40,7 @@ class ListingsApi {
       'firstName': firstName,
       'lastName': lastName,
       'phoneNumber': phoneNumber,
+      'role': role,
     });
     await login(email, password);
   }
@@ -59,11 +61,13 @@ class ListingsApi {
     required String firstName,
     required String lastName,
     required String phoneNumber,
+    String? role,
   }) async {
     final response = await _dio.patch('/api/users/me', data: {
       'firstName': firstName,
       'lastName': lastName,
       'phoneNumber': phoneNumber,
+      'role': role,
     });
     return UserProfile.fromJson(response.data as Map<String, dynamic>);
   }
@@ -129,6 +133,12 @@ class ListingsApi {
 
   Future<void> removeFromWishlist(String listingId) async {
     await _dio.delete('/api/wishlist/$listingId');
+  }
+
+  Future<List<String>> getCategories() async {
+    final response = await _dio.get('/api/settings');
+    final list = response.data['categories'] as List<dynamic>;
+    return list.map((e) => e as String).toList();
   }
 
   static String formatPrice(double amount) {

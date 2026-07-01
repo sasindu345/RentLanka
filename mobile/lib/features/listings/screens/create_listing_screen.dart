@@ -24,7 +24,8 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   final _rulesController = TextEditingController();
   final _picker = ImagePicker();
 
-  String _category = categories.first;
+  List<String> _dynamicCategories = categories;
+  late String _category;
   String _district = districts.first;
   final List<String> _imageUrls = [];
   bool _loading = false;
@@ -32,6 +33,27 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   String? _error;
 
   static const _maxImages = 5;
+
+  @override
+  void initState() {
+    super.initState();
+    _category = _dynamicCategories.first;
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final list = await ref.read(listingsApiProvider).getCategories();
+      if (mounted && list.isNotEmpty) {
+        setState(() {
+          _dynamicCategories = list;
+          if (!list.contains(_category)) {
+            _category = list.first;
+          }
+        });
+      }
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
@@ -249,7 +271,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
             DropdownButtonFormField<String>(
               value: _category,
               decoration: const InputDecoration(labelText: 'Category'),
-              items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+              items: _dynamicCategories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
               onChanged: (v) => setState(() => _category = v!),
             ),
             const SizedBox(height: 12),

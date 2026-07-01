@@ -140,3 +140,10 @@ export interface DisputeResponse {
   resolvedAt: string | null;
   resolvedByName: string | null;
 }
+
+export interface PlatformSettingResponse {
+  id: string;
+  commissionRate: number;
+  categories: string[];
+  updatedAt: string;
+}

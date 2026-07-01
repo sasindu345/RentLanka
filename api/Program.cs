@@ -87,6 +87,7 @@ public class Program
         builder.Services.AddScoped<IReviewService, ReviewService>();
         builder.Services.AddScoped<IChatService, ChatService>();
         builder.Services.AddScoped<IDisputeService, DisputeService>();
+        builder.Services.AddScoped<ISettingsService, SettingsService>();
         builder.Services.AddSingleton<IFileStorageService, S3FileStorageService>();
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

@@ -14,11 +14,12 @@ namespace RentLanka.Api.Services.Implementations;
 public class EarningsService : IEarningsService
 {
     private readonly AppDbContext _context;
-    private const decimal CommissionRate = 0.10m; // 10% platform commission
+    private readonly ISettingsService _settingsService;
 
-    public EarningsService(AppDbContext context)
+    public EarningsService(AppDbContext context, ISettingsService settingsService)
     {
         _context = context;
+        _settingsService = settingsService;
     }
 
     public async Task<EarningsResponse> GetHostEarningsAsync(Guid hostId)
@@ -30,13 +31,16 @@ public class EarningsService : IEarningsService
             .Where(b => b.Listing.OwnerId == hostId)
             .ToListAsync();
 
-        // 2. Total Earned = 90% of TotalPrice for Completed bookings
-        var completedBookings = bookings.Where(b => b.Status == BookingStatus.Completed);
-        var totalEarned = completedBookings.Sum(b => b.TotalPrice) * (1 - CommissionRate);
+        var settings = await _settingsService.GetSettingsAsync();
+        var commissionRate = settings.CommissionRate;
 
-        // 3. Escrowed Balance = 90% of TotalPrice for Paid and Active bookings
+        // 2. Total Earned = (1 - commissionRate) of TotalPrice for Completed bookings
+        var completedBookings = bookings.Where(b => b.Status == BookingStatus.Completed);
+        var totalEarned = completedBookings.Sum(b => b.TotalPrice) * (1 - commissionRate);
+
+        // 3. Escrowed Balance = (1 - commissionRate) of TotalPrice for Paid and Active bookings
         var escrowedBookings = bookings.Where(b => b.Status == BookingStatus.Paid || b.Status == BookingStatus.Active);
-        var escrowedBalance = escrowedBookings.Sum(b => b.TotalPrice) * (1 - CommissionRate);
+        var escrowedBalance = escrowedBookings.Sum(b => b.TotalPrice) * (1 - commissionRate);
 
         // 4. Get all payouts for this host
         var payouts = await _context.Payouts

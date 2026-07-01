@@ -20,7 +20,6 @@ class ActivityScreen extends ConsumerStatefulWidget {
 
 class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  int _bookingSegmentIndex = 0; // 0 = Rentals, 1 = Hostings
   List<BookingResponse> _renterBookings = [];
   List<BookingResponse> _ownerBookings = [];
   bool _loading = true;

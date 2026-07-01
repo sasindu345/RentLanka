@@ -18,6 +18,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
+  String _role = 'Renter';
   bool _loading = false;
   String? _error;
 
@@ -43,6 +44,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             firstName: _firstNameController.text.trim(),
             lastName: _lastNameController.text.trim(),
             phoneNumber: _phoneController.text.trim(),
+            role: _role,
           );
       if (mounted) context.go('/app/profile');
     } on DioException catch (e) {
@@ -81,7 +83,36 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               decoration: const InputDecoration(labelText: 'Phone number'),
               keyboardType: TextInputType.phone,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Register as:',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment<String>(
+                  value: 'Renter',
+                  label: Text('Renter'),
+                  icon: Icon(Icons.shopping_bag_outlined),
+                ),
+                ButtonSegment<String>(
+                  value: 'Owner',
+                  label: Text('Host / Owner'),
+                  icon: Icon(Icons.storefront_outlined),
+                ),
+              ],
+              selected: {_role},
+              onSelectionChanged: (Set<String> newSelection) {
+                setState(() {
+                  _role = newSelection.first;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
             TextField(
               controller: _passwordController,
               decoration: const InputDecoration(labelText: 'Password (min 8 chars)'),

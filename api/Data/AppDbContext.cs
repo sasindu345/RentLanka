@@ -21,6 +21,7 @@ public class AppDbContext : DbContext
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<Dispute> Disputes => Set<Dispute>();
+    public DbSet<PlatformSetting> PlatformSettings => Set<PlatformSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -250,6 +251,21 @@ public class AppDbContext : DbContext
 
             entity.HasIndex(d => d.BookingId);
             entity.HasIndex(d => d.CreatedAt);
+        });
+
+        modelBuilder.Entity<PlatformSetting>(entity =>
+        {
+            entity.HasKey(ps => ps.Id);
+            entity.Property(ps => ps.CommissionRate).HasColumnType("numeric(5,4)");
+            entity.Property(ps => ps.CategoriesJson).IsRequired().HasMaxLength(2000);
+        });
+
+        modelBuilder.Entity<PlatformSetting>().HasData(new PlatformSetting
+        {
+            Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+            CommissionRate = 0.1000m,
+            CategoriesJson = "[\"Photography\", \"Tools\", \"Camping\", \"Electronics\", \"Sports\", \"Other\"]",
+            UpdatedAt = new DateTime(2026, 6, 21, 0, 0, 0, DateTimeKind.Utc)
         });
     }
 }
