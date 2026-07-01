@@ -13,23 +13,54 @@ public class VerificationService : IVerificationService
 {
     private readonly AppDbContext _context;
     private readonly ILogger<VerificationService> _logger;
+    private readonly IEmailService _emailService;
     
     // In-memory cache for demo/development OTP and verification tokens
     private static readonly ConcurrentDictionary<Guid, (string Code, DateTime Expiry)> SmsOtps = new();
     private static readonly ConcurrentDictionary<Guid, (string Token, DateTime Expiry)> EmailTokens = new();
 
-    public VerificationService(AppDbContext context, ILogger<VerificationService> logger)
+    public VerificationService(AppDbContext context, ILogger<VerificationService> logger, IEmailService emailService)
     {
         _context = context;
         _logger = logger;
+        _emailService = emailService;
     }
 
-    public Task<string> GenerateEmailVerificationTokenAsync(Guid userId)
+    public async Task<string> GenerateEmailVerificationTokenAsync(Guid userId)
     {
-        var token = Guid.NewGuid().ToString("N");
+        var token = Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper();
         EmailTokens[userId] = (token, DateTime.UtcNow.AddHours(24));
-        _logger.LogInformation("[EMAIL GATEWAY SIMULATION] Verification token {Token} for user {UserId}", token, userId);
-        return Task.FromResult(token);
+        
+        var user = await _context.Users.FindAsync(userId);
+        if (user != null)
+        {
+            var subject = "Verify your RentLanka Email Address";
+            var body = $@"
+                <div style='font-family: sans-serif; padding: 24px; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px;'>
+                    <h2 style='color: #0d9488;'>Verify your Email Address</h2>
+                    <p>Hi {user.FirstName},</p>
+                    <p>Thank you for signing up for RentLanka. Please use the verification token below to verify your email address:</p>
+                    <div style='background-color: #f1f5f9; padding: 16px; font-size: 24px; font-weight: bold; text-align: center; letter-spacing: 4px; color: #0f172a; margin: 24px 0; border-radius: 8px;'>
+                        {token}
+                    </div>
+                    <p style='font-size: 12px; color: #64748b;'>This token is valid for 24 hours. If you did not request this verification, please ignore this email.</p>
+                </div>";
+
+            try
+            {
+                await _emailService.SendEmailAsync(user.Email, subject, body);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending verification email to {Email}", user.Email);
+            }
+        }
+        else
+        {
+            _logger.LogWarning("User {UserId} not found. Cannot send verification email.", userId);
+        }
+
+        return token;
     }
 
     public async Task<bool> VerifyEmailAsync(Guid userId, string token)

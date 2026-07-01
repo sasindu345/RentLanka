@@ -11,12 +11,37 @@ using RentLanka.Api.Middleware;
 using RentLanka.Api.Services.Implementations;
 using RentLanka.Api.Services.Interfaces;
 
+using System;
+using System.IO;
+
 namespace RentLanka.Api;
 
 public class Program
 {
     public static void Main(string[] args)
     {
+        // Load .env file if it exists
+        var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+        if (!File.Exists(envPath))
+        {
+            envPath = Path.Combine(Directory.GetCurrentDirectory(), "..", ".env");
+        }
+        if (File.Exists(envPath))
+        {
+            foreach (var line in File.ReadAllLines(envPath))
+            {
+                var trimmedLine = line.Trim();
+                if (string.IsNullOrEmpty(trimmedLine) || trimmedLine.StartsWith("#"))
+                    continue;
+
+                var parts = trimmedLine.Split('=', 2);
+                if (parts.Length == 2)
+                {
+                    Environment.SetEnvironmentVariable(parts[0].Trim(), parts[1].Trim());
+                }
+            }
+        }
+
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
@@ -88,6 +113,7 @@ public class Program
         builder.Services.AddScoped<IChatService, ChatService>();
         builder.Services.AddScoped<IDisputeService, DisputeService>();
         builder.Services.AddScoped<ISettingsService, SettingsService>();
+        builder.Services.AddHttpClient<IEmailService, EmailService>();
         builder.Services.AddSingleton<IFileStorageService, S3FileStorageService>();
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
