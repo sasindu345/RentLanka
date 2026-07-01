@@ -28,6 +28,7 @@ public class Program
         }
         if (File.Exists(envPath))
         {
+            Console.WriteLine($"[ENV LOADER] Loading environment configuration from {envPath}");
             foreach (var line in File.ReadAllLines(envPath))
             {
                 var trimmedLine = line.Trim();
@@ -37,9 +38,20 @@ public class Program
                 var parts = trimmedLine.Split('=', 2);
                 if (parts.Length == 2)
                 {
-                    Environment.SetEnvironmentVariable(parts[0].Trim(), parts[1].Trim());
+                    var key = parts[0].Trim();
+                    var val = parts[1].Trim();
+                    Environment.SetEnvironmentVariable(key, val);
+                    var displayVal = (key.Contains("Pass", StringComparison.OrdinalIgnoreCase) || 
+                                      key.Contains("Key", StringComparison.OrdinalIgnoreCase) || 
+                                      key.Contains("Secret", StringComparison.OrdinalIgnoreCase)) 
+                                      ? "********" : val;
+                    Console.WriteLine($"[ENV LOADER] Set process env: {key} = {displayVal}");
                 }
             }
+        }
+        else
+        {
+            Console.WriteLine($"[ENV LOADER] No .env file found at {envPath}");
         }
 
         var builder = WebApplication.CreateBuilder(args);
@@ -114,6 +126,7 @@ public class Program
         builder.Services.AddScoped<IDisputeService, DisputeService>();
         builder.Services.AddScoped<ISettingsService, SettingsService>();
         builder.Services.AddHttpClient<IEmailService, EmailService>();
+        builder.Services.AddHttpClient<ISmsService, SmsService>();
         builder.Services.AddSingleton<IFileStorageService, S3FileStorageService>();
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
