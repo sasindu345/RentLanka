@@ -30,6 +30,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   final List<String> _imageUrls = [];
   bool _loading = false;
   bool _uploadingImage = false;
+  bool _generatingAi = false;
   String? _error;
 
   static const _maxImages = 5;
@@ -162,6 +163,51 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
     }
   }
 
+  Future<void> _generateAiDetails() async {
+    if (_imageUrls.isEmpty) return;
+
+    setState(() {
+      _generatingAi = true;
+      _error = null;
+    });
+
+    try {
+      final suggestion = await ref.read(listingsApiProvider).generateListingSuggestion(
+        imageUrl: _imageUrls.first,
+        categoryHint: _category,
+      );
+
+      setState(() {
+        _titleController.text = suggestion.title;
+        _descriptionController.text = suggestion.description;
+        
+        final matchedCat = _dynamicCategories.firstWhere(
+          (c) => c.toLowerCase() == suggestion.category.toLowerCase(),
+          orElse: () => _category,
+        );
+        _category = matchedCat;
+
+        _priceController.text = suggestion.suggestedPricePerDay.toStringAsFixed(0);
+        _depositController.text = suggestion.suggestedSecurityDeposit.toStringAsFixed(0);
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✨ Listing details generated with AI!'),
+            backgroundColor: AppTheme.primary,
+          ),
+        );
+      }
+    } on DioException catch (e) {
+      setState(() => _error = extractError(e));
+    } finally {
+      if (mounted) {
+        setState(() => _generatingAi = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -259,6 +305,30 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                 ],
               ),
             ),
+            if (_imageUrls.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _generatingAi ? null : _generateAiDetails,
+                  icon: _generatingAi
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.auto_awesome, color: AppTheme.accent),
+                  label: Text(
+                    _generatingAi ? 'Generating details...' : '✨ AI Listing Assist (Autofill)',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppTheme.accent, width: 1.5),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             TextField(controller: _titleController, decoration: const InputDecoration(labelText: 'Title')),
             const SizedBox(height: 12),

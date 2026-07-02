@@ -157,7 +157,44 @@ class ListingsApi {
     return list.map((e) => e as String).toList();
   }
 
+  Future<AiListingSuggestion> generateListingSuggestion({
+    required String imageUrl,
+    String? categoryHint,
+  }) async {
+    final response = await _dio.post('/api/ai/generate-listing', data: {
+      'imageUrl': imageUrl,
+      if (categoryHint != null && categoryHint.isNotEmpty) 'categoryHint': categoryHint,
+    });
+    return AiListingSuggestion.fromJson(response.data as Map<String, dynamic>);
+  }
+
   static String formatPrice(double amount) {
     return 'LKR ${amount.toStringAsFixed(0)}';
+  }
+}
+
+class AiListingSuggestion {
+  final String title;
+  final String description;
+  final String category;
+  final double suggestedPricePerDay;
+  final double suggestedSecurityDeposit;
+
+  AiListingSuggestion({
+    required this.title,
+    required this.description,
+    required this.category,
+    required this.suggestedPricePerDay,
+    required this.suggestedSecurityDeposit,
+  });
+
+  factory AiListingSuggestion.fromJson(Map<String, dynamic> json) {
+    return AiListingSuggestion(
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      category: json['category'] as String? ?? '',
+      suggestedPricePerDay: (json['suggestedPricePerDay'] as num?)?.toDouble() ?? 0.0,
+      suggestedSecurityDeposit: (json['suggestedSecurityDeposit'] as num?)?.toDouble() ?? 0.0,
+    );
   }
 }
