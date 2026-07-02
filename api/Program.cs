@@ -127,7 +127,16 @@ public class Program
         builder.Services.AddScoped<ISettingsService, SettingsService>();
         builder.Services.AddHttpClient<IEmailService, EmailService>();
         builder.Services.AddHttpClient<ISmsService, SmsService>();
-        builder.Services.AddSingleton<IFileStorageService, S3FileStorageService>();
+        
+        var storageProvider = builder.Configuration["FileStorageSettings:Provider"] ?? "Local";
+        if (storageProvider.Equals("S3", StringComparison.OrdinalIgnoreCase))
+        {
+            builder.Services.AddSingleton<IFileStorageService, S3FileStorageService>();
+        }
+        else
+        {
+            builder.Services.AddSingleton<IFileStorageService, CloudinaryFileStorageService>();
+        }
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
