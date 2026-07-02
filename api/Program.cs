@@ -145,6 +145,7 @@ public class Program
         builder.Services.AddScoped<INotificationService, FcmNotificationService>();
         builder.Services.AddHttpClient<IEmailService, EmailService>();
         builder.Services.AddHttpClient<ISmsService, SmsService>();
+        builder.Services.AddHttpClient<IAiService, GeminiAiService>();
         
         var storageProvider = builder.Configuration["FileStorageSettings:Provider"] ?? "Local";
         if (storageProvider.Equals("S3", StringComparison.OrdinalIgnoreCase))
