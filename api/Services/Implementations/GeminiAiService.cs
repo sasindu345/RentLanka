@@ -189,7 +189,7 @@ Rules:
 
     private async Task<ListingGenerationResponse?> CallGeminiAsync(string apiKey, string systemInstruction, string prompt, string base64Image, string mimeType)
     {
-        string model = _configuration["GeminiSettings:Model"] ?? "gemini-1.5-flash";
+        string model = _configuration["GeminiSettings:Model"] ?? "gemini-2.5-flash";
         string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
 
         var parts = new List<object> { new { text = prompt } };
@@ -241,7 +241,7 @@ Rules:
 
     private async Task<List<SemanticSearchResult>?> CallGeminiSearchAsync(string apiKey, string systemInstruction, string prompt)
     {
-        string model = _configuration["GeminiSettings:Model"] ?? "gemini-1.5-flash";
+        string model = _configuration["GeminiSettings:Model"] ?? "gemini-2.5-flash";
         string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
 
         var requestBody = new
@@ -443,26 +443,58 @@ Rules:
             double score = 0.0;
             string reason = string.Empty;
 
-            // Simple keyword weight heuristic
+            // 1. Check exact contains
             if (l.Title.ToLower().Contains(lowerQuery) || l.Description.ToLower().Contains(lowerQuery))
             {
                 score = 0.95;
-                reason = $"Found keyword '{query}' directly in listing details.";
+                reason = $"Found exact match for '{query}' in listing details.";
             }
             else if (l.Category.ToLower().Contains(lowerQuery))
             {
                 score = 0.85;
-                reason = $"Category '{l.Category}' matches the search category.";
+                reason = $"Category '{l.Category}' matches search query.";
             }
             else
             {
-                // Check word overlaps
+                // 2. Perform word-by-word fuzzy matching (handles spelling errors like 'camara' -> 'camera')
                 var queryWords = lowerQuery.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                var matchCount = queryWords.Count(w => l.Title.ToLower().Contains(w) || l.Description.ToLower().Contains(w));
-                if (matchCount > 0)
+                var titleWords = l.Title.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var descWords = l.Description.ToLower().Split(new[] { ' ', '.', ',', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
+                var allWords = titleWords.Concat(descWords).Distinct().ToList();
+
+                double maxWordScore = 0.0;
+                string bestMatchText = "";
+
+                foreach (var qw in queryWords)
                 {
-                    score = 0.5 + (0.1 * matchCount);
-                    reason = $"Matches query terms: {string.Join(", ", queryWords.Where(w => l.Title.ToLower().Contains(w) || l.Description.ToLower().Contains(w)))}.";
+                    if (qw.Length < 3) continue;
+
+                    foreach (var tw in allWords)
+                    {
+                        if (tw.Length < 3) continue;
+
+                        int distance = LevenshteinDistance(qw, tw);
+                        int maxLen = Math.Max(qw.Length, tw.Length);
+                        
+                        // Allow 1 typo for short words, 2 typos for words > 5 letters
+                        int allowedDiff = qw.Length > 5 ? 2 : 1;
+                        if (distance <= allowedDiff)
+                        {
+                            double similarity = 1.0 - ((double)distance / maxLen);
+                            double wordScore = 0.50 + (similarity * 0.40); // Max score 0.90
+                            if (wordScore > maxWordScore)
+                            {
+                                maxWordScore = wordScore;
+                                bestMatchText = $"'{qw}' (matched with '{tw}')";
+                            }
+                        }
+                    }
+                }
+
+                if (maxWordScore >= 0.50)
+                {
+                    score = maxWordScore;
+                    reason = $"Semantic match: {bestMatchText}.";
                 }
             }
 
@@ -473,6 +505,31 @@ Rules:
         }
 
         return results.OrderByDescending(r => r.MatchScore).ToList();
+    }
+
+    private int LevenshteinDistance(string s, string t)
+    {
+        if (string.IsNullOrEmpty(s)) return string.IsNullOrEmpty(t) ? 0 : t.Length;
+        if (string.IsNullOrEmpty(t)) return s.Length;
+
+        int n = s.Length;
+        int m = t.Length;
+        int[,] d = new int[n + 1, m + 1];
+
+        for (int i = 0; i <= n; d[i, 0] = i++) ;
+        for (int j = 0; j <= m; d[0, j] = j++) ;
+
+        for (int i = 1; i <= n; i++)
+        {
+            for (int j = 1; j <= m; j++)
+            {
+                int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                d[i, j] = Math.Min(
+                    Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
+                    d[i - 1, j - 1] + cost);
+            }
+        }
+        return d[n, m];
     }
 
     #endregion

@@ -80,8 +80,24 @@ class ListingsApi {
     int pageSize = 20,
     String sortBy = 'newest',
   }) async {
+    // If text query is provided, use the AI Semantic Search endpoint
+    if (query != null && query.isNotEmpty) {
+      final response = await _dio.get('/api/ai/search', queryParameters: {
+        'query': query,
+      });
+      final items = (response.data as List<dynamic>)
+          .map((e) => Listing.fromJson(e as Map<String, dynamic>))
+          .toList();
+      return PaginatedListings(
+        items: items,
+        total: items.length,
+        page: 1,
+        pageSize: items.length,
+      );
+    }
+
+    // Default category/feed filter search
     final response = await _dio.get('/api/listings/search', queryParameters: {
-      if (query != null && query.isNotEmpty) 'query': query,
       if (category != null && category.isNotEmpty) 'category': category,
       if (district != null && district.isNotEmpty) 'district': district,
       'page': page,

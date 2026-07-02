@@ -102,16 +102,24 @@ public class AiController : ControllerBase
 
                     return new AiSearchListingResponse(
                         listing.Id,
+                        listing.OwnerId,
+                        ownerSummary,
                         listing.Title,
                         listing.Description,
                         listing.Category,
                         listing.PricePerDay,
                         listing.SecurityDeposit,
+                        listing.Rules,
+                        listing.Location?.Y ?? 0, // Latitude
+                        listing.Location?.X ?? 0, // Longitude
                         listing.District,
                         listing.Images,
+                        listing.IsPaused,
+                        listing.Status.ToString(),
+                        listing.CreatedAt,
+                        listing.UpdatedAt,
                         match.MatchScore,
-                        match.Reason,
-                        ownerSummary
+                        match.Reason
                     );
                 })
                 .Where(res => res != null)
@@ -131,14 +139,22 @@ public record GenerateListingRequest(string? ImageUrl, string? CategoryHint);
 
 public record AiSearchListingResponse(
     Guid Id,
+    Guid OwnerId,
+    OwnerSummary Owner,
     string Title,
     string Description,
     string Category,
     decimal PricePerDay,
     decimal SecurityDeposit,
+    string Rules,
+    double Latitude,
+    double Longitude,
     string District,
     List<string> Images,
+    bool IsPaused,
+    string Status,
+    DateTime CreatedAt,
+    DateTime? UpdatedAt,
     double MatchScore,
-    string MatchReason,
-    OwnerSummary Owner
+    string MatchReason
 );
