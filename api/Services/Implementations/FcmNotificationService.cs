@@ -11,20 +11,21 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RentLanka.Api.Data;
 using RentLanka.Api.Services.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace RentLanka.Api.Services.Implementations;
 
 public class FcmNotificationService : INotificationService
 {
     private readonly IConfiguration _configuration;
-    private readonly AppDbContext _dbContext;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<FcmNotificationService> _logger;
     private readonly bool _useMockFallback;
 
-    public FcmNotificationService(IConfiguration configuration, AppDbContext dbContext, ILogger<FcmNotificationService> logger)
+    public FcmNotificationService(IConfiguration configuration, IServiceScopeFactory scopeFactory, ILogger<FcmNotificationService> logger)
     {
         _configuration = configuration;
-        _dbContext = dbContext;
+        _scopeFactory = scopeFactory;
         _logger = logger;
 
         if (FirebaseApp.DefaultInstance == null)
@@ -76,66 +77,71 @@ public class FcmNotificationService : INotificationService
 
     public async Task SendNotificationToUserAsync(Guid userId, string title, string body, Dictionary<string, string>? data = null)
     {
-        var tokens = await _dbContext.DeviceTokens
-            .Where(dt => dt.UserId == userId)
-            .Select(dt => dt.Token)
-            .ToListAsync();
-
-        if (tokens.Count == 0)
+        using (var scope = _scopeFactory.CreateScope())
         {
-            _logger.LogInformation($"No registered device tokens found for User {userId}.");
-            PrintToConsole(userId.ToString(), title, body, data);
-            return;
-        }
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        if (_useMockFallback || FirebaseApp.DefaultInstance == null)
-        {
-            _logger.LogInformation($"[MOCK PUSH] Sending notifications to User {userId} ({tokens.Count} devices)");
-            PrintToConsole(userId.ToString(), title, body, data);
-            return;
-        }
+            var tokens = await dbContext.DeviceTokens
+                .Where(dt => dt.UserId == userId)
+                .Select(dt => dt.Token)
+                .ToListAsync();
 
-        try
-        {
-            var message = new MulticastMessage
+            if (tokens.Count == 0)
             {
-                Tokens = tokens,
-                Notification = new Notification
-                {
-                    Title = title,
-                    Body = body
-                },
-                Data = data
-            };
+                _logger.LogInformation($"No registered device tokens found for User {userId}.");
+                PrintToConsole(userId.ToString(), title, body, data);
+                return;
+            }
 
-            var response = await FirebaseMessaging.DefaultInstance.SendEachForMulticastAsync(message);
-            _logger.LogInformation($"FCM Multicast successfully sent to User {userId}. Successes: {response.SuccessCount}, Failures: {response.FailureCount}");
-            
-            if (response.FailureCount > 0)
+            if (_useMockFallback || FirebaseApp.DefaultInstance == null)
             {
-                var tokensToRemove = new List<string>();
-                for (int i = 0; i < response.Responses.Count; i++)
+                _logger.LogInformation($"[MOCK PUSH] Sending notifications to User {userId} ({tokens.Count} devices)");
+                PrintToConsole(userId.ToString(), title, body, data);
+                return;
+            }
+
+            try
+            {
+                var message = new MulticastMessage
                 {
-                    if (!response.Responses[i].IsSuccess)
+                    Tokens = tokens,
+                    Notification = new Notification
                     {
-                        tokensToRemove.Add(tokens[i]);
+                        Title = title,
+                        Body = body
+                    },
+                    Data = data
+                };
+
+                var response = await FirebaseMessaging.DefaultInstance.SendEachForMulticastAsync(message);
+                _logger.LogInformation($"FCM Multicast successfully sent to User {userId}. Successes: {response.SuccessCount}, Failures: {response.FailureCount}");
+                
+                if (response.FailureCount > 0)
+                {
+                    var tokensToRemove = new List<string>();
+                    for (int i = 0; i < response.Responses.Count; i++)
+                    {
+                        if (!response.Responses[i].IsSuccess)
+                        {
+                            tokensToRemove.Add(tokens[i]);
+                        }
+                    }
+
+                    if (tokensToRemove.Count > 0)
+                    {
+                        var dbTokens = await dbContext.DeviceTokens
+                            .Where(dt => tokensToRemove.Contains(dt.Token))
+                            .ToListAsync();
+                        dbContext.DeviceTokens.RemoveRange(dbTokens);
+                        await dbContext.SaveChangesAsync();
+                        _logger.LogInformation($"Cleaned up {dbTokens.Count} expired/invalid device tokens from database.");
                     }
                 }
-
-                if (tokensToRemove.Count > 0)
-                {
-                    var dbTokens = await _dbContext.DeviceTokens
-                        .Where(dt => tokensToRemove.Contains(dt.Token))
-                        .ToListAsync();
-                    _dbContext.DeviceTokens.RemoveRange(dbTokens);
-                    await _dbContext.SaveChangesAsync();
-                    _logger.LogInformation($"Cleaned up {dbTokens.Count} expired/invalid device tokens from database.");
-                }
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error sending FCM push to User {userId}.");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error sending FCM push to User {userId}.");
+            }
         }
     }
 
