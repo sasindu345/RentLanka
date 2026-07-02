@@ -34,3 +34,5 @@ doc/
 .env
 .env.*
 !.env.example
+*service-account.json
+

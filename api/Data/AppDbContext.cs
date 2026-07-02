@@ -22,6 +22,7 @@ public class AppDbContext : DbContext
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<Dispute> Disputes => Set<Dispute>();
     public DbSet<PlatformSetting> PlatformSettings => Set<PlatformSetting>();
+    public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -266,6 +267,21 @@ public class AppDbContext : DbContext
             CommissionRate = 0.1000m,
             CategoriesJson = "[\"Photography\", \"Tools\", \"Camping\", \"Electronics\", \"Sports\", \"Other\"]",
             UpdatedAt = new DateTime(2026, 6, 21, 0, 0, 0, DateTimeKind.Utc)
+        });
+
+        modelBuilder.Entity<DeviceToken>(entity =>
+        {
+            entity.HasKey(dt => dt.Id);
+            entity.Property(dt => dt.Token).IsRequired().HasMaxLength(1024);
+            entity.Property(dt => dt.Platform).IsRequired().HasMaxLength(50);
+            
+            entity.HasOne(dt => dt.User)
+                .WithMany()
+                .HasForeignKey(dt => dt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(dt => dt.Token).IsUnique();
+            entity.HasIndex(dt => dt.UserId);
         });
     }
 }

@@ -14,10 +14,12 @@ namespace RentLanka.Api.Services.Implementations;
 public class BookingService : IBookingService
 {
     private readonly AppDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public BookingService(AppDbContext context)
+    public BookingService(AppDbContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<(bool Succeeded, BookingResponse? Booking, string? Error)> CreateBookingAsync(Guid renterId, BookingRequest request)
@@ -114,6 +116,25 @@ public class BookingService : IBookingService
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
+            // Notify owner of new booking request
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _notificationService.SendNotificationToUserAsync(
+                        listing.OwnerId,
+                        "New Booking Request",
+                        $"You have a new request for your {listing.Title}.",
+                        new Dictionary<string, string>
+                        {
+                            { "bookingId", booking.Id.ToString() },
+                            { "listingId", listing.Id.ToString() },
+                            { "type", "booking_request" }
+                        });
+                }
+                catch { }
+            });
+
             return (true, MapToResponse(booking, listing, user), null);
         }
         catch (Exception ex)
@@ -186,6 +207,24 @@ public class BookingService : IBookingService
         booking.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _notificationService.SendNotificationToUserAsync(
+                    booking.RenterId,
+                    "Booking Approved",
+                    $"Your booking request for {booking.Listing.Title} has been approved. Please proceed to payment.",
+                    new Dictionary<string, string>
+                    {
+                        { "bookingId", booking.Id.ToString() },
+                        { "listingId", booking.ListingId.ToString() },
+                        { "type", "booking_approved" }
+                    });
+            }
+            catch { }
+        });
+
         return (true, null);
     }
 
@@ -215,6 +254,24 @@ public class BookingService : IBookingService
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _notificationService.SendNotificationToUserAsync(
+                        booking.RenterId,
+                        "Booking Rejected",
+                        $"Your booking request for {booking.Listing.Title} was rejected.",
+                        new Dictionary<string, string>
+                        {
+                            { "bookingId", booking.Id.ToString() },
+                            { "listingId", booking.ListingId.ToString() },
+                            { "type", "booking_rejected" }
+                        });
+                }
+                catch { }
+            });
+
             return (true, null);
         }
         catch (Exception ex)
@@ -226,7 +283,10 @@ public class BookingService : IBookingService
 
     public async Task<(bool Succeeded, string? Error)> PayBookingAsync(Guid renterId, Guid bookingId)
     {
-        var booking = await _context.Bookings.FindAsync(bookingId);
+        var booking = await _context.Bookings
+            .Include(b => b.Listing)
+            .FirstOrDefaultAsync(b => b.Id == bookingId);
+
         if (booking == null) return (false, "Booking not found.");
         if (booking.RenterId != renterId) return (false, "Unauthorized.");
         if (booking.Status != BookingStatus.Approved) return (false, "Booking must be approved before paying.");
@@ -247,12 +307,33 @@ public class BookingService : IBookingService
         _context.Payments.Add(payment);
         await _context.SaveChangesAsync();
 
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _notificationService.SendNotificationToUserAsync(
+                    booking.Listing.OwnerId,
+                    "Booking Paid",
+                    $"Payment received for {booking.Listing.Title}. Prepare the gear for handover.",
+                    new Dictionary<string, string>
+                    {
+                        { "bookingId", booking.Id.ToString() },
+                        { "listingId", booking.ListingId.ToString() },
+                        { "type", "booking_paid" }
+                    });
+            }
+            catch { }
+        });
+
         return (true, null);
     }
 
     public async Task<(bool Succeeded, string? Error)> HandoverBookingAsync(Guid renterId, Guid bookingId)
     {
-        var booking = await _context.Bookings.FindAsync(bookingId);
+        var booking = await _context.Bookings
+            .Include(b => b.Listing)
+            .FirstOrDefaultAsync(b => b.Id == bookingId);
+
         if (booking == null) return (false, "Booking not found.");
         if (booking.RenterId != renterId) return (false, "Unauthorized.");
         if (booking.Status != BookingStatus.Paid) return (false, "Booking must be paid before confirming handover.");
@@ -268,6 +349,25 @@ public class BookingService : IBookingService
         }
 
         await _context.SaveChangesAsync();
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _notificationService.SendNotificationToUserAsync(
+                    booking.Listing.OwnerId,
+                    "Gear Handover Confirmed",
+                    $"The renter confirmed handover of {booking.Listing.Title}. The booking is now active.",
+                    new Dictionary<string, string>
+                    {
+                        { "bookingId", booking.Id.ToString() },
+                        { "listingId", booking.ListingId.ToString() },
+                        { "type", "booking_handover" }
+                    });
+            }
+            catch { }
+        });
+
         return (true, null);
     }
 
@@ -292,6 +392,25 @@ public class BookingService : IBookingService
         }
 
         await _context.SaveChangesAsync();
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _notificationService.SendNotificationToUserAsync(
+                    booking.RenterId,
+                    "Gear Return Confirmed",
+                    $"Return of {booking.Listing.Title} was confirmed. Security deposit will be processed.",
+                    new Dictionary<string, string>
+                    {
+                        { "bookingId", booking.Id.ToString() },
+                        { "listingId", booking.ListingId.ToString() },
+                        { "type", "booking_returned" }
+                    });
+            }
+            catch { }
+        });
+
         return (true, null);
     }
 

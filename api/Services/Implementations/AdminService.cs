@@ -13,10 +13,12 @@ namespace RentLanka.Api.Services.Implementations;
 public class AdminService : IAdminService
 {
     private readonly AppDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public AdminService(AppDbContext context)
+    public AdminService(AppDbContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<PaginatedResponse<UserResponse>> GetUsersAsync(string? query, int page, int pageSize)
@@ -170,6 +172,24 @@ public class AdminService : IAdminService
         listing.Status = ListingStatus.Approved;
         listing.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _notificationService.SendNotificationToUserAsync(
+                    listing.OwnerId,
+                    "Listing Approved",
+                    $"Your listing '{listing.Title}' has been approved and is now public.",
+                    new Dictionary<string, string>
+                    {
+                        { "listingId", listing.Id.ToString() },
+                        { "type", "listing_approved" }
+                    });
+            }
+            catch { }
+        });
+
         return true;
     }
 
@@ -184,6 +204,24 @@ public class AdminService : IAdminService
         listing.Status = ListingStatus.Rejected;
         listing.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _notificationService.SendNotificationToUserAsync(
+                    listing.OwnerId,
+                    "Listing Rejected",
+                    $"Your listing '{listing.Title}' was rejected by moderation.",
+                    new Dictionary<string, string>
+                    {
+                        { "listingId", listing.Id.ToString() },
+                        { "type", "listing_rejected" }
+                    });
+            }
+            catch { }
+        });
+
         return true;
     }
 
@@ -210,6 +248,24 @@ public class AdminService : IAdminService
         user.IsTrustedUser = true;
         user.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _notificationService.SendNotificationToUserAsync(
+                    userId,
+                    "KYC Verified",
+                    "Congratulations! Your KYC documents have been verified. You can now rent equipment.",
+                    new Dictionary<string, string>
+                    {
+                        { "userId", userId.ToString() },
+                        { "type", "kyc_approved" }
+                    });
+            }
+            catch { }
+        });
+
         return true;
     }
 
@@ -226,6 +282,24 @@ public class AdminService : IAdminService
         user.NicDocumentUrl = null;
         user.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _notificationService.SendNotificationToUserAsync(
+                    userId,
+                    "KYC Rejected",
+                    "Your KYC verification was rejected. Please re-submit valid documents.",
+                    new Dictionary<string, string>
+                    {
+                        { "userId", userId.ToString() },
+                        { "type", "kyc_rejected" }
+                    });
+            }
+            catch { }
+        });
+
         return true;
     }
 

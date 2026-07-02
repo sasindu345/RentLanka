@@ -14,10 +14,12 @@ namespace RentLanka.Api.Services.Implementations;
 public class DisputeService : IDisputeService
 {
     private readonly AppDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public DisputeService(AppDbContext context)
+    public DisputeService(AppDbContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<DisputeResponse> CreateDisputeAsync(Guid userId, CreateDisputeRequest request)
@@ -69,6 +71,26 @@ public class DisputeService : IDisputeService
 
         _context.Disputes.Add(dispute);
         await _context.SaveChangesAsync();
+
+        // Notify the other participant
+        var recipientId = booking.RenterId == userId ? booking.Listing.OwnerId : booking.RenterId;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _notificationService.SendNotificationToUserAsync(
+                    recipientId,
+                    "Dispute Opened",
+                    $"A dispute was opened on your booking for {booking.Listing.Title}.",
+                    new Dictionary<string, string>
+                    {
+                        { "disputeId", dispute.Id.ToString() },
+                        { "bookingId", booking.Id.ToString() },
+                        { "type", "dispute_opened" }
+                    });
+            }
+            catch { }
+        });
 
         var creator = await _context.Users.FindAsync(userId);
 
@@ -162,6 +184,35 @@ public class DisputeService : IDisputeService
 
         dispute.Booking.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
+
+        // Notify both parties about resolution
+        var renterId = dispute.Booking.RenterId;
+        var ownerId = dispute.Booking.Listing.OwnerId;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var data = new Dictionary<string, string>
+                {
+                    { "disputeId", dispute.Id.ToString() },
+                    { "bookingId", dispute.BookingId.ToString() },
+                    { "type", "dispute_resolved" }
+                };
+
+                await _notificationService.SendNotificationToUserAsync(
+                    renterId,
+                    "Dispute Resolved",
+                    $"The dispute on {dispute.Booking.Listing.Title} has been resolved by admin.",
+                    data);
+
+                await _notificationService.SendNotificationToUserAsync(
+                    ownerId,
+                    "Dispute Resolved",
+                    $"The dispute on {dispute.Booking.Listing.Title} has been resolved by admin.",
+                    data);
+            }
+            catch { }
+        });
 
         return MapToResponse(dispute);
     }

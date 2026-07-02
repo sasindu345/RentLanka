@@ -8,16 +8,22 @@ using RentLanka.Api.Models.DTOs;
 using RentLanka.Api.Models.Entities;
 using RentLanka.Api.Models.Requests;
 using RentLanka.Api.Services.Interfaces;
+using Microsoft.AspNetCore.SignalR;
+using RentLanka.Api.Hubs;
 
 namespace RentLanka.Api.Services.Implementations;
 
 public class ChatService : IChatService
 {
     private readonly AppDbContext _context;
+    private readonly INotificationService _notificationService;
+    private readonly IHubContext<ChatHub> _hubContext;
 
-    public ChatService(AppDbContext context)
+    public ChatService(AppDbContext context, INotificationService notificationService, IHubContext<ChatHub> hubContext)
     {
         _context = context;
+        _notificationService = notificationService;
+        _hubContext = hubContext;
     }
 
     public async Task<ConversationResponse> GetOrCreateConversationAsync(Guid userOneId, CreateConversationRequest request)
@@ -136,7 +142,7 @@ public class ChatService : IChatService
 
         await _context.SaveChangesAsync();
 
-        return new MessageResponse(
+        var messageResponse = new MessageResponse(
             message.Id,
             message.ConversationId,
             message.SenderId,
@@ -145,6 +151,39 @@ public class ChatService : IChatService
             message.IsRead,
             message.CreatedAt
         );
+
+        // Broadcast real-time message via SignalR ChatHub
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _hubContext.Clients.Group(conversationId.ToString())
+                    .SendAsync("ReceiveMessage", messageResponse);
+            }
+            catch { }
+        });
+
+        // Notify recipient of new message
+        var recipientId = conversation.UserOneId == senderId ? conversation.UserTwoId : conversation.UserOneId;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _notificationService.SendNotificationToUserAsync(
+                    recipientId,
+                    $"New Message from {sender.FirstName}",
+                    message.Content,
+                    new Dictionary<string, string>
+                    {
+                        { "conversationId", conversationId.ToString() },
+                        { "senderId", senderId.ToString() },
+                        { "type", "chat_message" }
+                    });
+            }
+            catch { }
+        });
+
+        return messageResponse;
     }
 
     public async Task<List<MessageResponse>> GetMessagesAsync(Guid conversationId, Guid userId, DateTime? since = null)

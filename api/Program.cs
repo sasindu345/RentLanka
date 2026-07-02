@@ -10,6 +10,7 @@ using RentLanka.Api.Data;
 using RentLanka.Api.Middleware;
 using RentLanka.Api.Services.Implementations;
 using RentLanka.Api.Services.Interfaces;
+using RentLanka.Api.Hubs;
 
 using System;
 using System.IO;
@@ -108,9 +109,25 @@ public class Program
                 ValidAudience = audience,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
             };
+
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    var path = context.HttpContext.Request.Path;
+                    
+                    if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/chat"))
+                    {
+                        context.Token = accessToken;
+                    }
+                    return Task.CompletedTask;
+                }
+            };
         });
 
         builder.Services.AddAuthorization();
+        builder.Services.AddSignalR();
 
         // Register Dependency Injection Services
         builder.Services.AddScoped<IIdentityService, IdentityService>();
@@ -125,6 +142,7 @@ public class Program
         builder.Services.AddScoped<IChatService, ChatService>();
         builder.Services.AddScoped<IDisputeService, DisputeService>();
         builder.Services.AddScoped<ISettingsService, SettingsService>();
+        builder.Services.AddScoped<INotificationService, FcmNotificationService>();
         builder.Services.AddHttpClient<IEmailService, EmailService>();
         builder.Services.AddHttpClient<ISmsService, SmsService>();
         
@@ -162,6 +180,7 @@ public class Program
         app.UseAuthorization();
 
         app.MapControllers();
+        app.MapHub<ChatHub>("/hubs/chat");
 
         app.Run();
     }
