@@ -6,8 +6,10 @@ import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/bookings_api.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/models/listing.dart';
-import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/shared/widgets/listing_image.dart';
+import 'package:mobile/core/theme/app_spacing.dart';
+import 'package:mobile/core/theme/app_radius.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class BookingRequestScreen extends ConsumerStatefulWidget {
   final String listingId;
@@ -42,9 +44,16 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
         _user = user;
       });
     } catch (e) {
+      debugPrint('Error loading booking request details: $e');
       if (mounted) {
+        String errMsg = 'Failed to load details.';
+        if (e is DioException) {
+          errMsg = extractError(e);
+        } else {
+          errMsg = e.toString();
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to load listing or user details.')),
+          SnackBar(content: Text('Failed: $errMsg')),
         );
       }
     } finally {
@@ -63,13 +72,14 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
       lastDate: lastDate,
       initialDateRange: _selectedRange,
       builder: (context, child) {
+        final theme = Theme.of(context);
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppTheme.primary,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black,
+          data: theme.copyWith(
+            colorScheme: theme.colorScheme.copyWith(
+              primary: theme.colorScheme.primary,
+              onPrimary: theme.colorScheme.onPrimary,
+              surface: theme.colorScheme.surface,
+              onSurface: theme.colorScheme.onSurface,
             ),
           ),
           child: child!,
@@ -89,9 +99,9 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
 
     if (_user!.verificationLevel < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('KYC Verification Level 2 (NIC Approved) is required to request a booking.'),
-          backgroundColor: Colors.redAccent,
+        SnackBar(
+          content: const Text('KYC Verification Level 2 (NIC Approved) is required to request a booking.'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -109,32 +119,38 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => AlertDialog(
-            title: const Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.green),
-                SizedBox(width: 8),
-                Text('Request Submitted'),
-              ],
-            ),
-            content: const Text(
-                'Your booking request has been sent to the owner for approval. You can track its status in the Activity tab.'),
-            actions: [
-              FilledButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close dialog
-                  context.go('/app/activity'); // Navigate to Activity tab
-                },
-                child: const Text('Go to Activity'),
+          builder: (context) {
+            final dialogTheme = Theme.of(context);
+            return AlertDialog(
+              title: Row(
+                children: [
+                  Icon(LucideIcons.checkCircle, color: dialogTheme.colorScheme.primary),
+                  const SizedBox(width: AppSpacing.xs),
+                  const Text('Request Sent'),
+                ],
               ),
-            ],
-          ),
+              content: const Text(
+                  'Your booking request has been sent to the owner for approval. You can track its status in the Activity tab.'),
+              actions: [
+                FilledButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close dialog
+                    context.go('/app/activity'); // Navigate to Activity tab
+                  },
+                  child: const Text('Go to Activity'),
+                ),
+              ],
+            );
+          },
         );
       }
     } on DioException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(extractError(e)), backgroundColor: Colors.redAccent),
+          SnackBar(
+            content: Text(extractError(e)),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     } finally {
@@ -146,128 +162,141 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(AppRadius.sheet),
+          topRight: Radius.circular(AppRadius.sheet),
+        ),
       ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) {
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
+      builder: (context) {
+        final theme = Theme.of(context);
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) {
+            return Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                children: [
+                  // Drag handle indicator
+                  Container(
                     width: 40,
-                    height: 5,
+                    height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(10),
+                      color: theme.colorScheme.outline,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'RentLanka System Agreement',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Last Updated: June 2026',
-                  style: TextStyle(color: AppTheme.muted, fontSize: 12),
-                ),
-                const Divider(),
-                Expanded(
-                  child: ListView(
-                    controller: scrollController,
-                    children: const [
-                      Text(
-                        'Welcome to RentLanka. By checking the agreement box and requesting a booking, you agree to comply with and be bound by the following terms of the peer-to-peer equipment rental marketplace:\n\n'
-                        '1. Renter Responsibilities:\n'
-                        'The renter agrees to use the rented equipment solely for its intended purpose and in a careful, safe manner. The renter is responsible for returning the equipment in the same condition as received (reasonable wear and tear excepted) by the end date specified in the booking.\n\n'
-                        '2. Owner Responsibilities:\n'
-                        'The owner guarantees that the equipment is in good working order and conforms to the description provided in the listing. The owner must handover the equipment at the agreed location and time.\n\n'
-                        '3. Payments and Escrow:\n'
-                        'All rental fees and security deposits are processed through RentLanka’s secure payment gateway. The rental fee and security deposit are held in escrow. The rental fee is released to the owner upon successful completion of the rental. The security deposit is returned to the renter within 24 hours of a clean return confirmation.\n\n'
-                        '4. Damaged or Lost Equipment:\n'
-                        'In the event of damage or loss, the owner must submit a dispute report within 24 response of return. RentLanka reserves the right to withhold the security deposit to cover repairs or replacement costs based on review of the dispute.\n\n'
-                        '5. Disputes and Arbitration:\n'
-                        'Any disputes arising from rental agreements will be mediated by RentLanka Admin. By signing, you agree to abide by the administrative resolution decided by the operations team.',
-                        style: TextStyle(fontSize: 14, height: 1.5),
-                      ),
-                    ],
+                  const SizedBox(height: AppSpacing.lg),
+                  Expanded(
+                    child: ListView(
+                      controller: scrollController,
+                      children: [
+                        Text(
+                          'RentLanka System Agreement',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Text(
+                          '1. Rental Period & Extensions\n'
+                          'The renter agrees to return the equipment on or before the specified return date. Any extension requests must be submitted through the app and approved by the owner.\n\n'
+                          '2. Security Deposit Escrow\n'
+                          'The security deposit will be held securely in escrow by RentLanka. Upon successful return of the equipment without damages, the deposit is refunded immediately. In the event of a dispute, the platform holds the deposit until resolution.\n\n'
+                          '3. Equipment Condition & Usage\n'
+                          'The renter is responsible for inspecting the item during handover. The renter agrees to use the equipment carefully and is liable for damages or losses incurred during the rental period.\n\n'
+                          '4. Handover & Returns\n'
+                          'Both parties must visually document the item status during handover and return. Failure to complete return validation steps may delay deposit refund releases.',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(45)),
-                  child: const Text('Close & I Agree'),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+                  const SizedBox(height: AppSpacing.md),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close & I Agree'),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(title: const Text('Confirm & Book')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
     }
 
     final listing = _listing;
     final user = _user;
 
     if (listing == null || user == null) {
-      return const Scaffold(body: Center(child: Text('Error loading booking data.')));
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(title: const Text('Confirm & Book')),
+        body: const Center(child: Text('Error loading booking data.')),
+      );
     }
 
     final days = _selectedRange != null ? _selectedRange!.duration.inDays : 0;
     final rentalFee = days * listing.pricePerDay;
     final totalAmount = rentalFee + listing.securityDeposit;
-
     final imageUrl = listing.images.isNotEmpty ? listing.images.first : null;
-
     final isVerified = user.verificationLevel >= 2;
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Confirm & Book'),
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Listing Card Summary
+            // Listing card summary
             Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.input),
                   child: SizedBox(
                     width: 80,
                     height: 80,
                     child: ListingImage(url: imageUrl, width: 80, height: 80),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         listing.category.toUpperCase(),
-                        style: const TextStyle(
-                          color: AppTheme.primary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 10,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -275,141 +304,174 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
                         listing.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '${ListingsApi.formatPrice(listing.pricePerDay)} / day',
-                        style: const TextStyle(color: AppTheme.muted, fontSize: 14),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            const Divider(height: 32),
+            
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+              child: Divider(),
+            ),
 
             // Verification Check Block
             if (!isVerified) ...[
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: Colors.redAccent.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                  color: theme.colorScheme.error.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
+                  border: Border.all(color: theme.colorScheme.error.withOpacity(0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
-                        SizedBox(width: 8),
+                        Icon(LucideIcons.alertTriangle, color: theme.colorScheme.error),
+                        const SizedBox(width: AppSpacing.xs),
                         Text(
                           'Verification Required',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent),
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.error,
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
                       'You must complete KYC Verification (Level 2 / NIC Approved) before booking items.',
-                      style: TextStyle(fontSize: 13),
+                      style: theme.textTheme.bodyMedium,
                     ),
-                    const SizedBox(height: 12),
-                    ElevatedButton.icon(
+                    const SizedBox(height: AppSpacing.md),
+                    OutlinedButton.icon(
                       onPressed: () => context.push('/app/profile/verification'),
-                      icon: const Icon(Icons.verified_user_outlined, size: 16),
-                      label: const Text('Complete Verification Now'),
+                      icon: const Icon(LucideIcons.shieldCheck, size: 16),
+                      label: const Text('Complete Verification'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: theme.colorScheme.error,
+                        side: BorderSide(color: theme.colorScheme.error),
+                        minimumSize: const Size.fromHeight(40),
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.lg),
             ],
 
             // Dates Selection
-            const Text(
+            Text(
               'Select Rental Dates',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             InkWell(
               onTap: _selectDates,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.input),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: theme.colorScheme.outline),
+                  borderRadius: BorderRadius.circular(AppRadius.input),
+                  color: theme.colorScheme.surfaceVariant,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.calendar_month, color: AppTheme.primary),
-                        const SizedBox(width: 12),
+                        Icon(LucideIcons.calendar, color: theme.colorScheme.primary),
+                        const SizedBox(width: AppSpacing.md),
                         Text(
                           _selectedRange == null
-                              ? 'Choose dates'
+                              ? 'Choose rental dates'
                               : '${_selectedRange!.start.day}/${_selectedRange!.start.month}/${_selectedRange!.start.year} - ${_selectedRange!.end.day}/${_selectedRange!.end.month}/${_selectedRange!.end.year}',
-                          style: TextStyle(
-                            fontSize: 15,
+                          style: theme.textTheme.bodyLarge?.copyWith(
                             fontWeight: _selectedRange == null ? FontWeight.normal : FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
-                    const Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.muted),
+                    Icon(LucideIcons.chevronRight, size: 16, color: theme.colorScheme.onSurfaceVariant),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            
+            const SizedBox(height: AppSpacing.xl),
 
             // Price Details
             if (_selectedRange != null) ...[
-              const Text(
+              Text(
                 'Price Summary',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              const SizedBox(height: 12),
-              Card(
-                elevation: 0,
-                color: Colors.grey.shade50,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: Colors.grey.shade200),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   child: Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('${ListingsApi.formatPrice(listing.pricePerDay)} × $days days'),
-                          Text(ListingsApi.formatPrice(rentalFee)),
+                          Text(
+                            '${ListingsApi.formatPrice(listing.pricePerDay)} × $days days',
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                          Text(
+                            ListingsApi.formatPrice(rentalFee),
+                            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.xs),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('Refundable Security Deposit'),
-                          Text(ListingsApi.formatPrice(listing.securityDeposit)),
+                          Text(
+                            ListingsApi.formatPrice(listing.securityDeposit),
+                            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                          ),
                         ],
                       ),
-                      const Divider(height: 24),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                        child: Divider(),
+                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Total (inc. deposit)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text(
+                            'Total (inc. deposit)',
+                            style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                          ),
                           Text(
                             ListingsApi.formatPrice(totalAmount),
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.primary),
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
                           ),
                         ],
                       ),
@@ -417,30 +479,37 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-              const Row(
+              const SizedBox(height: AppSpacing.xs),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline, size: 16, color: AppTheme.muted),
-                  SizedBox(width: 6),
+                  Icon(LucideIcons.info, size: 14, color: theme.colorScheme.onSurfaceVariant),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       'The deposit will be returned immediately after a clean item return is completed.',
-                      style: TextStyle(color: AppTheme.muted, fontSize: 12),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-              const Text(
+              
+              const SizedBox(height: AppSpacing.xl),
+              
+              Text(
                 'Terms & Conditions',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.xs),
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text(
+                title: Text(
                   'I agree to the RentLanka System Agreement and Terms',
-                  style: TextStyle(fontSize: 14),
+                  style: theme.textTheme.bodyMedium,
                 ),
                 value: _agreementChecked,
                 onChanged: (val) {
@@ -449,7 +518,7 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
                   });
                 },
                 controlAffinity: ListTileControlAffinity.leading,
-                activeColor: AppTheme.primary,
+                activeColor: theme.colorScheme.primary,
                 subtitle: Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton(
@@ -459,9 +528,12 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: const Text(
+                    child: Text(
                       'Read System Agreement',
-                      style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -470,22 +542,26 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: FilledButton(
-            onPressed: (_selectedRange == null || _submitting || !isVerified || !_agreementChecked) ? null : _submitRequest,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(50),
-              backgroundColor: AppTheme.primary,
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          border: Border(
+            top: BorderSide(color: theme.dividerColor, width: 1.0),
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: FilledButton(
+              onPressed: (_selectedRange == null || _submitting || !isVerified || !_agreementChecked) ? null : _submitRequest,
+              child: _submitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text('Submit Booking Request'),
             ),
-            child: _submitting
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
-                  )
-                : const Text('Submit Booking Request'),
           ),
         ),
       ),

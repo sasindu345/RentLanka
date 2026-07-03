@@ -6,7 +6,9 @@ import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/api/verification_api.dart';
 import 'package:mobile/core/models/listing.dart';
-import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/theme/app_spacing.dart';
+import 'package:mobile/core/theme/app_radius.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class VerificationScreen extends ConsumerStatefulWidget {
   const VerificationScreen({super.key});
@@ -107,60 +109,75 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (_loading && _user == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(title: const Text('Verification')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
     }
 
     final user = _user;
     if (user == null) {
-      return const Scaffold(body: Center(child: Text('Unable to load profile')));
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(title: const Text('Verification')),
+        body: const Center(child: Text('Unable to load profile')),
+      );
     }
 
     final level = user.verificationLevel;
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Verification'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(LucideIcons.arrowLeft),
           onPressed: () => context.pop(true),
         ),
       ),
       body: RefreshIndicator(
         onRefresh: _loadUser,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppTheme.card,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                color: theme.colorScheme.primary.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(AppRadius.card),
+                border: Border.all(color: theme.colorScheme.primary.withOpacity(0.15)),
               ),
-              child: const Row(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline, size: 20, color: AppTheme.primary),
-                  SizedBox(width: 8),
+                  Icon(LucideIcons.info, size: 20, color: theme.colorScheme.primary),
+                  const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     child: Text(
                       'Dev mode: tap Send — the code appears here and auto-fills the field below.',
-                      style: TextStyle(fontSize: 13, color: AppTheme.muted),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
             if (_error != null) ...[
-              const SizedBox(height: 12),
-              Text(_error!, style: const TextStyle(color: Colors.red)),
+              const SizedBox(height: AppSpacing.md),
+              Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
             ],
             if (_success != null) ...[
-              const SizedBox(height: 12),
-              Text(_success!, style: const TextStyle(color: AppTheme.primary)),
+              const SizedBox(height: AppSpacing.md),
+              Text(_success!, style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
+            
             _StepCard(
               title: '1. Email verification',
               subtitle: 'Confirm your email address',
@@ -181,14 +198,14 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                                   ),
                           child: Text(_activeStep == 'email-send' ? 'Sending...' : 'Send verification email'),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: AppSpacing.md),
+                        Text('Verification token', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 6),
                         TextField(
                           controller: _emailTokenController,
-                          decoration: const InputDecoration(
-                            labelText: 'Verification token',
-                          ),
+                          decoration: const InputDecoration(hintText: 'e.g. 123456'),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: AppSpacing.md),
                         OutlinedButton(
                           onPressed: _activeStep == 'email-verify'
                               ? null
@@ -202,6 +219,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                       ],
                     ),
             ),
+            
             _StepCard(
               title: '2. Phone verification',
               subtitle: 'Verify your mobile number with OTP',
@@ -212,15 +230,14 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        Text('Phone number', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 6),
                         TextField(
                           controller: _phoneController,
-                          decoration: const InputDecoration(
-                            labelText: 'Phone number',
-                            hintText: '+94771234567',
-                          ),
+                          decoration: const InputDecoration(hintText: '+94771234567'),
                           keyboardType: TextInputType.phone,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: AppSpacing.md),
                         FilledButton(
                           onPressed: _activeStep == 'sms-send'
                               ? null
@@ -234,15 +251,15 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                                   ),
                           child: Text(_activeStep == 'sms-send' ? 'Sending...' : 'Send SMS OTP'),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: AppSpacing.md),
+                        Text('SMS OTP', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 6),
                         TextField(
                           controller: _otpController,
-                          decoration: const InputDecoration(
-                            labelText: 'SMS OTP',
-                          ),
+                          decoration: const InputDecoration(hintText: 'e.g. 123456'),
                           keyboardType: TextInputType.number,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: AppSpacing.md),
                         OutlinedButton(
                           onPressed: _activeStep == 'sms-verify'
                               ? null
@@ -256,6 +273,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                       ],
                     ),
             ),
+            
             _StepCard(
               title: '3. NIC verification',
               subtitle: 'Submit your National Identity Card number',
@@ -266,19 +284,18 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        Text('NIC number', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 6),
                         TextField(
                           controller: _nicController,
-                          decoration: const InputDecoration(
-                            labelText: 'NIC number',
-                            hintText: '199012345678',
-                          ),
+                          decoration: const InputDecoration(hintText: '199012345678'),
                         ),
-                        const SizedBox(height: 8),
-                        const Text(
+                        const SizedBox(height: 6),
+                        Text(
                           'Document photo upload comes in a later step. A placeholder URL is sent for now.',
-                          style: TextStyle(fontSize: 12, color: AppTheme.muted),
+                          style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: AppSpacing.md),
                         FilledButton(
                           onPressed: _activeStep == 'nic'
                               ? null
@@ -303,6 +320,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                       ],
                     ),
             ),
+            
             _StepCard(
               title: '4. Face verification',
               subtitle: 'Complete trusted-member face check (mock)',
@@ -321,15 +339,19 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                       child: Text(_activeStep == 'face' ? 'Scanning...' : 'Simulate face scan'),
                     ),
             ),
+            
             if (user.isTrustedUser) ...[
-              const SizedBox(height: 16),
-              const Center(
+              const SizedBox(height: AppSpacing.lg),
+              Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.verified, color: AppTheme.primary),
-                    SizedBox(width: 8),
-                    Text('You are a trusted member', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Icon(LucideIcons.shieldCheck, color: theme.colorScheme.primary),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      'You are a trusted member',
+                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                    ),
                   ],
                 ),
               ),
@@ -358,10 +380,11 @@ class _StepCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -369,34 +392,38 @@ class _StepCard extends StatelessWidget {
               children: [
                 Icon(
                   done
-                      ? Icons.check_circle
+                      ? LucideIcons.checkCircle
                       : locked
-                          ? Icons.lock
-                          : Icons.radio_button_unchecked,
+                          ? LucideIcons.lock
+                          : LucideIcons.circle,
                   color: done
-                      ? AppTheme.primary
+                      ? theme.colorScheme.primary
                       : locked
-                          ? AppTheme.muted
-                          : AppTheme.accent,
+                          ? theme.colorScheme.onSurfaceVariant
+                          : theme.colorScheme.primary,
+                  size: 22,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text(subtitle, style: const TextStyle(fontSize: 12, color: AppTheme.muted)),
+                      Text(title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+                      Text(subtitle, style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                     ],
                   ),
                 ),
               ],
             ),
             if (locked && !done) ...[
-              const SizedBox(height: 8),
-              const Text('Complete the previous step first.', style: TextStyle(fontSize: 12, color: AppTheme.muted)),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'Complete the previous step first.',
+                style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
             ],
             if (!done && !locked && child != null) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               child!,
             ],
           ],

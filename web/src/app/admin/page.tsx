@@ -20,7 +20,7 @@ export default function AdminDashboardOverview() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[300px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-teal-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-500"></div>
       </div>
     );
   }
@@ -47,7 +47,7 @@ export default function AdminDashboardOverview() {
       label: "Active Listings",
       value: stats?.activeListings ?? 0,
       icon: "🏷️",
-      color: "from-teal-500/10 to-emerald-500/10 border-teal-500/20 text-teal-400",
+      color: "from-indigo-500/10 to-violet-500/10 border-indigo-500/20 text-indigo-400",
       description: "Gear listed and open for booking",
       link: "/admin/listings",
     },
@@ -148,7 +148,7 @@ export default function AdminDashboardOverview() {
 
           <Link
             href="/admin/listings"
-            className="flex items-center justify-between p-4 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-teal-500/30 hover:bg-slate-800/40 transition duration-200"
+            className="flex items-center justify-between p-4 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-indigo-500/30 hover:bg-slate-800/40 transition duration-200"
           >
             <div className="flex items-center gap-3">
               <span className="text-xl">🛡️</span>
@@ -157,7 +157,7 @@ export default function AdminDashboardOverview() {
                 <p className="text-xs text-slate-500">Scan and flag inappropriate user content</p>
               </div>
             </div>
-            <span className="text-teal-400 font-bold">→</span>
+            <span className="text-indigo-400 font-bold">→</span>
           </Link>
         </div>
       </div>

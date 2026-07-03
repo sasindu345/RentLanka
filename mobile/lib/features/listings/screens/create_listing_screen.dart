@@ -6,8 +6,10 @@ import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/file_api.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/constants.dart';
-import 'package:mobile/core/theme/app_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:mobile/core/theme/app_spacing.dart';
+import 'package:mobile/core/theme/app_radius.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class CreateListingScreen extends ConsumerStatefulWidget {
   const CreateListingScreen({super.key});
@@ -95,28 +97,39 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   }
 
   Future<void> _showImageSourcePicker() async {
+    final theme = Theme.of(context);
     await showModalBottomSheet<void>(
       context: context,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(AppRadius.sheet),
+          topRight: Radius.circular(AppRadius.sheet),
+        ),
+      ),
       builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choose from gallery'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.gallery);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Take a photo'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.camera);
-              },
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: Icon(LucideIcons.image, color: theme.colorScheme.primary),
+                title: const Text('Choose from gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: Icon(LucideIcons.camera, color: theme.colorScheme.primary),
+                title: const Text('Take a photo'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -193,9 +206,9 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✨ Listing details generated with AI!'),
-            backgroundColor: AppTheme.primary,
+          SnackBar(
+            content: const Text('✨ Listing details generated with AI!'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
           ),
         );
       }
@@ -210,25 +223,53 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('List an item')),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(title: const Text('List an Item')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Phone verification (Level 1) is required to publish.',
-              style: TextStyle(color: AppTheme.muted, fontSize: 13),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(AppRadius.card),
+                border: Border.all(color: theme.colorScheme.primary.withOpacity(0.15)),
+              ),
+              child: Row(
+                children: [
+                  Icon(LucideIcons.info, color: theme.colorScheme.primary, size: 20),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: Text(
+                      'Phone verification (Level 1) is required to publish listings.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            const Text('Photos', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            const Text(
-              'Stored locally on the dev server (api/wwwroot/uploads).',
-              style: TextStyle(color: AppTheme.muted, fontSize: 12),
+            const SizedBox(height: AppSpacing.lg),
+            
+            Text(
+              'Photos',
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 2),
+            Text(
+              'Stored on the dev server (api/wwwroot/uploads).',
+              style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            
             SizedBox(
               height: 100,
               child: ListView(
@@ -238,11 +279,11 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                     final index = entry.key;
                     final url = entry.value;
                     return Padding(
-                      padding: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
                       child: Stack(
                         children: [
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(AppRadius.input),
                             child: CachedNetworkImage(
                               imageUrl: resolveMediaUrl(url),
                               width: 100,
@@ -251,7 +292,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                               placeholder: (_, __) => Container(
                                 width: 100,
                                 height: 100,
-                                color: Colors.grey.shade200,
+                                color: theme.colorScheme.surfaceVariant,
                               ),
                             ),
                           ),
@@ -261,12 +302,12 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                             child: GestureDetector(
                               onTap: () => setState(() => _imageUrls.removeAt(index)),
                               child: Container(
-                                padding: const EdgeInsets.all(2),
+                                padding: const EdgeInsets.all(4),
                                 decoration: const BoxDecoration(
                                   color: Colors.black54,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.close, size: 16, color: Colors.white),
+                                child: const Icon(LucideIcons.x, size: 14, color: Colors.white),
                               ),
                             ),
                           ),
@@ -277,14 +318,14 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                   if (_imageUrls.length < _maxImages)
                     InkWell(
                       onTap: _uploadingImage ? null : _showImageSourcePicker,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.input),
                       child: Container(
                         width: 100,
                         height: 100,
                         decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                          borderRadius: BorderRadius.circular(8),
-                          color: AppTheme.card,
+                          border: Border.all(color: theme.colorScheme.outline, style: BorderStyle.solid),
+                          borderRadius: BorderRadius.circular(AppRadius.input),
+                          color: theme.colorScheme.surfaceVariant,
                         ),
                         child: _uploadingImage
                             ? const Center(child: SizedBox(
@@ -292,12 +333,17 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                                 height: 24,
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               ))
-                            : const Column(
+                            : Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.add_a_photo_outlined, color: AppTheme.primary),
-                                  SizedBox(height: 4),
-                                  Text('Add', style: TextStyle(fontSize: 12, color: AppTheme.muted)),
+                                  Icon(LucideIcons.camera, color: theme.colorScheme.primary),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Add Photo',
+                                    style: theme.textTheme.labelMedium?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
                                 ],
                               ),
                       ),
@@ -305,8 +351,9 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                 ],
               ),
             ),
+            
             if (_imageUrls.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
@@ -317,65 +364,101 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Icons.auto_awesome, color: AppTheme.accent),
+                      : Icon(LucideIcons.sparkles, color: theme.colorScheme.primary, size: 16),
                   label: Text(
-                    _generatingAi ? 'Generating details...' : '✨ AI Listing Assist (Autofill)',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    _generatingAi ? 'Generating details...' : 'AI Listing Assist (Autofill)',
                   ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppTheme.accent, width: 1.5),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    side: BorderSide(color: theme.colorScheme.primary),
                   ),
                 ),
               ),
             ],
-            const SizedBox(height: 16),
-            TextField(controller: _titleController, decoration: const InputDecoration(labelText: 'Title')),
-            const SizedBox(height: 12),
+            
+            const SizedBox(height: AppSpacing.lg),
+            
+            // Title
+            Text('Title', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            TextField(
+              controller: _titleController,
+              decoration: const InputDecoration(hintText: 'e.g. Sony FX3 Cinema Camera'),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            
+            // Description
+            Text('Description', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
             TextField(
               controller: _descriptionController,
-              decoration: const InputDecoration(labelText: 'Description'),
               maxLines: 4,
+              decoration: const InputDecoration(hintText: 'Describe the gear condition, inclusions...'),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
+            
+            // Category
+            Text('Category', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
             DropdownButtonFormField<String>(
               value: _category,
-              decoration: const InputDecoration(labelText: 'Category'),
               items: _dynamicCategories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
               onChanged: (v) => setState(() => _category = v!),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
+            
+            // District
+            Text('District', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
             DropdownButtonFormField<String>(
               value: _district,
-              decoration: const InputDecoration(labelText: 'District'),
               items: districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
               onChanged: (v) => setState(() => _district = v!),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
+            
+            // Price Per Day
+            Text('Price per day (LKR)', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
             TextField(
               controller: _priceController,
-              decoration: const InputDecoration(labelText: 'Price per day (LKR)'),
               keyboardType: TextInputType.number,
+              decoration: const InputDecoration(hintText: 'e.g. 5000'),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
+            
+            // Security Deposit
+            Text('Security Deposit (LKR)', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
             TextField(
               controller: _depositController,
-              decoration: const InputDecoration(labelText: 'Security deposit (LKR)'),
               keyboardType: TextInputType.number,
+              decoration: const InputDecoration(hintText: 'e.g. 15000'),
             ),
-            const SizedBox(height: 12),
-            TextField(controller: _rulesController, decoration: const InputDecoration(labelText: 'Rental rules')),
+            const SizedBox(height: AppSpacing.md),
+            
+            // Rental Rules
+            Text('Rental Rules', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            TextField(
+              controller: _rulesController,
+              decoration: const InputDecoration(hintText: 'e.g. Renter must bring NIC copies'),
+            ),
+            
             if (_error != null) ...[
-              const SizedBox(height: 12),
-              Text(_error!, style: const TextStyle(color: Colors.red)),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                _error!,
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
+              ),
             ],
-            const SizedBox(height: 24),
+            
+            const SizedBox(height: AppSpacing.xl),
+            
             SizedBox(
               width: double.infinity,
               child: FilledButton(
                 onPressed: (_loading || _uploadingImage) ? null : _submit,
-                style: FilledButton.styleFrom(backgroundColor: AppTheme.accent),
-                child: Text(_loading ? 'Publishing...' : 'Publish listing'),
+                child: Text(_loading ? 'Publishing...' : 'Publish Listing'),
               ),
             ),
           ],

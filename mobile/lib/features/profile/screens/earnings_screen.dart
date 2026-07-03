@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/bookings_api.dart';
 import 'package:mobile/core/api/listings_api.dart';
-import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/theme/app_spacing.dart';
+import 'package:mobile/core/theme/app_radius.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class EarningsScreen extends ConsumerStatefulWidget {
   const EarningsScreen({super.key});
@@ -61,20 +63,25 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
   void _showWithdrawModal() {
     final available = _earnings?.availableBalance ?? 0.0;
     _amountController.text = available.toStringAsFixed(0);
+    final theme = Theme.of(context);
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: theme.colorScheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(AppRadius.sheet),
+          topRight: Radius.circular(AppRadius.sheet),
+        ),
       ),
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
-            top: 24,
-            left: 24,
-            right: 24,
+            top: AppSpacing.lg,
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
           ),
           child: SingleChildScrollView(
             child: Form(
@@ -83,23 +90,26 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Withdraw Earnings',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Text(
                     'Available Balance: ${ListingsApi.formatPrice(available)}',
-                    style: const TextStyle(color: AppTheme.muted, fontSize: 14),
+                    style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.lg),
+                  
+                  // Amount
+                  Text('Withdrawal Amount (LKR)', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
                   TextFormField(
                     controller: _amountController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: const InputDecoration(
-                      labelText: 'Withdrawal Amount (LKR)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.money),
+                      hintText: 'e.g. 5000',
+                      prefixIcon: Icon(LucideIcons.creditCard, size: 18),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Please enter an amount';
@@ -109,58 +119,68 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
+                  
+                  // Bank Name
+                  Text('Bank Name', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
                   TextFormField(
                     controller: _bankNameController,
                     decoration: const InputDecoration(
-                      labelText: 'Bank Name',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.account_balance),
+                      hintText: 'e.g. Hatton National Bank',
+                      prefixIcon: Icon(LucideIcons.landmark, size: 18),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) return 'Please enter bank name';
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
+                  
+                  // Account Number
+                  Text('Account Number', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
                   TextFormField(
                     controller: _accountNumberController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'Account Number',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.pin),
+                      hintText: 'e.g. 1020304050',
+                      prefixIcon: Icon(LucideIcons.hash, size: 18),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) return 'Please enter account number';
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
+                  
+                  // Account Name
+                  Text('Account Name', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
                   TextFormField(
                     controller: _accountNameController,
                     decoration: const InputDecoration(
-                      labelText: 'Account Name',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.person_outline),
+                      hintText: 'e.g. A.B.C. Perera',
+                      prefixIcon: Icon(LucideIcons.user, size: 18),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) return 'Please enter account name';
                       return null;
                     },
                   ),
-                  const SizedBox(height: 24),
+                  
+                  const SizedBox(height: AppSpacing.xl),
                   FilledButton(
                     onPressed: _submittingPayout ? null : _submitPayout,
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(50),
-                      backgroundColor: AppTheme.primary,
-                    ),
                     child: _submittingPayout
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
                         : const Text('Submit Payout Request'),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xl),
                 ],
               ),
             ),
@@ -205,173 +225,198 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
     }
   }
 
-  Color _getPayoutStatusColor(String status) {
+  Color _getPayoutStatusColor(String status, ThemeData theme) {
     switch (status.toLowerCase()) {
       case 'pending':
         return Colors.orange;
       case 'paid':
         return Colors.green;
       case 'rejected':
-        return Colors.red;
+        return theme.colorScheme.error;
       default:
-        return Colors.black;
+        return theme.colorScheme.onSurface;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(title: const Text('Host Earnings')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
     }
 
     final earnings = _earnings;
     if (earnings == null) {
-      return const Scaffold(body: Center(child: Text('Unable to load earnings.')));
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(title: const Text('Host Earnings')),
+        body: const Center(child: Text('Unable to load earnings.')),
+      );
     }
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Host Earnings'),
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft),
+          onPressed: () => Navigator.maybePop(context),
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: _loadEarnings,
         child: ListView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            // Balance Cards
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppTheme.primary, Color(0xFF1E3C72)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            // Balance Card
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'AVAILABLE BALANCE',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      ListingsApi.formatPrice(earnings.availableBalance),
+                      style: theme.textTheme.headlineLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                      child: Divider(),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Total Earned',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              ListingsApi.formatPrice(earnings.totalEarned),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              'Escrow Balance',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              ListingsApi.formatPrice(earnings.escrowedBalance),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.primary.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Available Balance',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    ListingsApi.formatPrice(earnings.availableBalance),
-                    style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Total Earned', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                          const SizedBox(height: 4),
-                          Text(
-                            ListingsApi.formatPrice(earnings.totalEarned),
-                            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text('Escrow Balance', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                          const SizedBox(height: 4),
-                          Text(
-                            ListingsApi.formatPrice(earnings.escrowedBalance),
-                            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.md),
 
             // Withdraw Button
             FilledButton.icon(
               onPressed: earnings.availableBalance > 0 ? _showWithdrawModal : null,
-              icon: const Icon(Icons.arrow_downward),
+              icon: const Icon(LucideIcons.arrowDown, size: 18),
               label: const Text('Withdraw Funds'),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(50),
-                backgroundColor: AppTheme.primary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.xl),
 
             // Payout History Header
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'Withdrawal History',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                Icon(Icons.history, color: AppTheme.muted),
+                Icon(LucideIcons.history, color: theme.colorScheme.onSurfaceVariant, size: 20),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
             // Payout History List
             if (earnings.payouts.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 32.0),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                child: Center(
                   child: Text(
                     'No withdrawal requests yet.',
-                    style: TextStyle(color: AppTheme.muted),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               )
             else
               ...earnings.payouts.map((p) {
                 final dateStr = '${p.createdAt.day}/${p.createdAt.month}/${p.createdAt.year}';
+                final statusColor = _getPayoutStatusColor(p.status, theme);
                 return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
+                  margin: const EdgeInsets.only(bottom: AppSpacing.xs),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: _getPayoutStatusColor(p.status).withOpacity(0.1),
+                      backgroundColor: statusColor.withOpacity(0.08),
                       child: Icon(
                         p.status.toLowerCase() == 'paid'
-                            ? Icons.check
+                            ? LucideIcons.check
                             : p.status.toLowerCase() == 'pending'
-                                ? Icons.pending_outlined
-                                : Icons.close,
-                        color: _getPayoutStatusColor(p.status),
+                                ? LucideIcons.clock
+                                : LucideIcons.x,
+                        color: statusColor,
+                        size: 20,
                       ),
                     ),
                     title: Text(
-                      '${ListingsApi.formatPrice(p.amount)}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      ListingsApi.formatPrice(p.amount),
+                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text('${p.bankName} · $dateStr'),
                     trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 4),
                       decoration: BoxDecoration(
-                        color: _getPayoutStatusColor(p.status).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        color: statusColor.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(AppRadius.button),
                       ),
                       child: Text(
-                        p.status,
-                        style: TextStyle(
-                          color: _getPayoutStatusColor(p.status),
-                          fontSize: 12,
+                        p.status.toUpperCase(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: statusColor,
                           fontWeight: FontWeight.bold,
+                          letterSpacing: 0.3,
                         ),
                       ),
                     ),

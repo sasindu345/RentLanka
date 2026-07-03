@@ -148,7 +148,7 @@ export default function AdminListingsModeration() {
           }}
           className={`px-6 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
             activeTab === "pending"
-              ? "border-teal-500 text-teal-400"
+              ? "border-indigo-500 text-indigo-400"
               : "border-transparent text-slate-400 hover:text-slate-200"
           }`}
         >
@@ -161,7 +161,7 @@ export default function AdminListingsModeration() {
           }}
           className={`px-6 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
             activeTab === "moderated"
-              ? "border-teal-500 text-teal-400"
+              ? "border-indigo-500 text-indigo-400"
               : "border-transparent text-slate-400 hover:text-slate-200"
           }`}
         >
@@ -181,7 +181,7 @@ export default function AdminListingsModeration() {
                 setQuery(e.target.value);
                 setPage(1);
               }}
-              className="w-full rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-2.5 pl-10 text-sm outline-none focus:border-teal-500 transition"
+              className="w-full rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-2.5 pl-10 text-sm outline-none focus:border-indigo-500 transition"
             />
             <span className="absolute left-3 top-3.5 text-slate-500 text-sm">🔍</span>
           </div>
@@ -193,7 +193,7 @@ export default function AdminListingsModeration() {
                 setPausedFilter(e.target.value);
                 setPage(1);
               }}
-              className="rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-2.5 text-sm text-slate-300 outline-none focus:border-teal-500 transition"
+              className="rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-2.5 text-sm text-slate-300 outline-none focus:border-indigo-500 transition"
             >
               <option value="all">All Statuses</option>
               <option value="active">Active Only</option>
@@ -234,7 +234,7 @@ export default function AdminListingsModeration() {
             {loading && listings.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
-                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-teal-500"></div>
+                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-indigo-500"></div>
                   <p className="mt-2 text-sm">Loading platform listings...</p>
                 </td>
               </tr>
@@ -282,7 +282,7 @@ export default function AdminListingsModeration() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-slate-400">{listing.category}</td>
-                    <td className="px-6 py-4 font-semibold text-teal-400 font-mono">
+                    <td className="px-6 py-4 font-semibold text-indigo-400 font-mono">
                       LKR {listing.pricePerDay.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-slate-400">{listing.district}</td>

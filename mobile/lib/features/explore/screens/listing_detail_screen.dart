@@ -6,10 +6,12 @@ import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/bookings_api.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/models/listing.dart';
-import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/shared/widgets/listing_image.dart';
 import 'package:mobile/core/api/reviews_api.dart';
 import 'package:mobile/core/api/chats_api.dart';
+import 'package:mobile/core/theme/app_spacing.dart';
+import 'package:mobile/core/theme/app_radius.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class ListingDetailScreen extends ConsumerStatefulWidget {
   final String id;
@@ -97,19 +99,41 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(),
+        body: const Center(child: CircularProgressIndicator()),
+      );
     }
 
     final listing = _listing;
     if (listing == null) {
-      return const Scaffold(body: Center(child: Text('Listing not found')));
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(),
+        body: const Center(child: Text('Listing not found')),
+      );
     }
 
     final imageUrl = listing.images.isNotEmpty ? listing.images.first : null;
 
     return Scaffold(
-      appBar: AppBar(title: Text(listing.title, maxLines: 1, overflow: TextOverflow.ellipsis)),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text(
+          listing.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,122 +143,310 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
               child: ListingImage(url: imageUrl, width: double.infinity),
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Category tag
                   Text(
                     listing.category.toUpperCase(),
-                    style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 12),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(listing.title, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.xs),
+                  
+                  // Title
+                  Text(
+                    listing.title,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  
+                  // Rating & Location row
                   Row(
                     children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 16),
+                      const Icon(LucideIcons.star, color: Colors.amber, size: 16),
                       const SizedBox(width: 4),
                       Text(
-                        _averageRating > 0 ? _averageRating.toString() : 'New',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        _averageRating > 0 ? _averageRating.toStringAsFixed(1) : 'New',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(width: 6),
                       Text(
                         '· ${_reviews.length} ${_reviews.length == 1 ? 'review' : 'reviews'}',
-                        style: const TextStyle(color: AppTheme.muted, fontSize: 13),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Icon(
+                        LucideIcons.mapPin,
+                        color: theme.colorScheme.onSurfaceVariant,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        listing.district,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(listing.district, style: const TextStyle(color: AppTheme.muted)),
-                  const SizedBox(height: 16),
+                  
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                    child: Divider(),
+                  ),
+                  
+                  // Price block
                   Text(
                     '${ListingsApi.formatPrice(listing.pricePerDay)} / day',
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
+                  const SizedBox(height: 2),
                   Text(
-                    'Deposit: ${ListingsApi.formatPrice(listing.securityDeposit)}',
-                    style: const TextStyle(color: AppTheme.muted),
+                    'Security deposit: ${ListingsApi.formatPrice(listing.securityDeposit)}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(listing.description),
+                  
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                    child: Divider(),
+                  ),
+                  
+                  // Description
+                  Text(
+                    'Description',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    listing.description,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      height: 1.5,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  
                   if (listing.rules.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    const Text('Rental rules', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    Text(listing.rules, style: const TextStyle(color: AppTheme.muted)),
-                  ],
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: AppTheme.primary,
-                        child: Text(listing.owner.firstName[0]),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                      child: Divider(),
+                    ),
+                    Text(
+                      'Rental rules',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      listing.rules,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                  
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                    child: Divider(),
+                  ),
+                  
+                  // Owner
+                  Text(
+                    'Listed by',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceVariant,
+                      borderRadius: BorderRadius.circular(AppRadius.card),
+                      border: Border.all(color: theme.colorScheme.outline),
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 24,
+                          backgroundColor: theme.colorScheme.primary,
+                          child: Text(
+                            listing.owner.firstName[0].toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${listing.owner.firstName} ${listing.owner.lastName}',
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              if (listing.owner.isTrustedUser) ...[
+                                const SizedBox(height: 2),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      LucideIcons.checkCircle,
+                                      color: theme.colorScheme.primary,
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Trusted owner',
+                                      style: theme.textTheme.labelLarge?.copyWith(
+                                        color: theme.colorScheme.primary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                    child: Divider(),
+                  ),
+                  
+                  // Listing Availability
+                  Text(
+                    'Listing Availability',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  if (_blocks.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(AppRadius.input),
+                      ),
+                      child: Row(
                         children: [
-                          Text('${listing.owner.firstName} ${listing.owner.lastName}',
-                              style: const TextStyle(fontWeight: FontWeight.w600)),
-                          if (listing.owner.isTrustedUser)
-                            const Text('Trusted owner', style: TextStyle(color: AppTheme.primary, fontSize: 12)),
+                          Icon(LucideIcons.check, color: theme.colorScheme.primary, size: 20),
+                          const SizedBox(width: AppSpacing.xs),
+                          Text(
+                            'Available all dates',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  const Text('Listing Availability', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  if (_blocks.isEmpty)
-                    const Text('Available all dates', style: TextStyle(color: Colors.green, fontSize: 14, fontWeight: FontWeight.bold))
+                    )
                   else
                     ..._blocks.map((b) {
                       final startStr = '${b.startDate.day}/${b.startDate.month}/${b.startDate.year}';
                       final endStr = '${b.endDate.day}/${b.endDate.month}/${b.endDate.year}';
                       final isManual = b.type == 'Manual';
+                      final cardBg = isManual
+                          ? theme.colorScheme.surfaceVariant
+                          : theme.colorScheme.error.withOpacity(0.08);
+                      final textColor = isManual
+                          ? theme.colorScheme.onSurface
+                          : theme.colorScheme.error;
+
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 6),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        margin: const EdgeInsets.only(bottom: AppSpacing.xs),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
                         decoration: BoxDecoration(
-                          color: isManual ? Colors.grey.shade100 : Colors.red.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: isManual ? Colors.grey.shade300 : Colors.red.shade100),
+                          color: cardBg,
+                          borderRadius: BorderRadius.circular(AppRadius.input),
+                          border: Border.all(
+                            color: isManual ? theme.colorScheme.outline : theme.colorScheme.error.withOpacity(0.2),
+                          ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              '$startStr - $endStr',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                  color: isManual ? Colors.black87 : Colors.red.shade900),
+                            Row(
+                              children: [
+                                Icon(LucideIcons.calendar, color: textColor, size: 16),
+                                const SizedBox(width: AppSpacing.xs),
+                                Text(
+                                  '$startStr - $endStr',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: textColor,
+                                  ),
+                                ),
+                              ],
                             ),
                             Text(
                               isManual ? 'Blocked by Owner' : 'Booked',
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: isManual ? Colors.grey.shade700 : Colors.red.shade700),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              ),
                             ),
                           ],
                         ),
                       );
                     }),
-                  const SizedBox(height: 24),
-                  const Text('Customer Reviews', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  const SizedBox(height: 8),
+                  
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                    child: Divider(),
+                  ),
+                  
+                  // Reviews
+                  Text(
+                    'Customer Reviews',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
                   if (_reviews.isEmpty)
-                    const Text('No reviews for this equipment yet.', style: TextStyle(color: AppTheme.muted, fontSize: 13))
+                    Text(
+                      'No reviews for this equipment yet.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    )
                   else
                     ..._reviews.map((r) => Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(12),
+                          margin: const EdgeInsets.only(bottom: AppSpacing.xs),
+                          padding: const EdgeInsets.all(AppSpacing.md),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey.shade200),
+                            color: theme.colorScheme.surfaceVariant,
+                            borderRadius: BorderRadius.circular(AppRadius.card),
+                            border: Border.all(color: theme.colorScheme.outline),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,24 +456,33 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                                 children: [
                                   Text(
                                     r.reviewerName,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                   Row(
                                     children: List.generate(5, (index) => Icon(
-                                      index < r.rating ? Icons.star : Icons.star_border,
-                                      color: Colors.amber,
+                                      LucideIcons.star,
+                                      color: index < r.rating ? Colors.amber : theme.colorScheme.outline,
                                       size: 14,
                                     )),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: AppSpacing.xs),
                               if (r.comment.isNotEmpty)
-                                Text(r.comment, style: const TextStyle(fontSize: 13, height: 1.4)),
-                              const SizedBox(height: 4),
+                                Text(
+                                  r.comment,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    height: 1.4,
+                                  ),
+                                ),
+                              const SizedBox(height: 6),
                               Text(
                                 '${r.createdAt.day}/${r.createdAt.month}/${r.createdAt.year}',
-                                style: const TextStyle(color: AppTheme.muted, fontSize: 10),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
                               ),
                             ],
                           ),
@@ -272,35 +493,54 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              IconButton.outlined(
-                onPressed: _saving ? null : _save,
-                icon: _saving
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.favorite_border),
-              ),
-              const SizedBox(width: 8),
-              IconButton.outlined(
-                onPressed: _messaging ? null : _startMessage,
-                icon: _messaging
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.chat_bubble_outline),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton(
-                  onPressed: () {
-                    context.push('/app/explore/listing/${listing.id}/book');
-                  },
-                  style: FilledButton.styleFrom(backgroundColor: AppTheme.accent),
-                  child: const Text('Request to book'),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          border: Border(
+            top: BorderSide(color: theme.dividerColor, width: 1.0),
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              children: [
+                IconButton.outlined(
+                  onPressed: _saving ? null : _save,
+                  icon: _saving
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(LucideIcons.heart),
+                  style: IconButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.button),
+                    ),
+                    side: BorderSide(color: theme.colorScheme.outline),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: AppSpacing.xs),
+                IconButton.outlined(
+                  onPressed: _messaging ? null : _startMessage,
+                  icon: _messaging
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(LucideIcons.messageSquare),
+                  style: IconButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.button),
+                    ),
+                    side: BorderSide(color: theme.colorScheme.outline),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () {
+                      context.push('/app/explore/listing/${listing.id}/book');
+                    },
+                    child: const Text('Request to book'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

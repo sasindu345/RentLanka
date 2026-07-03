@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/models/listing.dart';
-import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/shared/widgets/listing_card.dart';
+import 'package:mobile/shared/widgets/shimmer_skeleton.dart';
+import 'package:mobile/shared/widgets/empty_state.dart';
+import 'package:mobile/core/theme/app_spacing.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class SearchResultsScreen extends ConsumerStatefulWidget {
   final String initialQuery;
@@ -45,19 +48,47 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final title = widget.initialQuery.isEmpty
+        ? (widget.category ?? 'Browse')
+        : widget.initialQuery;
+
     return Scaffold(
-      appBar: AppBar(title: Text(widget.initialQuery.isEmpty ? 'Browse' : widget.initialQuery)),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft),
+          onPressed: () => Navigator.maybePop(context),
+        ),
+      ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? GridView.builder(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.68,
+                crossAxisSpacing: AppSpacing.md,
+                mainAxisSpacing: AppSpacing.md,
+              ),
+              itemCount: 6,
+              itemBuilder: (context, index) => const ListingCardSkeleton(),
+            )
           : _results == null || _results!.items.isEmpty
-              ? const Center(child: Text('No results found', style: TextStyle(color: AppTheme.muted)))
+              ? EmptyState(
+                  icon: LucideIcons.search,
+                  title: 'No results found',
+                  subtitle: 'Try adjusting your search terms or filters to find what you need.',
+                  actionLabel: 'Go back',
+                  onActionPressed: () => Navigator.maybePop(context),
+                )
               : GridView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     childAspectRatio: 0.68,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
+                    crossAxisSpacing: AppSpacing.md,
+                    mainAxisSpacing: AppSpacing.md,
                   ),
                   itemCount: _results!.items.length,
                   itemBuilder: (context, index) => ListingCard(listing: _results!.items[index]),

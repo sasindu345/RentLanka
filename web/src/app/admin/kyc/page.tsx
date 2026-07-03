@@ -86,7 +86,7 @@ export default function AdminKycQueue() {
 
       {loading && queue.length === 0 ? (
         <div className="flex items-center justify-center min-h-[300px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-teal-500"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-500"></div>
         </div>
       ) : queue.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-800 p-12 text-center bg-slate-900/10 backdrop-blur-md">
@@ -113,7 +113,7 @@ export default function AdminKycQueue() {
                     onClick={() => setSelectedUser(user)}
                     className={`w-full text-left p-4 transition-all duration-150 flex flex-col gap-1 cursor-pointer ${
                       isSelected
-                        ? "bg-teal-950/30 border-l-4 border-teal-500 shadow-inner"
+                        ? "bg-indigo-950/30 border-l-4 border-indigo-500 shadow-inner"
                         : "hover:bg-slate-900/40"
                     }`}
                   >
@@ -174,7 +174,7 @@ export default function AdminKycQueue() {
                             href={selectedUser.nicDocumentUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-teal-400 font-bold hover:underline"
+                            className="text-xs text-indigo-400 font-bold hover:underline"
                           >
                             Open Link ↗
                           </a>
@@ -211,7 +211,7 @@ export default function AdminKycQueue() {
                   <button
                     disabled={actionLoading}
                     onClick={() => handleApprove(selectedUser.id)}
-                    className="flex-1 py-3 px-4 rounded-xl bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold text-sm transition duration-150 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition duration-150 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <span>✅</span> Approve KYC
                   </button>

@@ -108,14 +108,14 @@ export default function AdminBookingsOversight() {
             placeholder="Search by listing, renter, owner, or booking ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-4 pr-10 py-2.5 bg-slate-950 border border-slate-800 focus:border-teal-500 rounded-xl text-slate-200 text-sm outline-none placeholder-slate-600 transition"
+            className="w-full pl-4 pr-10 py-2.5 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl text-slate-200 text-sm outline-none placeholder-slate-600 transition"
           />
         </div>
         <div className="w-full md:w-48">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 focus:border-teal-500 rounded-xl text-slate-200 text-sm outline-none transition cursor-pointer"
+            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl text-slate-200 text-sm outline-none transition cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
@@ -132,7 +132,7 @@ export default function AdminBookingsOversight() {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/10 backdrop-blur-md overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center min-h-[300px]">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-teal-500"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-500"></div>
           </div>
         ) : filteredBookings.length === 0 ? (
           <div className="p-12 text-center text-slate-500">
@@ -169,7 +169,7 @@ export default function AdminBookingsOversight() {
                       </td>
                       <td className="px-6 py-4 space-y-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] uppercase font-bold text-teal-500 px-1 bg-teal-950/40 rounded">R</span>
+                          <span className="text-[10px] uppercase font-bold text-indigo-500 px-1 bg-indigo-950/40 rounded">R</span>
                           <span>{b.renterName}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -196,7 +196,7 @@ export default function AdminBookingsOversight() {
                         </div>
                         <div className="flex justify-between max-w-[140px] font-bold border-t border-slate-800/80 pt-0.5">
                           <span className="text-slate-400">Total:</span>
-                          <span className="text-teal-400">{formatPrice(b.totalPrice + b.securityDeposit)}</span>
+                          <span className="text-indigo-400">{formatPrice(b.totalPrice + b.securityDeposit)}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">

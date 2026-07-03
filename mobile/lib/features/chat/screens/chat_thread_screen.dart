@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/api/chats_api.dart';
-import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/shared/widgets/listing_image.dart';
+import 'package:mobile/core/theme/app_spacing.dart';
+import 'package:mobile/core/theme/app_radius.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class ChatThreadScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -138,42 +140,55 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: const Center(child: CircularProgressIndicator()),
+      );
     }
 
     final conv = _conversation;
     if (conv == null) {
-      return const Scaffold(body: Center(child: Text('Conversation not found')));
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: const Center(child: Text('Conversation not found')),
+      );
     }
 
     final partnerName = _getChatPartnerName();
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(partnerName, style: const TextStyle(fontWeight: FontWeight.bold)),
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft),
+          onPressed: () => Navigator.maybePop(context),
+        ),
       ),
       body: Column(
         children: [
           // Listing Context Header (Airbnb style)
           if (conv.listingId != null)
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+                color: theme.colorScheme.surface,
+                border: Border(bottom: BorderSide(color: theme.dividerColor)),
               ),
               child: Row(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(AppRadius.button),
                     child: SizedBox(
                       width: 50,
                       height: 50,
                       child: ListingImage(url: conv.listingImage, width: 50),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,12 +197,14 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
                           conv.listingTitle ?? 'Rental Item',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 2),
-                        const Text(
+                        Text(
                           'Context: Equipment Rental discussion',
-                          style: TextStyle(color: AppTheme.muted, fontSize: 11),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -200,7 +217,7 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.md),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final msg = _messages[index];
@@ -210,36 +227,37 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
                 return Align(
                   alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
+                    margin: const EdgeInsets.only(bottom: AppSpacing.md),
                     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
                     child: Column(
                       crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 10),
                           decoration: BoxDecoration(
-                            color: isMe ? AppTheme.primary : Colors.grey.shade100,
+                            color: isMe ? theme.colorScheme.primary : theme.colorScheme.surfaceVariant,
                             borderRadius: BorderRadius.only(
-                              topLeft: const Radius.circular(16),
-                              topRight: const Radius.circular(16),
-                              bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
-                              bottomRight: isMe ? Radius.zero : const Radius.circular(16),
+                              topLeft: const Radius.circular(AppRadius.input),
+                              topRight: const Radius.circular(AppRadius.input),
+                              bottomLeft: isMe ? const Radius.circular(AppRadius.input) : Radius.zero,
+                              bottomRight: isMe ? Radius.zero : const Radius.circular(AppRadius.input),
                             ),
-                            border: isMe ? null : Border.all(color: Colors.grey.shade200),
+                            border: isMe ? null : Border.all(color: theme.colorScheme.outline.withOpacity(0.4)),
                           ),
                           child: Text(
                             msg.content,
-                            style: TextStyle(
-                              color: isMe ? Colors.white : Colors.black87,
-                              fontSize: 14,
-                              height: 1.3,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: isMe ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
+                              height: 1.4,
                             ),
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           timeStr,
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -251,10 +269,10 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
 
           // Bottom Input Row
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: Colors.grey.shade200)),
+              color: theme.colorScheme.surface,
+              border: Border(top: BorderSide(color: theme.dividerColor)),
             ),
             child: SafeArea(
               child: Row(
@@ -266,24 +284,24 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
                       maxLines: 4,
                       decoration: InputDecoration(
                         hintText: 'Type a message...',
-                        hintStyle: TextStyle(color: Colors.grey.shade400),
+                        hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withOpacity(0.6)),
                         isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                          borderSide: BorderSide(color: theme.colorScheme.outline),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(color: AppTheme.primary),
+                          borderSide: BorderSide(color: theme.colorScheme.primary),
                         ),
                       ),
                       textInputAction: TextInputAction.send,
                       onSubmitted: (_) => _handleSend(),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  IconButton.filled(
+                  const SizedBox(width: AppSpacing.xs),
+                  IconButton(
                     onPressed: _sending ? null : _handleSend,
                     icon: _sending
                         ? const SizedBox(
@@ -291,10 +309,11 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : const Icon(Icons.send),
+                        : const Icon(LucideIcons.send),
                     style: IconButton.styleFrom(
-                      backgroundColor: AppTheme.primary,
-                      foregroundColor: Colors.white,
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      padding: const EdgeInsets.all(12),
                     ),
                   ),
                 ],

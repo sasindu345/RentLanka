@@ -69,7 +69,7 @@ export default function AdminUsersList() {
               setQuery(e.target.value);
               setPage(1);
             }}
-            className="w-full rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-2.5 pl-10 text-sm outline-none focus:border-teal-500 transition"
+            className="w-full rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-2.5 pl-10 text-sm outline-none focus:border-indigo-500 transition"
           />
           <span className="absolute left-3 top-3.5 text-slate-500 text-sm">🔍</span>
         </div>
@@ -104,7 +104,7 @@ export default function AdminUsersList() {
             {loading && users.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
-                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-teal-500"></div>
+                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-indigo-500"></div>
                   <p className="mt-2 text-sm">Fetching user accounts...</p>
                 </td>
               </tr>
@@ -164,7 +164,7 @@ export default function AdminUsersList() {
                         </span>
                       )}
                       {user.verificationLevel === 3 && (
-                        <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-teal-950/40 text-teal-400 border border-teal-500/20">
+                        <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-indigo-950/40 text-indigo-400 border border-indigo-500/20">
                           Trusted (L3) 🛡️
                         </span>
                       )}

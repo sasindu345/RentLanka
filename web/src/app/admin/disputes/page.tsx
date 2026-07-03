@@ -135,7 +135,7 @@ export default function DisputesPage() {
                             setAdminDecision(d.adminDecision || "");
                             setRefundRenter(true);
                           }}
-                          className="px-3 py-1.5 rounded-lg bg-teal-950/40 border border-teal-500/20 hover:border-teal-500/40 text-teal-400 text-xs font-bold transition cursor-pointer"
+                          className="px-3 py-1.5 rounded-lg bg-indigo-950/40 border border-indigo-500/20 hover:border-indigo-500/40 text-indigo-400 text-xs font-bold transition cursor-pointer"
                         >
                           Review &rarr;
                         </button>
@@ -187,7 +187,7 @@ export default function DisputesPage() {
                           name="resolution"
                           checked={refundRenter}
                           onChange={() => setRefundRenter(true)}
-                          className="accent-teal-500"
+                          className="accent-indigo-500"
                         />
                         <div className="text-xs">
                           <p className="font-semibold text-slate-200">Refund Renter</p>
@@ -201,7 +201,7 @@ export default function DisputesPage() {
                           name="resolution"
                           checked={!refundRenter}
                           onChange={() => setRefundRenter(false)}
-                          className="accent-teal-500"
+                          className="accent-indigo-500"
                         />
                         <div className="text-xs">
                           <p className="font-semibold text-slate-200">Payout Host</p>
@@ -217,7 +217,7 @@ export default function DisputesPage() {
                       value={adminDecision}
                       onChange={(e) => setAdminDecision(e.target.value)}
                       rows={4}
-                      className="w-full p-3 text-sm bg-slate-950 border border-slate-900 rounded-xl text-slate-200 focus:outline-none focus:border-teal-500 transition"
+                      className="w-full p-3 text-sm bg-slate-955 border border-slate-900 rounded-xl text-slate-200 focus:outline-none focus:border-indigo-500 transition"
                       placeholder="Specify administrative decision rationale..."
                     />
                   </div>
@@ -225,7 +225,7 @@ export default function DisputesPage() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full py-3 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-bold rounded-xl text-sm transition shadow-lg cursor-pointer disabled:opacity-50"
+                    className="w-full py-3 bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-bold rounded-xl text-sm transition shadow-lg cursor-pointer disabled:opacity-50"
                   >
                     {submitting ? "Processing Resolution..." : "Execute Resolution Decision"}
                   </button>

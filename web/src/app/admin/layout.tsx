@@ -60,7 +60,7 @@ export default function AdminLayout({
       <aside className="w-64 flex-shrink-0 border-r border-slate-800 bg-slate-900/60 backdrop-blur-lg flex flex-col justify-between">
         <div>
           <div className="h-16 flex items-center px-6 border-b border-slate-800">
-            <span className="text-xl font-bold bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">
+            <span className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
               RentLanka Admin
             </span>
           </div>
@@ -74,7 +74,7 @@ export default function AdminLayout({
                   href={item.href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? "bg-teal-950/40 text-teal-400 border-l-4 border-teal-500 shadow-inner"
+                      ? "bg-indigo-950/40 text-indigo-400 border-l-4 border-indigo-500 shadow-inner"
                       : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-200"
                   }`}
                 >
@@ -89,7 +89,7 @@ export default function AdminLayout({
         {/* Footer in Sidebar */}
         <div className="p-4 border-t border-slate-800 bg-slate-900/40">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 font-bold">
+            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold">
               {adminName[0]}
             </div>
             <div className="overflow-hidden">
@@ -114,7 +114,7 @@ export default function AdminLayout({
             {menuItems.find((item) => pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href)))?.label || "Dashboard"}
           </h1>
           <div className="flex items-center gap-4">
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/20">
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
               Live Environment
             </span>
           </div>

@@ -80,7 +80,7 @@ export default function AdminSettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[300px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-teal-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-500"></div>
         <span className="ml-3 text-slate-400 text-sm">Loading settings configuration...</span>
       </div>
     );
@@ -124,7 +124,7 @@ export default function AdminSettingsPage() {
                 max="100"
                 value={commissionPercent}
                 onChange={(e) => setCommissionPercent(Number(e.target.value))}
-                className="w-full bg-slate-900 border border-slate-800 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-xl py-3 pl-4 pr-12 text-sm text-slate-200 focus:outline-none transition"
+                className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-3 pl-4 pr-12 text-sm text-slate-200 focus:outline-none transition"
                 placeholder="10"
               />
               <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
@@ -150,12 +150,12 @@ export default function AdminSettingsPage() {
               type="text"
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
-              className="flex-1 bg-slate-900 border border-slate-800 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-xl py-2.5 px-4 text-sm text-slate-200 focus:outline-none transition"
+              className="flex-1 bg-slate-900 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2.5 px-4 text-sm text-slate-200 focus:outline-none transition"
               placeholder="e.g. Vehicles, Audio Gear"
             />
             <button
               type="submit"
-              className="px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-sm font-semibold transition cursor-pointer flex-shrink-0"
+              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition cursor-pointer flex-shrink-0"
             >
               ➕ Add
             </button>
@@ -191,7 +191,7 @@ export default function AdminSettingsPage() {
         <button
           onClick={handleSaveSettings}
           disabled={saving}
-          className="px-6 py-3 bg-teal-600 hover:bg-teal-500 disabled:bg-teal-800 text-white rounded-xl text-sm font-bold shadow-lg shadow-teal-500/10 hover:shadow-teal-500/20 transition cursor-pointer"
+          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/10 hover:shadow-indigo-500/20 transition cursor-pointer"
         >
           {saving ? "💾 Saving Settings..." : "💾 Save Changes"}
         </button>

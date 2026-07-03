@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/api/chats_api.dart';
-import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/shared/widgets/listing_image.dart';
+import 'package:mobile/core/theme/app_spacing.dart';
+import 'package:mobile/core/theme/app_radius.dart';
+import 'package:mobile/shared/widgets/empty_state.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class InboxScreen extends ConsumerStatefulWidget {
   const InboxScreen({super.key});
@@ -53,94 +56,94 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _chats.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.forum_outlined, size: 64, color: Colors.grey.shade400),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'No messages yet',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Start a conversation by clicking "Message Host" on any equipment listing.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: _chats.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final chat = _chats[index];
-                      final partnerName = _getChatPartnerName(chat);
-                      final timeStr = '${chat.lastMessageAt.hour.toString().padLeft(2, '0')}:${chat.lastMessageAt.minute.toString().padLeft(2, '0')}';
+    final theme = Theme.of(context);
 
-                      return ListTile(
-                        onTap: () => context.push('/app/activity/messages/thread/${chat.id}').then((_) => _load()),
-                        leading: CircleAvatar(
-                          backgroundColor: AppTheme.primary.withOpacity(0.1),
-                          child: Text(
-                            partnerName.isNotEmpty ? partnerName[0].toUpperCase() : '?',
-                            style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        title: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              partnerName,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                            ),
-                            Text(
-                              timeStr,
-                              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                            ),
-                          ],
-                        ),
-                        subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  chat.lastMessageContent,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        trailing: chat.listingImage != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(6),
-                                child: SizedBox(
-                                  width: 48,
-                                  height: 48,
-                                  child: ListingImage(url: chat.listingImage, width: 48),
-                                ),
-                              )
-                            : null,
-                      );
-                    },
+    if (_loading) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_chats.isEmpty) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: EmptyState(
+          icon: LucideIcons.messageSquare,
+          title: 'No messages yet',
+          subtitle: 'Start a conversation by clicking "Message Host" on any equipment listing.',
+          actionLabel: 'Explore equipment',
+          onActionPressed: () => context.go('/app/explore'),
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: RefreshIndicator(
+        onRefresh: _load,
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+          itemCount: _chats.length,
+          separatorBuilder: (context, index) => const Divider(height: 1),
+          itemBuilder: (context, index) {
+            final chat = _chats[index];
+            final partnerName = _getChatPartnerName(chat);
+            final timeStr = '${chat.lastMessageAt.hour.toString().padLeft(2, '0')}:${chat.lastMessageAt.minute.toString().padLeft(2, '0')}';
+
+            return ListTile(
+              onTap: () => context.push('/app/activity/messages/thread/${chat.id}').then((_) => _load()),
+              leading: CircleAvatar(
+                radius: 20,
+                backgroundColor: theme.colorScheme.primary.withOpacity(0.08),
+                child: Text(
+                  partnerName.isNotEmpty ? partnerName[0].toUpperCase() : '?',
+                  style: TextStyle(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
+              ),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    partnerName,
+                    style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    timeStr,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  chat.lastMessageContent,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              trailing: chat.listingImage != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(AppRadius.button),
+                      child: SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: ListingImage(url: chat.listingImage, width: 48),
+                      ),
+                    )
+                  : null,
+            );
+          },
+        ),
+      ),
     );
   }
 }

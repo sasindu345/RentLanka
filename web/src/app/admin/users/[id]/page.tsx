@@ -88,7 +88,7 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
   if (error || !user) {
     return (
       <div className="space-y-4">
-        <Link href="/admin/users" className="text-sm text-teal-400 hover:underline">
+        <Link href="/admin/users" className="text-sm text-indigo-400 hover:underline">
           ← Back to Users List
         </Link>
         <div className="p-6 bg-red-950/20 border border-red-800/40 rounded-2xl text-red-400">
@@ -103,7 +103,7 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div>
-        <Link href="/admin/users" className="text-sm text-slate-400 hover:text-teal-400 transition flex items-center gap-1">
+        <Link href="/admin/users" className="text-sm text-slate-400 hover:text-indigo-400 transition flex items-center gap-1">
           <span>←</span> Back to Users List
         </Link>
         <h2 className="text-2xl font-bold mt-3 text-slate-100">
@@ -177,7 +177,7 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
                       href={user.nicDocumentUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/40 text-teal-400 hover:text-teal-300 transition duration-150"
+                      className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/40 text-indigo-400 hover:text-indigo-300 transition duration-150"
                     >
                       📎 View Document Attachment <span>↗</span>
                     </a>
@@ -204,7 +204,7 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
 
             {reviewsLoading ? (
               <div className="flex justify-center py-6">
-                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-teal-500"></div>
+                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-indigo-500"></div>
               </div>
             ) : reviews.length === 0 ? (
               <p className="text-sm text-slate-500 text-center py-4">No reviews have been left for this user yet.</p>
@@ -261,7 +261,7 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/40 border border-slate-800/60">
                 <span className="text-xs text-slate-400 font-medium">Trusted Badge</span>
                 {user.isTrustedUser ? (
-                  <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-teal-950/40 text-teal-400 border border-teal-500/20">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-indigo-950/40 text-indigo-400 border border-indigo-500/20">
                     Trusted 🛡️
                   </span>
                 ) : (
@@ -299,7 +299,7 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
                 <select
                   value={overrideLevel}
                   onChange={(e) => setOverrideLevel(Number(e.target.value))}
-                  className="rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-teal-500 transition mt-1"
+                  className="rounded-xl border border-slate-800 bg-slate-955 px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-indigo-500 transition mt-1"
                 >
                   <option value={-1}>Unverified (-1)</option>
                   <option value={0}>L0: Email Verified (0)</option>
@@ -314,7 +314,7 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
                   type="checkbox"
                   checked={overrideTrusted}
                   onChange={(e) => setOverrideTrusted(e.target.checked)}
-                  className="w-4 h-4 accent-teal-500 rounded border-slate-700 bg-slate-950"
+                  className="w-4 h-4 accent-indigo-500 rounded border-slate-700 bg-slate-950"
                 />
                 <span className="text-sm text-slate-300 font-medium">Grant Trusted User Badge</span>
               </label>
@@ -322,7 +322,7 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 disabled:opacity-50 text-slate-950 font-bold text-sm transition duration-150 cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition duration-150 cursor-pointer"
               >
                 {submitting ? "Saving..." : "Save Override"}
               </button>

@@ -53,7 +53,7 @@ export default function AdminFinancialLedger() {
       case "authorized":
         return "bg-blue-500/10 text-blue-400 border border-blue-500/20";
       case "captured":
-        return "bg-teal-500/10 text-teal-400 border border-teal-500/20";
+        return "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20";
       case "released":
         return "bg-green-500/10 text-green-400 border border-green-500/20";
       default:
@@ -108,17 +108,17 @@ export default function AdminFinancialLedger() {
           onClick={() => setActiveTab("payments")}
           className={`px-6 py-3 text-sm font-semibold border-b-2 transition duration-150 cursor-pointer ${
             activeTab === "payments"
-              ? "border-teal-500 text-teal-400 bg-teal-950/10"
+              ? "border-indigo-500 text-indigo-400 bg-indigo-950/10"
               : "border-transparent text-slate-400 hover:text-slate-200"
           }`}
         >
-          💳 Escrow Payments Log ({payments.length})
+          Ref: 💳 Escrow Payments Log ({payments.length})
         </button>
         <button
           onClick={() => setActiveTab("payouts")}
           className={`px-6 py-3 text-sm font-semibold border-b-2 transition duration-150 cursor-pointer ${
             activeTab === "payouts"
-              ? "border-teal-500 text-teal-400 bg-teal-950/10"
+              ? "border-indigo-500 text-indigo-400 bg-indigo-950/10"
               : "border-transparent text-slate-400 hover:text-slate-200"
           }`}
         >
@@ -130,7 +130,7 @@ export default function AdminFinancialLedger() {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/10 backdrop-blur-md overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center min-h-[300px]">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-teal-500"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-500"></div>
           </div>
         ) : activeTab === "payments" ? (
           /* ESCROW PAYMENTS */
@@ -161,7 +161,7 @@ export default function AdminFinancialLedger() {
                         <span className="font-mono text-xs text-slate-500">Booking: #{p.bookingId.substring(0, 8)}</span>
                       </td>
                       <td className="px-6 py-4">{p.renterName}</td>
-                      <td className="px-6 py-4 font-bold text-teal-400">{formatPrice(p.amount)}</td>
+                      <td className="px-6 py-4 font-bold text-indigo-400">{formatPrice(p.amount)}</td>
                       <td className="px-6 py-4">
                         <span className="font-mono text-xs bg-slate-950 px-2 py-1 border border-slate-850 rounded text-slate-400">
                           {p.transactionReference}
@@ -203,7 +203,7 @@ export default function AdminFinancialLedger() {
                         <span className="text-[10px] text-slate-650">{new Date(po.createdAt).toLocaleDateString()}</span>
                       </td>
                       <td className="px-6 py-4 font-semibold text-slate-200">{po.ownerName}</td>
-                      <td className="px-6 py-4 font-bold text-emerald-400">{formatPrice(po.amount)}</td>
+                      <td className="px-6 py-4 font-bold text-indigo-400">{formatPrice(po.amount)}</td>
                       <td className="px-6 py-4 text-xs space-y-0.5">
                         <div><span className="text-slate-500">Bank:</span> <span className="font-semibold text-slate-300">{po.bankName}</span></div>
                         <div><span className="text-slate-500">Acc No:</span> <span className="font-mono font-semibold text-slate-300">{po.accountNumber}</span></div>
@@ -219,7 +219,7 @@ export default function AdminFinancialLedger() {
                           <button
                             disabled={actionLoading}
                             onClick={() => handleApprovePayout(po.id, po.amount, po.ownerName)}
-                            className="px-3.5 py-1.5 bg-teal-500 hover:bg-teal-600 disabled:opacity-50 text-slate-950 font-bold text-xs rounded-xl shadow-lg transition duration-150 cursor-pointer"
+                            className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-lg transition duration-150 cursor-pointer"
                           >
                             💸 Confirm Transfer
                           </button>
