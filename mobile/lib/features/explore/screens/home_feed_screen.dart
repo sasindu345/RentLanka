@@ -5,6 +5,7 @@ import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/shared/widgets/listing_card.dart';
+import 'package:mobile/shared/widgets/shimmer_skeleton.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -197,8 +198,20 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
               ),
             ),
             if (_loading)
-              const SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator()),
+              SliverPadding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.72,
+                    crossAxisSpacing: AppSpacing.md,
+                    mainAxisSpacing: AppSpacing.md,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => const ListingCardSkeleton(),
+                    childCount: 6,
+                  ),
+                ),
               )
             else if (_listings == null || _listings!.items.isEmpty)
               SliverFillRemaining(

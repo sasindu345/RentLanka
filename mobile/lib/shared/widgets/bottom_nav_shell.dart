@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/providers/app_mode_provider.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class _NavItem {
   final int branchIndex;
@@ -24,52 +25,53 @@ class BottomNavShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final appMode = ref.watch(appModeProvider);
 
     final List<_NavItem> items = appMode == UserAppMode.owner
         ? const [
             _NavItem(
               branchIndex: 2,
-              icon: Icons.add_circle_outline,
-              selectedIcon: Icons.add_circle,
+              icon: LucideIcons.plusCircle,
+              selectedIcon: LucideIcons.plusCircle,
               label: 'List',
             ),
             _NavItem(
               branchIndex: 3,
-              icon: Icons.calendar_month_outlined,
-              selectedIcon: Icons.calendar_month,
+              icon: LucideIcons.calendar,
+              selectedIcon: LucideIcons.calendar,
               label: 'Activity',
             ),
             _NavItem(
               branchIndex: 4,
-              icon: Icons.person_outline,
-              selectedIcon: Icons.person,
+              icon: LucideIcons.user,
+              selectedIcon: LucideIcons.user,
               label: 'Profile',
             ),
           ]
         : const [
             _NavItem(
               branchIndex: 0,
-              icon: Icons.explore_outlined,
-              selectedIcon: Icons.explore,
+              icon: LucideIcons.compass,
+              selectedIcon: LucideIcons.compass,
               label: 'Explore',
             ),
             _NavItem(
               branchIndex: 1,
-              icon: Icons.favorite_outline,
-              selectedIcon: Icons.favorite,
+              icon: LucideIcons.heart,
+              selectedIcon: LucideIcons.heart,
               label: 'Saved',
             ),
             _NavItem(
               branchIndex: 3,
-              icon: Icons.calendar_month_outlined,
-              selectedIcon: Icons.calendar_month,
+              icon: LucideIcons.calendar,
+              selectedIcon: LucideIcons.calendar,
               label: 'Activity',
             ),
             _NavItem(
               branchIndex: 4,
-              icon: Icons.person_outline,
-              selectedIcon: Icons.person,
+              icon: LucideIcons.user,
+              selectedIcon: LucideIcons.user,
               label: 'Profile',
             ),
           ];
@@ -79,17 +81,24 @@ class BottomNavShell extends ConsumerWidget {
 
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (index) {
-          final targetBranch = items[index].branchIndex;
-          navigationShell.goBranch(targetBranch);
-        },
-        destinations: items.map((item) => NavigationDestination(
-          icon: Icon(item.icon),
-          selectedIcon: Icon(item.selectedIcon),
-          label: item.label,
-        )).toList(),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: theme.dividerColor, width: 1.0),
+          ),
+        ),
+        child: NavigationBar(
+          selectedIndex: selectedIndex,
+          onDestinationSelected: (index) {
+            final targetBranch = items[index].branchIndex;
+            navigationShell.goBranch(targetBranch);
+          },
+          destinations: items.map((item) => NavigationDestination(
+            icon: Icon(item.icon),
+            selectedIcon: Icon(item.selectedIcon),
+            label: item.label,
+          )).toList(),
+        ),
       ),
     );
   }
