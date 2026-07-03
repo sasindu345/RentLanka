@@ -14,6 +14,7 @@ import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:mobile/shared/widgets/empty_state.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:mobile/core/models/listing.dart';
 
 class ActivityScreen extends ConsumerStatefulWidget {
   const ActivityScreen({super.key});
@@ -22,10 +23,12 @@ class ActivityScreen extends ConsumerStatefulWidget {
   ConsumerState<ActivityScreen> createState() => _ActivityScreenState();
 }
 
-class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTickerProviderStateMixin {
+class _ActivityScreenState extends ConsumerState<ActivityScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<BookingResponse> _renterBookings = [];
   List<BookingResponse> _ownerBookings = [];
+  List<Listing> _myListings = [];
   bool _loading = true;
   final Map<String, List<ReviewResponse>> _bookingReviews = {};
 
@@ -50,20 +53,30 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
       final renter = await api.getRenterBookings();
       final owner = await api.getOwnerBookings();
 
-      final allCompletedBookings = [...renter, ...owner]
-          .where((b) => b.status.toLowerCase() == 'completed');
+      List<Listing> myListings = [];
+      try {
+        myListings = await ref.read(listingsApiProvider).getMyListings();
+      } catch (_) {}
+
+      final allCompletedBookings = [
+        ...renter,
+        ...owner,
+      ].where((b) => b.status.toLowerCase() == 'completed');
 
       _bookingReviews.clear();
-      await Future.wait(allCompletedBookings.map((b) async {
-        try {
-          final list = await reviewsApi.getBookingReviews(b.id);
-          _bookingReviews[b.id] = list;
-        } catch (_) {}
-      }));
+      await Future.wait(
+        allCompletedBookings.map((b) async {
+          try {
+            final list = await reviewsApi.getBookingReviews(b.id);
+            _bookingReviews[b.id] = list;
+          } catch (_) {}
+        }),
+      );
 
       setState(() {
         _renterBookings = renter;
         _ownerBookings = owner;
+        _myListings = myListings;
       });
     } catch (_) {
       // Ignore load errors silently or show snackbar
@@ -77,14 +90,20 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
       await ref.read(bookingsApiProvider).approveBooking(id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Booking approved successfully!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Booking approved successfully!'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
       _loadAll();
     } on DioException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(extractError(e)), backgroundColor: Colors.redAccent),
+          SnackBar(
+            content: Text(extractError(e)),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     }
@@ -102,7 +121,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
     } on DioException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(extractError(e)), backgroundColor: Colors.redAccent),
+          SnackBar(
+            content: Text(extractError(e)),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     }
@@ -113,14 +135,20 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
       await ref.read(bookingsApiProvider).handoverBooking(id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Handover confirmed! Rental is now active.'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Handover confirmed! Rental is now active.'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
       _loadAll();
     } on DioException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(extractError(e)), backgroundColor: Colors.redAccent),
+          SnackBar(
+            content: Text(extractError(e)),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     }
@@ -131,14 +159,22 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
       await ref.read(bookingsApiProvider).returnBooking(id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Return confirmed. Deposit released & booking completed!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text(
+              'Return confirmed. Deposit released & booking completed!',
+            ),
+            backgroundColor: Colors.green,
+          ),
         );
       }
       _loadAll();
     } on DioException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(extractError(e)), backgroundColor: Colors.redAccent),
+          SnackBar(
+            content: Text(extractError(e)),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     }
@@ -166,18 +202,26 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
               children: [
                 Row(
                   children: [
-                    Icon(LucideIcons.shieldCheck, color: theme.colorScheme.primary, size: 24),
+                    Icon(
+                      LucideIcons.shieldCheck,
+                      color: theme.colorScheme.primary,
+                      size: 24,
+                    ),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
                       'Secure Escrow Payment',
-                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'Pay for booking request #${booking.id.substring(0, 8)}',
-                  style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 const Divider(),
@@ -212,10 +256,14 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                   children: [
                     Text(
                       'Total to Authorize',
-                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
-                      ListingsApi.formatPrice(booking.totalPrice + booking.securityDeposit),
+                      ListingsApi.formatPrice(
+                        booking.totalPrice + booking.securityDeposit,
+                      ),
                       style: theme.textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: theme.colorScheme.primary,
@@ -232,7 +280,11 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                   ),
                   child: Row(
                     children: [
-                      Icon(LucideIcons.info, color: theme.colorScheme.primary, size: 20),
+                      Icon(
+                        LucideIcons.info,
+                        color: theme.colorScheme.primary,
+                        size: 20,
+                      ),
                       const SizedBox(width: AppSpacing.xs),
                       Expanded(
                         child: Text(
@@ -251,7 +303,9 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                   onPressed: () async {
                     Navigator.pop(context);
                     try {
-                      await ref.read(bookingsApiProvider).payBooking(booking.id);
+                      await ref
+                          .read(bookingsApiProvider)
+                          .payBooking(booking.id);
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -264,7 +318,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                     } on DioException catch (e) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(extractError(e)), backgroundColor: Colors.redAccent),
+                          SnackBar(
+                            content: Text(extractError(e)),
+                            backgroundColor: Colors.redAccent,
+                          ),
                         );
                       }
                     }
@@ -325,7 +382,9 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                       return IconButton(
                         icon: Icon(
                           LucideIcons.star,
-                          color: starValue <= selectedRating ? Colors.amber : dialogTheme.colorScheme.outline,
+                          color: starValue <= selectedRating
+                              ? Colors.amber
+                              : dialogTheme.colorScheme.outline,
                           size: 28,
                         ),
                         onPressed: () {
@@ -348,7 +407,9 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
               ),
               actions: [
                 TextButton(
-                  onPressed: submittingReview ? null : () => Navigator.pop(context),
+                  onPressed: submittingReview
+                      ? null
+                      : () => Navigator.pop(context),
                   child: const Text('Cancel'),
                 ),
                 FilledButton(
@@ -357,7 +418,9 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                       : () async {
                           setDialogState(() => submittingReview = true);
                           try {
-                            await ref.read(reviewsApiProvider).createReview(
+                            await ref
+                                .read(reviewsApiProvider)
+                                .createReview(
                                   booking.id,
                                   selectedRating,
                                   commentController.text,
@@ -366,7 +429,9 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Thank you! Review submitted successfully.'),
+                                  content: Text(
+                                    'Thank you! Review submitted successfully.',
+                                  ),
                                   backgroundColor: Colors.green,
                                 ),
                               );
@@ -392,7 +457,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Text('Submit'),
                 ),
@@ -415,7 +483,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('File a Dispute', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: const Text(
+                'File a Dispute',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,7 +510,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
                 FilledButton(
                   style: FilledButton.styleFrom(
@@ -455,12 +529,16 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
 
                           setDialogState(() => submittingDispute = true);
                           try {
-                            await ref.read(disputesApiProvider).fileDispute(booking.id, text);
+                            await ref
+                                .read(disputesApiProvider)
+                                .fileDispute(booking.id, text);
                             if (context.mounted) {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Dispute filed successfully. Booking is now frozen.'),
+                                  content: Text(
+                                    'Dispute filed successfully. Booking is now frozen.',
+                                  ),
                                   backgroundColor: Colors.orange,
                                 ),
                               );
@@ -483,7 +561,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Text('Submit Dispute'),
                 ),
@@ -497,13 +578,18 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
 
   Widget _buildBookingCard(BookingResponse booking, bool isOwnerView) {
     final theme = Theme.of(context);
-    final startStr = '${booking.startDate.day}/${booking.startDate.month}/${booking.startDate.year}';
-    final endStr = '${booking.endDate.day}/${booking.endDate.month}/${booking.endDate.year}';
+    final startStr =
+        '${booking.startDate.day}/${booking.startDate.month}/${booking.startDate.year}';
+    final endStr =
+        '${booking.endDate.day}/${booking.endDate.month}/${booking.endDate.year}';
     final total = booking.totalPrice + booking.securityDeposit;
     final statusColor = _getStatusColor(booking.status, theme);
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
@@ -518,7 +604,11 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                   child: SizedBox(
                     width: 60,
                     height: 60,
-                    child: ListingImage(url: booking.listingImage, width: 60, height: 60),
+                    child: ListingImage(
+                      url: booking.listingImage,
+                      width: 60,
+                      height: 60,
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -530,11 +620,15 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                         booking.listingTitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        isOwnerView ? 'Renter: ${booking.renterName}' : 'Owner: ${booking.ownerName}',
+                        isOwnerView
+                            ? 'Renter: ${booking.renterName}'
+                            : 'Owner: ${booking.ownerName}',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -551,7 +645,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(AppRadius.button),
@@ -656,14 +753,24 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                   final reviews = _bookingReviews[booking.id] ?? [];
                   final hasReviewed = reviews.any((r) => !r.isRenterReview);
                   if (hasReviewed) {
-                    final rating = reviews.firstWhere((r) => !r.isRenterReview).rating;
+                    final rating = reviews
+                        .firstWhere((r) => !r.isRenterReview)
+                        .rating;
                     return Row(
                       children: [
-                        const Icon(LucideIcons.checkCircle, color: Colors.green, size: 16),
+                        const Icon(
+                          LucideIcons.checkCircle,
+                          color: Colors.green,
+                          size: 16,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           'Review Submitted: $rating ⭐',
-                          style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 13),
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     );
@@ -690,9 +797,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                   onPressed: () => _handleHandover(booking.id),
                   icon: const Icon(LucideIcons.check, size: 18),
                   label: const Text('Confirm Handover Received'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                  ),
+                  style: FilledButton.styleFrom(backgroundColor: Colors.teal),
                 ),
               ],
               if (booking.status.toLowerCase() == 'completed') ...[
@@ -701,14 +806,24 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                   final reviews = _bookingReviews[booking.id] ?? [];
                   final hasReviewed = reviews.any((r) => r.isRenterReview);
                   if (hasReviewed) {
-                    final rating = reviews.firstWhere((r) => r.isRenterReview).rating;
+                    final rating = reviews
+                        .firstWhere((r) => r.isRenterReview)
+                        .rating;
                     return Row(
                       children: [
-                        const Icon(LucideIcons.checkCircle, color: Colors.green, size: 16),
+                        const Icon(
+                          LucideIcons.checkCircle,
+                          color: Colors.green,
+                          size: 16,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           'Review Submitted: $rating ⭐',
-                          style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 13),
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     );
@@ -728,11 +843,17 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                 decoration: BoxDecoration(
                   color: theme.colorScheme.error.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(AppRadius.input),
-                  border: Border.all(color: theme.colorScheme.error.withOpacity(0.2)),
+                  border: Border.all(
+                    color: theme.colorScheme.error.withOpacity(0.2),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    Icon(LucideIcons.alertTriangle, color: theme.colorScheme.error, size: 18),
+                    Icon(
+                      LucideIcons.alertTriangle,
+                      color: theme.colorScheme.error,
+                      size: 18,
+                    ),
                     const SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
@@ -746,15 +867,19 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                   ],
                 ),
               ),
-            ] else if (booking.status.toLowerCase() == 'paid' || 
-                       booking.status.toLowerCase() == 'active' || 
-                       booking.status.toLowerCase() == 'completed') ...[
+            ] else if (booking.status.toLowerCase() == 'paid' ||
+                booking.status.toLowerCase() == 'active' ||
+                booking.status.toLowerCase() == 'completed') ...[
               const SizedBox(height: AppSpacing.xs),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton.icon(
                   onPressed: () => _showDisputeDialog(booking),
-                  icon: Icon(LucideIcons.alertTriangle, size: 14, color: theme.colorScheme.error),
+                  icon: Icon(
+                    LucideIcons.alertTriangle,
+                    size: 14,
+                    color: theme.colorScheme.error,
+                  ),
                   label: Text(
                     'File a Dispute',
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -768,6 +893,102 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                 ),
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGearStatusCard(Listing listing, ThemeData theme) {
+    Color statusColor;
+    String statusText;
+    IconData statusIcon;
+
+    if (listing.isPaused) {
+      statusColor = Colors.orange;
+      statusText = 'Paused';
+      statusIcon = LucideIcons.pauseCircle;
+    } else {
+      switch (listing.status) {
+        case 'PendingApproval':
+          statusColor = Colors.blue;
+          statusText = 'Pending Approval';
+          statusIcon = LucideIcons.clock;
+          break;
+        case 'Rejected':
+          statusColor = Colors.red;
+          statusText = 'Rejected';
+          statusIcon = LucideIcons.alertTriangle;
+          break;
+        case 'Approved':
+        default:
+          statusColor = Colors.green;
+          statusText = 'Approved & Live';
+          statusIcon = LucideIcons.checkCircle2;
+          break;
+      }
+    }
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppRadius.button),
+              child: SizedBox(
+                width: 50,
+                height: 50,
+                child: ListingImage(url: listing.images.isNotEmpty ? listing.images.first : '', width: 50, height: 50),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    listing.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${listing.category} · ${ListingsApi.formatPrice(listing.pricePerDay)}/day',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 6),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(AppRadius.button),
+                border: Border.all(color: statusColor.withOpacity(0.2), width: 1),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(statusIcon, color: statusColor, size: 12),
+                  const SizedBox(width: 4),
+                  Text(
+                    statusText.toUpperCase(),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: statusColor,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.3,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -820,23 +1041,129 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> with SingleTick
                                 : ListView.builder(
                                     itemCount: _renterBookings.length,
                                     itemBuilder: (context, index) {
-                                      return _buildBookingCard(_renterBookings[index], false);
+                                      return _buildBookingCard(
+                                        _renterBookings[index],
+                                        false,
+                                      );
                                     },
                                   ))
-                            : (_ownerBookings.isEmpty
-                                ? EmptyState(
-                                    icon: LucideIcons.store,
-                                    title: 'No Hostings yet',
-                                    subtitle: 'Create listings and wait for bookings requests to arrive.',
-                                    actionLabel: 'Create Listing',
-                                    onActionPressed: () => context.go('/app/list'),
-                                  )
-                                : ListView.builder(
-                                    itemCount: _ownerBookings.length,
-                                    itemBuilder: (context, index) {
-                                      return _buildBookingCard(_ownerBookings[index], true);
-                                    },
-                                  )),
+                            : ListView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                children: [
+                                  // --- SECTION 1: BOOKING REQUESTS ---
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xs),
+                                    child: Row(
+                                      children: [
+                                        Icon(LucideIcons.calendar, size: 18, color: theme.colorScheme.primary),
+                                        const SizedBox(width: AppSpacing.xs),
+                                        Text(
+                                          'Booking Requests',
+                                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                        ),
+                                        const SizedBox(width: AppSpacing.xs),
+                                        if (_ownerBookings.isNotEmpty)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: theme.colorScheme.primary.withOpacity(0.08),
+                                              borderRadius: BorderRadius.circular(AppRadius.button),
+                                            ),
+                                            child: Text(
+                                              '${_ownerBookings.length}',
+                                              style: theme.textTheme.labelSmall?.copyWith(
+                                                color: theme.colorScheme.primary,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (_ownerBookings.isEmpty)
+                                    Card(
+                                      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(AppSpacing.lg),
+                                        child: Column(
+                                          children: [
+                                            Icon(LucideIcons.calendarClock, size: 36, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5)),
+                                            const SizedBox(height: AppSpacing.xs),
+                                            Text(
+                                              'No active requests',
+                                              style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Once a renter requests to book your gear, it will show up here.',
+                                              textAlign: TextAlign.center,
+                                              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    ..._ownerBookings.map((b) => _buildBookingCard(b, true)),
+
+                                  const SizedBox(height: AppSpacing.lg),
+
+                                  // --- SECTION 2: YOUR LISTED EQUIPMENT ---
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.xs),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(LucideIcons.store, size: 18, color: theme.colorScheme.primary),
+                                            const SizedBox(width: AppSpacing.xs),
+                                            Text(
+                                              'Your Gear & Approval Status',
+                                              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          '${_myListings.length} items',
+                                          style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (_myListings.isEmpty)
+                                    Card(
+                                      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(AppSpacing.lg),
+                                        child: Column(
+                                          children: [
+                                            Icon(LucideIcons.packagePlus, size: 36, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5)),
+                                            const SizedBox(height: AppSpacing.xs),
+                                            Text(
+                                              'No listings published',
+                                              style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'List your equipment to start earning on RentLanka.',
+                                              textAlign: TextAlign.center,
+                                              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                                            ),
+                                            const SizedBox(height: AppSpacing.md),
+                                            FilledButton.icon(
+                                              onPressed: () => context.go('/app/list'),
+                                              icon: const Icon(LucideIcons.plus, size: 16),
+                                              label: const Text('Publish Gear'),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    ..._myListings.map((l) => _buildGearStatusCard(l, theme)),
+                                ],
+                              ),
                   ),
                 ),
               ],

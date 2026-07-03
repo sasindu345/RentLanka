@@ -42,6 +42,7 @@ class Listing {
   final String district;
   final List<String> images;
   final bool isPaused;
+  final String status;
   final DateTime createdAt;
 
   Listing({
@@ -59,6 +60,7 @@ class Listing {
     required this.district,
     required this.images,
     required this.isPaused,
+    required this.status,
     required this.createdAt,
   });
 
@@ -78,6 +80,7 @@ class Listing {
       district: json['district'] as String,
       images: (json['images'] as List<dynamic>? ?? []).cast<String>(),
       isPaused: json['isPaused'] as bool? ?? false,
+      status: json['status'] as String? ?? 'Approved',
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }

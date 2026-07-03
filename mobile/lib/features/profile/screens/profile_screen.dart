@@ -40,10 +40,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         _user = user;
         _myListings = listings;
       });
-      
+
       if (mounted) {
         final currentAppMode = ref.read(appModeProvider);
-        final backendAppMode = user.role.toLowerCase() == 'owner' ? UserAppMode.owner : UserAppMode.renter;
+        final backendAppMode = user.role.toLowerCase() == 'owner'
+            ? UserAppMode.owner
+            : UserAppMode.renter;
         if (currentAppMode != backendAppMode) {
           ref.read(appModeProvider.notifier).state = backendAppMode;
         }
@@ -63,15 +65,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       await ref.read(listingsApiProvider).togglePauseListing(listing.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(listing.isPaused ? 'Listing resumed' : 'Listing paused')),
+          SnackBar(
+            content: Text(
+              listing.isPaused ? 'Listing resumed' : 'Listing paused',
+            ),
+          ),
         );
         _load();
       }
     } on DioException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(extractError(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(extractError(e))));
       }
     }
   }
@@ -83,7 +89,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         title: const Text('Delete listing?'),
         content: Text('Remove "${listing.title}"? This cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
@@ -97,16 +106,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     try {
       await ref.read(listingsApiProvider).deleteListing(listing.id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Listing deleted')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Listing deleted')));
         _load();
       }
     } on DioException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(extractError(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(extractError(e))));
       }
     }
   }
@@ -123,13 +132,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               title: const Text('Edit listing'),
               onTap: () async {
                 Navigator.pop(context);
-                final updated = await context.push<bool>('/app/profile/listing/${listing.id}/edit');
+                final updated = await context.push<bool>(
+                  '/app/profile/listing/${listing.id}/edit',
+                );
                 if (updated == true && mounted) _load();
               },
             ),
             ListTile(
-              leading: Icon(listing.isPaused ? Icons.play_arrow_outlined : Icons.pause_outlined),
-              title: Text(listing.isPaused ? 'Resume listing' : 'Pause listing'),
+              leading: Icon(
+                listing.isPaused
+                    ? Icons.play_arrow_outlined
+                    : Icons.pause_outlined,
+              ),
+              title: Text(
+                listing.isPaused ? 'Resume listing' : 'Pause listing',
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _togglePause(listing);
@@ -137,7 +154,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: const Text('Delete listing', style: TextStyle(color: Colors.red)),
+              title: const Text(
+                'Delete listing',
+                style: TextStyle(color: Colors.red),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _confirmDelete(listing);
@@ -157,7 +177,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     final user = _user;
     if (user == null) {
-      return const Scaffold(body: Center(child: Text('Unable to load profile')));
+      return const Scaffold(
+        body: Center(child: Text('Unable to load profile')),
+      );
     }
 
     final appMode = ref.watch(appModeProvider);
@@ -181,10 +203,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   radius: 32,
                   backgroundColor: AppTheme.primary,
                   backgroundImage: user.avatarUrl != null
-                      ? CachedNetworkImageProvider(resolveMediaUrl(user.avatarUrl!))
+                      ? CachedNetworkImageProvider(
+                          resolveMediaUrl(user.avatarUrl!),
+                        )
                       : null,
                   child: user.avatarUrl == null
-                      ? Text(user.firstName[0], style: const TextStyle(fontSize: 24, color: Colors.white))
+                      ? Text(
+                          user.firstName[0],
+                          style: const TextStyle(
+                            fontSize: 24,
+                            color: Colors.white,
+                          ),
+                        )
                       : null,
                 ),
                 const SizedBox(width: 16),
@@ -192,55 +222,84 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${user.firstName} ${user.lastName}',
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                      Text(user.email, style: const TextStyle(color: AppTheme.muted)),
+                      Text(
+                        '${user.firstName} ${user.lastName}',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        user.email,
+                        style: const TextStyle(color: AppTheme.muted),
+                      ),
                       if (user.phoneNumber.isNotEmpty)
-                        Text(user.phoneNumber, style: const TextStyle(color: AppTheme.muted, fontSize: 13)),
+                        Text(
+                          user.phoneNumber,
+                          style: const TextStyle(
+                            color: AppTheme.muted,
+                            fontSize: 13,
+                          ),
+                        ),
                       if (user.isTrustedUser)
-                        const Text('Trusted member', style: TextStyle(color: AppTheme.primary, fontSize: 12)),
+                        const Text(
+                          'Trusted member',
+                          style: TextStyle(
+                            color: AppTheme.primary,
+                            fontSize: 12,
+                          ),
+                        ),
                     ],
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit_outlined),
                   onPressed: () async {
-                    final updated = await context.push<bool>('/app/profile/edit');
+                    final updated = await context.push<bool>(
+                      '/app/profile/edit',
+                    );
                     if (updated == true && mounted) _load();
                   },
                 ),
               ],
             ),
             const SizedBox(height: 24),
-            const Text('Application Mode', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Application Mode',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Card(
               child: SwitchListTile(
                 title: const Text('Switch to Owner Mode'),
-                subtitle: Text(appMode == UserAppMode.owner
-                    ? 'Showing hosting tools & listings'
-                    : 'Showing renter explore & wishlist'),
+                subtitle: Text(
+                  appMode == UserAppMode.owner
+                      ? 'Showing hosting tools & listings'
+                      : 'Showing renter explore & wishlist',
+                ),
                 value: appMode == UserAppMode.owner,
                 activeColor: AppTheme.primary,
                 onChanged: (val) async {
                   if (_user == null) return;
                   final newMode = val ? UserAppMode.owner : UserAppMode.renter;
                   final newRole = val ? 'Owner' : 'Renter';
-                  
+
                   setState(() => _loading = true);
                   try {
-                    await ref.read(listingsApiProvider).updateProfile(
-                      firstName: _user!.firstName,
-                      lastName: _user!.lastName,
-                      phoneNumber: _user!.phoneNumber,
-                      role: newRole,
-                    );
+                    await ref
+                        .read(listingsApiProvider)
+                        .updateProfile(
+                          firstName: _user!.firstName,
+                          lastName: _user!.lastName,
+                          phoneNumber: _user!.phoneNumber,
+                          role: newRole,
+                        );
                     ref.read(appModeProvider.notifier).state = newMode;
                     await _load();
                   } on DioException catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(extractError(e))),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(extractError(e))));
                   } finally {
                     if (mounted) setState(() => _loading = false);
                   }
@@ -248,7 +307,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text('Theme Preference', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Theme Preference',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
@@ -272,7 +334,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ],
                 selected: {themeMode},
                 onSelectionChanged: (Set<ThemeMode> newSelection) {
-                  ref.read(themeProvider.notifier).setThemeMode(newSelection.first);
+                  ref
+                      .read(themeProvider.notifier)
+                      .setThemeMode(newSelection.first);
                 },
                 showSelectedIcon: false,
                 style: SegmentedButton.styleFrom(
@@ -284,30 +348,59 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text('Verification', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Verification',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
-            _VerificationStep(label: 'Email verified', done: user.verificationLevel >= 0),
-            _VerificationStep(label: 'Phone verified', done: user.verificationLevel >= 1),
-            _VerificationStep(label: 'NIC submitted', done: user.verificationLevel >= 2),
-            _VerificationStep(label: 'Face verified', done: user.verificationLevel >= 3),
+            _VerificationStep(
+              label: 'Email verified',
+              done: user.verificationLevel >= 0,
+            ),
+            _VerificationStep(
+              label: 'Phone verified',
+              done: user.verificationLevel >= 1,
+            ),
+            _VerificationStep(
+              label: 'NIC submitted',
+              done: user.verificationLevel >= 2,
+            ),
+            _VerificationStep(
+              label: 'Face verified',
+              done: user.verificationLevel >= 3,
+            ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: () async {
-                final refreshed = await context.push<bool>('/app/profile/verification');
+                final refreshed = await context.push<bool>(
+                  '/app/profile/verification',
+                );
                 if (refreshed == true && mounted) _load();
               },
               icon: const Icon(Icons.verified_user_outlined, size: 18),
-              label: Text(user.verificationLevel >= 3 ? 'View verification' : 'Complete verification'),
+              label: Text(
+                user.verificationLevel >= 3
+                    ? 'View verification'
+                    : 'Complete verification',
+              ),
             ),
             if (appMode == UserAppMode.owner) ...[
               const SizedBox(height: 24),
-              const Text('Host Tools', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Host Tools',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               Card(
                 child: ListTile(
-                  leading: const Icon(Icons.account_balance_wallet_outlined, color: AppTheme.primary),
+                  leading: const Icon(
+                    Icons.account_balance_wallet_outlined,
+                    color: AppTheme.primary,
+                  ),
                   title: const Text('Host Earnings & Payouts'),
-                  subtitle: const Text('Withdraw funds, view history & balances'),
+                  subtitle: const Text(
+                    'Withdraw funds, view history & balances',
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     context.push('/app/profile/earnings');
@@ -318,38 +411,66 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('My listings', style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text('${_myListings.length} items', style: const TextStyle(color: AppTheme.muted)),
+                  const Text(
+                    'My listings',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    '${_myListings.length} items',
+                    style: const TextStyle(color: AppTheme.muted),
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
               if (_myListings.isEmpty)
-                const Text('No listings yet. Tap List tab to publish.', style: TextStyle(color: AppTheme.muted))
+                const Text(
+                  'No listings yet. Tap List tab to publish.',
+                  style: TextStyle(color: AppTheme.muted),
+                )
               else
-                ..._myListings.map((l) => Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        title: Text(l.title),
-                        subtitle: Text('${l.category} · ${ListingsApi.formatPrice(l.pricePerDay)}/day'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Chip(
-                              label: Text(
-                                l.isPaused ? 'Paused' : 'Active',
-                                style: const TextStyle(fontSize: 11),
-                              ),
-                              backgroundColor: l.isPaused ? Colors.orange.shade50 : Colors.green.shade50,
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.more_vert),
-                              onPressed: () => _showListingActions(l),
-                            ),
-                          ],
-                        ),
-                        onTap: () => _showListingActions(l),
+                ..._myListings.map(
+                  (l) => Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      title: Text(l.title),
+                      subtitle: Text(
+                        '${l.category} · ${ListingsApi.formatPrice(l.pricePerDay)}/day',
                       ),
-                    )),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Chip(
+                            label: Text(
+                              l.isPaused
+                                  ? 'Paused'
+                                  : (l.status == 'PendingApproval'
+                                      ? 'Under Review'
+                                      : (l.status == 'Rejected' ? 'Rejected' : 'Active')),
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                            backgroundColor: l.isPaused
+                                ? Colors.orange.shade50
+                                : (l.status == 'PendingApproval'
+                                    ? Colors.blue.shade50
+                                    : (l.status == 'Rejected' ? Colors.red.shade50 : Colors.green.shade50)),
+                            side: BorderSide(
+                              color: l.isPaused
+                                  ? Colors.orange.shade200
+                                  : (l.status == 'PendingApproval'
+                                      ? Colors.blue.shade200
+                                      : (l.status == 'Rejected' ? Colors.red.shade200 : Colors.green.shade200)),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.more_vert),
+                            onPressed: () => _showListingActions(l),
+                          ),
+                        ],
+                      ),
+                      onTap: () => _showListingActions(l),
+                    ),
+                  ),
+                ),
             ],
           ],
         ),
@@ -370,8 +491,11 @@ class _VerificationStep extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(done ? Icons.check_circle : Icons.radio_button_unchecked,
-              size: 20, color: done ? AppTheme.primary : AppTheme.muted),
+          Icon(
+            done ? Icons.check_circle : Icons.radio_button_unchecked,
+            size: 20,
+            color: done ? AppTheme.primary : AppTheme.muted,
+          ),
           const SizedBox(width: 8),
           Text(label, style: TextStyle(color: done ? null : AppTheme.muted)),
         ],
