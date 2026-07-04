@@ -6,6 +6,7 @@ import 'package:mobile/features/activity/screens/activity_screen.dart';
 import 'package:mobile/features/auth/screens/login_screen.dart';
 import 'package:mobile/features/auth/screens/register_screen.dart';
 import 'package:mobile/features/auth/screens/welcome_screen.dart';
+import 'package:mobile/features/auth/screens/splash_screen.dart';
 import 'package:mobile/features/explore/screens/home_feed_screen.dart';
 import 'package:mobile/features/explore/screens/listing_detail_screen.dart';
 import 'package:mobile/features/explore/screens/booking_request_screen.dart';
@@ -48,7 +49,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/welcome',
-        builder: (context, state) => const WelcomeScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          key: state.pageKey,
+          child: const WelcomeScreen(),
+          transitionDuration: const Duration(milliseconds: 700),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+        ),
       ),
       GoRoute(
         path: '/login',
@@ -176,10 +187,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/',
-        redirect: (_, __) async {
-          final loggedIn = await api.isLoggedIn();
-          return loggedIn ? '/app/explore' : '/welcome';
-        },
+        builder: (context, state) => const SplashScreen(),
       ),
     ],
   );
