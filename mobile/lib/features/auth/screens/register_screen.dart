@@ -7,7 +7,7 @@ import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:mobile/shared/widgets/rentlanka_logo.dart';
-import 'package:mobile/features/auth/screens/welcome_screen.dart'; // To reuse SubtleWavePainter
+import 'package:mobile/shared/widgets/subtle_wave_painter.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -79,13 +79,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 16),
         decoration: BoxDecoration(
           color: isSelected ? primaryColor.withOpacity(0.04) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? primaryColor : const Color(0xFFE5E7EB),
-            width: isSelected ? 2.0 : 1.5,
+            width: 1.5, // Constant width to prevent layout shifts
           ),
           boxShadow: isSelected
               ? [
@@ -187,29 +187,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           },
         ),
       ),
-      body: Stack(
-        children: [
-          // Bottom soft wave background decoration
-          Positioned.fill(
-            child: CustomPaint(
-              painter: SubtleWavePainter(
-                color: primaryColor.withOpacity(0.06),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: AppSpacing.md),
+              
+              // Typographic brand logo (increased size, removed background)
+              const RentLankaLogo(
+                height: 60, 
+                isDarkBackground: false,
+                blendColor: Colors.white,
               ),
-            ),
-          ),
-
-          // Main Registration Wizard Body
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: AppSpacing.md),
-                  
-                  // Typographic brand logo
-                  const RentLankaLogo(fontSize: 32, isDarkBackground: false),
-                  const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
                   
                   // Title changes depending on wizard step
                   Text(
@@ -230,9 +222,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: AppSpacing.xl),
 
-                  // Animated transition between steps
+                  // Animated transition between steps (snappy micro-animation)
                   AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 180),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (Widget child, Animation<double> animation) {
+                      return SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0.06, 0.0), // Subtle horizontal slide-in
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: FadeTransition(
+                          opacity: animation,
+                          child: child,
+                        ),
+                      );
+                    },
                     child: _currentStep == 0
                         ? Column(
                             key: const ValueKey('step-role'),
@@ -240,7 +246,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               _buildRoleCard(
                                 role: 'Renter',
                                 title: 'I want to rent equipment',
-                                description: 'Find cameras, tools, camping gear & more near you in Sri Lanka.',
+                                description: 'Rent cameras, tools, camping gear & more.',
                                 icon: LucideIcons.shoppingBag,
                                 primaryColor: primaryColor,
                                 theme: theme,
@@ -248,8 +254,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               const SizedBox(height: AppSpacing.md),
                               _buildRoleCard(
                                 role: 'Owner',
-                                title: 'I want to host / list equipment',
-                                description: 'Publish your items to start earning secure rental income.',
+                                title: 'I want to host equipment',
+                                description: 'Earn money by listing your equipment.',
                                 icon: LucideIcons.store,
                                 primaryColor: primaryColor,
                                 theme: theme,
@@ -463,8 +469,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
             ),
           ),
-        ],
-      ),
     );
   }
 }

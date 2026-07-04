@@ -76,7 +76,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
               // Large brand logo wrapped in Hero for transition (increased size)
               const Hero(
                 tag: 'brand-logo-hero',
-                child: RentLankaLogo(height: 120),
+                child: RentLankaLogo(
+                  height: 120,
+                  blendColor: Color(0xFFFAFAFA),
+                ),
               ),
               const SizedBox(height: AppSpacing.xl),
               // Elegant thin circular loader (increased size)

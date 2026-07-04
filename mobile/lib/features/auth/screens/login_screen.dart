@@ -8,7 +8,7 @@ import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:mobile/shared/widgets/rentlanka_logo.dart';
-import 'package:mobile/features/auth/screens/welcome_screen.dart'; // To reuse SubtleWavePainter
+import 'package:mobile/shared/widgets/subtle_wave_painter.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -64,29 +64,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           onPressed: () => context.pop(),
         ),
       ),
-      body: Stack(
-        children: [
-          // Background soft wave decoration at the bottom
-          Positioned.fill(
-            child: CustomPaint(
-              painter: SubtleWavePainter(
-                color: primaryColor.withOpacity(0.06),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: AppSpacing.md),
+              
+              // Typographic brand logo styled for light background (increased size, removed background)
+              const RentLankaLogo(
+                height: 60, 
+                isDarkBackground: false,
+                blendColor: Colors.white,
               ),
-            ),
-          ),
-
-          // Main form body
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: AppSpacing.md),
-                  
-                  // Typographic brand logo styled for light background
-                  const RentLankaLogo(fontSize: 32, isDarkBackground: false),
-                  const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
                   
                   Text(
                     'Welcome back',
@@ -263,9 +255,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
           ),
-        ],
-      ),
-    );
+        );
   }
 }
 
