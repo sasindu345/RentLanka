@@ -12,6 +12,7 @@ import 'package:mobile/core/api/chats_api.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:mobile/core/providers/wishlist_provider.dart';
 
 class ListingDetailScreen extends ConsumerStatefulWidget {
   final String id;
@@ -28,7 +29,6 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
   List<ReviewResponse> _reviews = [];
   double _averageRating = 0.0;
   bool _loading = true;
-  bool _saving = false;
   bool _messaging = false;
 
   @override
@@ -59,25 +59,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
     }
   }
 
-  Future<void> _save() async {
-    setState(() => _saving = true);
-    try {
-      await ref.read(listingsApiProvider).addToWishlist(widget.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Saved to wishlist')),
-        );
-      }
-    } on DioException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(extractError(e))),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
+
 
   Future<void> _startMessage() async {
     setState(() => _messaging = true);
@@ -100,6 +82,10 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isSaved = ref.watch(wishlistProvider).maybeWhen(
+          data: (items) => items.any((item) => item.id.toString() == widget.id),
+          orElse: () => false,
+        );
 
     if (_loading) {
       return Scaffold(
@@ -506,10 +492,13 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
             child: Row(
               children: [
                 IconButton.outlined(
-                  onPressed: _saving ? null : _save,
-                  icon: _saving
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(LucideIcons.heart),
+                  onPressed: _listing == null
+                      ? null
+                      : () => ref.read(wishlistProvider.notifier).toggleWishlist(_listing!),
+                  icon: Icon(
+                    isSaved ? Icons.favorite : LucideIcons.heart,
+                    color: isSaved ? theme.colorScheme.primary : null,
+                  ),
                   style: IconButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.button),
