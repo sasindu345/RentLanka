@@ -289,7 +289,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                           radius: 24,
                           backgroundColor: theme.colorScheme.primary,
                           child: Text(
-                            listing.owner.firstName[0].toUpperCase(),
+                            listing.owner.firstName.isNotEmpty ? listing.owner.firstName[0].toUpperCase() : 'U',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,

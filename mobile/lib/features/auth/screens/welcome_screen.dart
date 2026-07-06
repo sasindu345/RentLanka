@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/shared/widgets/rentlanka_logo.dart';
+import 'package:mobile/features/auth/screens/login_screen.dart';
+import 'package:mobile/features/auth/screens/register_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -75,6 +77,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
     _heroController.dispose();
     _buttonsController.dispose();
     super.dispose();
+  }
+
+  void _showAuthSheet({required bool isRegister}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.4),
+      builder: (context) => isRegister
+          ? const RegisterScreen(isModal: true)
+          : const LoginScreen(isModal: true),
+    );
   }
 
   @override
@@ -202,7 +216,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
                         width: double.infinity,
                         height: 52,
                         child: FilledButton(
-                          onPressed: () => context.push('/register'),
+                          onPressed: () => _showAuthSheet(isRegister: true),
                           style: FilledButton.styleFrom(
                             backgroundColor: primaryColor,
                             shape: RoundedRectangleBorder(
@@ -226,7 +240,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
                         width: double.infinity,
                         height: 52,
                         child: OutlinedButton(
-                          onPressed: () => context.push('/login'),
+                          onPressed: () => _showAuthSheet(isRegister: false),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFF111827),
                             side: const BorderSide(
