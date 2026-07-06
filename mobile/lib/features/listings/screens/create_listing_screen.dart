@@ -382,6 +382,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
             const SizedBox(height: 6),
             TextField(
               controller: _titleController,
+              maxLength: 32,
               decoration: const InputDecoration(hintText: 'e.g. Sony FX3 Cinema Camera'),
             ),
             const SizedBox(height: AppSpacing.md),

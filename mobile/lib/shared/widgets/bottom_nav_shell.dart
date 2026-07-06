@@ -31,6 +31,12 @@ class BottomNavShell extends ConsumerWidget {
     final List<_NavItem> items = appMode == UserAppMode.owner
         ? const [
             _NavItem(
+              branchIndex: 5,
+              icon: LucideIcons.layoutDashboard,
+              selectedIcon: LucideIcons.layoutDashboard,
+              label: 'Dashboard',
+            ),
+            _NavItem(
               branchIndex: 2,
               icon: LucideIcons.plusCircle,
               selectedIcon: LucideIcons.plusCircle,

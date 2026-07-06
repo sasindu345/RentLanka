@@ -22,7 +22,7 @@ public static class ListingSeeder
             {
                 Id = Guid.NewGuid(),
                 OwnerId = ownerId,
-                Title = "Sony Alpha 7 IV Mirrorless Camera",
+                Title = "Sony Alpha 7 IV Camera",
                 Description = "A professional-grade mirrorless camera with a 33MP sensor, perfect for high-quality photography and 4K video recording. Includes 2 batteries and a charger.",
                 Category = "Photography",
                 PricePerDay = 8000,
@@ -38,7 +38,7 @@ public static class ListingSeeder
             {
                 Id = Guid.NewGuid(),
                 OwnerId = ownerId,
-                Title = "Sigma 24-70mm f/2.8 DG DN Art Lens",
+                Title = "Sigma 24-70mm f/2.8 Art Lens",
                 Description = "High-performance standard zoom lens for Sony E-mount. Perfect for portraits, landscapes, and event photography. Outstanding sharpness throughout the zoom range.",
                 Category = "Photography",
                 PricePerDay = 4000,
@@ -70,7 +70,7 @@ public static class ListingSeeder
             {
                 Id = Guid.NewGuid(),
                 OwnerId = ownerId,
-                Title = "Deuter Aircontact Lite 50+10 Backpack",
+                Title = "Deuter Aircontact 50+10 Backpack",
                 Description = "A lightweight trekking backpack designed for long-distance hikes and multi-day camping trips. Ergonomic fit and superior load transfer support.",
                 Category = "Camping",
                 PricePerDay = 1000,
@@ -86,7 +86,7 @@ public static class ListingSeeder
             {
                 Id = Guid.NewGuid(),
                 OwnerId = ownerId,
-                Title = "DJI Mini 3 Pro Drone (with RC Controller)",
+                Title = "DJI Mini 3 Pro Drone with RC",
                 Description = "Ultralight folding camera drone with 4K HDR video capability and 34-min flight time. Perfect for stunning aerial shots. Smart controller screen included.",
                 Category = "Photography",
                 PricePerDay = 12000,
@@ -102,7 +102,7 @@ public static class ListingSeeder
             {
                 Id = Guid.NewGuid(),
                 OwnerId = ownerId,
-                Title = "Bosch Professional Demolition Jackhammer",
+                Title = "Bosch Demolition Jackhammer",
                 Description = "Heavy-duty electric breaker for demolition work. High impact rate and demolition performance. Comes with point and flat chisels.",
                 Category = "Tools",
                 PricePerDay = 3500,
@@ -118,7 +118,7 @@ public static class ListingSeeder
             {
                 Id = Guid.NewGuid(),
                 OwnerId = ownerId,
-                Title = "JBL PartyBox 310 Portable Bluetooth Speaker",
+                Title = "JBL PartyBox 310 Speaker",
                 Description = "Powerful party speaker with dynamic light shows, deep bass, and 240W of signature sound. Telescopic handle and built-in wheels for easy transport.",
                 Category = "Electronics",
                 PricePerDay = 5000,
@@ -150,7 +150,7 @@ public static class ListingSeeder
             {
                 Id = Guid.NewGuid(),
                 OwnerId = ownerId,
-                Title = "Spalding TF-1000 Professional Basketball",
+                Title = "Spalding TF-1000 Basketball",
                 Description = "Official size and weight composite leather indoor basketball. Features deep channels and moisture-wicking grip for advanced control.",
                 Category = "Sports",
                 PricePerDay = 800,

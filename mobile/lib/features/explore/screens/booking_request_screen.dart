@@ -97,15 +97,7 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
   Future<void> _submitRequest() async {
     if (_selectedRange == null || _listing == null || _user == null) return;
 
-    if (_user!.verificationLevel < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('KYC Verification Level 2 (NIC Approved) is required to request a booking.'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-      return;
-    }
+    // KYC check removed for renters as per user request (only owner needs KYC verification).
 
     setState(() => _submitting = true);
     try {
@@ -259,7 +251,7 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
     final rentalFee = days * listing.pricePerDay;
     final totalAmount = rentalFee + listing.securityDeposit;
     final imageUrl = listing.images.isNotEmpty ? listing.images.first : null;
-    final isVerified = user.verificationLevel >= 2;
+    final isVerified = true; // Bypassed: renters do not require KYC.
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,

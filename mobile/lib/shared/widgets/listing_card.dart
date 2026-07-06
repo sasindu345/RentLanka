@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import 'package:mobile/core/theme/app_radius.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:mobile/core/constants.dart';
+import 'package:mobile/core/theme/app_shadows.dart';
 import 'package:mobile/core/providers/wishlist_provider.dart';
 
 class ListingCard extends ConsumerWidget {
@@ -27,7 +29,9 @@ class ListingCard extends ConsumerWidget {
     final int reviewsCount = 10 + (hash.abs() % 45);
     final double distance = 1.0 + (hash.abs() % 40) * 0.1;
 
-    final isSaved = ref.watch(wishlistProvider).maybeWhen(
+    final isSaved = ref
+        .watch(wishlistProvider)
+        .maybeWhen(
           data: (items) => items.any((item) => item.id == listing.id),
           orElse: () => false,
         );
@@ -38,7 +42,13 @@ class ListingCard extends ConsumerWidget {
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(AppRadius.card),
-          border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.4), width: 1),
+          border: Border.all(
+            color: theme.colorScheme.outline.withOpacity(0.4),
+            width: 1.0,
+          ),
+          boxShadow: theme.brightness == Brightness.dark
+              ? AppShadows.none
+              : AppShadows.sm,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,38 +57,55 @@ class ListingCard extends ConsumerWidget {
             AspectRatio(
               aspectRatio: 16 / 10,
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.card - 1)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.card - 1),
+                ),
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: ListingImage(
-                        url: imageUrl,
-                        fit: BoxFit.cover,
-                      ),
+                      child: ListingImage(url: imageUrl, fit: BoxFit.cover),
                     ),
-                    
+
                     // Available Today Badge (bottom-left)
                     Positioned(
                       bottom: AppSpacing.xs,
                       left: AppSpacing.xs,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF0FDF4),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(color: const Color(0xFFDCFCE7), width: 1),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
                         ),
-                        child: const Row(
+                        decoration: BoxDecoration(
+                          color: theme.brightness == Brightness.dark
+                              ? const Color(0xFF0F172A)
+                              : const Color(0xFFE8FDF0),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: theme.brightness == Brightness.dark
+                                ? const Color(0xFF22C55E).withOpacity(0.4)
+                                : const Color(0xFFDCFCE7),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(LucideIcons.zap, size: 10, color: Color(0xFF22C55E)),
-                            SizedBox(width: 4),
+                            Icon(
+                              LucideIcons.zap,
+                              size: 10,
+                              color: theme.brightness == Brightness.dark
+                                  ? const Color(0xFF4ADE80)
+                                  : const Color(0xFF22C55E),
+                            ),
+                            const SizedBox(width: 4),
                             Text(
                               'Available Today',
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF22C55E),
+                                color: theme.brightness == Brightness.dark
+                                    ? const Color(0xFF4ADE80)
+                                    : const Color(0xFF22C55E),
                               ),
                             ),
                           ],
@@ -91,7 +118,9 @@ class ListingCard extends ConsumerWidget {
                       top: AppSpacing.xs,
                       right: AppSpacing.xs,
                       child: GestureDetector(
-                        onTap: () => ref.read(wishlistProvider.notifier).toggleWishlist(listing),
+                        onTap: () => ref
+                            .read(wishlistProvider.notifier)
+                            .toggleWishlist(listing),
                         child: Container(
                           width: 32,
                           height: 32,
@@ -110,7 +139,9 @@ class ListingCard extends ConsumerWidget {
                             child: Icon(
                               isSaved ? Icons.favorite : LucideIcons.heart,
                               size: 16,
-                              color: isSaved ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+                              color: isSaved
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -123,26 +154,34 @@ class ListingCard extends ConsumerWidget {
 
             // Card details
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Title
-                  Text(
-                    listing.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurface,
-                      fontSize: 14,
+                  SizedBox(
+                    height: 36,
+                    child: Text(
+                      listing.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 14,
+                        height: 1.2,
+                      ),
                     ),
                   ),
 
                   // Location and Distance
                   Row(
                     children: [
-                      const Icon(LucideIcons.mapPin, size: 10, color: Color(0xFF9CA3AF)),
+                      const Icon(
+                        LucideIcons.mapPin,
+                        size: 10,
+                        color: Color(0xFF9CA3AF),
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -160,7 +199,11 @@ class ListingCard extends ConsumerWidget {
                   // Rating
                   Row(
                     children: [
-                      const Icon(Icons.star, size: 12, color: Color(0xFFF59E0B)),
+                      const Icon(
+                        Icons.star,
+                        size: 12,
+                        color: Color(0xFFF59E0B),
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '${rating.toStringAsFixed(1)} ($reviewsCount)',
@@ -182,8 +225,8 @@ class ListingCard extends ConsumerWidget {
                       children: [
                         TextSpan(
                           text: ListingsApi.formatPrice(listing.pricePerDay),
-                          style: const TextStyle(
-                            color: Color(0xFF4F46E5), // Royal blue / Indigo primary
+                          style: TextStyle(
+                            color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),

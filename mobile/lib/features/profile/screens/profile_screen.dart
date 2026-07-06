@@ -10,6 +10,7 @@ import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
+import 'package:mobile/core/theme/app_shadows.dart';
 import 'package:mobile/core/providers/app_mode_provider.dart';
 import 'package:mobile/core/providers/theme_provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -171,6 +172,216 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  void _showHelpCenterSheet(BuildContext context) {
+    final theme = Theme.of(context);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) {
+          return Column(
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Help Center & FAQs',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Plus Jakarta Sans',
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Frequently Asked Questions & Support',
+                style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13),
+              ),
+              const Divider(height: 24),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    _buildFaqTile(
+                      theme,
+                      'How do I rent an item?',
+                      'Simply browse the Explore feed, click on an item you like, verify the specifications, and tap "Request Rental". Select your rental dates and complete the process.',
+                    ),
+                    _buildFaqTile(
+                      theme,
+                      'What is the security deposit?',
+                      'Some owners require a security deposit before handing over high-value gear. The deposit is fully refunded once the item is returned in its original condition.',
+                    ),
+                    _buildFaqTile(
+                      theme,
+                      'How do I list my own items?',
+                      'Go to the bottom navigation bar and switch to "Owner Mode". Tap the "List" tab to upload images, set a price per day, and publish your item.',
+                    ),
+                    _buildFaqTile(
+                      theme,
+                      'How does verification work?',
+                      'To protect the community, we require email, phone, NIC, and face recognition verification. You can complete this under Account Settings > Identity Verification.',
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: theme.colorScheme.primary.withOpacity(0.15),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          const Text(
+                            'Still need help?',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Our support team is available 24/7.',
+                            style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Support email: support@rentlanka.lk')),
+                                  );
+                                },
+                                icon: const Icon(Icons.email_outlined, size: 16),
+                                label: const Text('Email Us'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Hotline: +94 11 234 5678')),
+                                  );
+                                },
+                                icon: const Icon(Icons.phone_outlined, size: 16),
+                                label: const Text('Call Us'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFaqTile(ThemeData theme, String question, String answer) {
+    return ExpansionTile(
+      title: Text(
+        question,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+      ),
+      childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+      expandedCrossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          answer,
+          style: TextStyle(
+            color: theme.colorScheme.onSurfaceVariant,
+            height: 1.4,
+            fontSize: 13,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showAboutDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(LucideIcons.pocket, color: theme.colorScheme.primary),
+            const SizedBox(width: 8),
+            const Text(
+              'About RentLanka',
+              style: TextStyle(fontFamily: 'Plus Jakarta Sans', fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'RentLanka is Sri Lanka\'s premier peer-to-peer equipment and gear rental marketplace. Rent cameras, tools, camping gear, and more safely and easily.',
+              style: TextStyle(fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Version 1.0.0 (Build 102)',
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
+            ),
+            const Divider(height: 24),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Terms of Service', style: TextStyle(fontSize: 13)),
+              trailing: const Icon(Icons.open_in_new, size: 16),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Opening Terms of Service...')),
+                );
+              },
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Privacy Policy', style: TextStyle(fontSize: 13)),
+              trailing: const Icon(Icons.open_in_new, size: 16),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Opening Privacy Policy...')),
+                );
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -195,30 +406,54 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         child: RefreshIndicator(
           onRefresh: _load,
           child: ListView(
-            padding: EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.only(
+              left: AppSpacing.md,
+              right: AppSpacing.md,
+              bottom: AppSpacing.md,
+            ),
             children: [
               // 1. Profile Page Header Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Profile',
-                    style: theme.textTheme.headlineLarge?.copyWith(
-                      color: theme.colorScheme.onBackground,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 28,
-                      fontFamily: 'Plus Jakarta Sans',
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: AppSpacing.lg,
+                  bottom: AppSpacing.xs,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Profile',
+                      style: theme.textTheme.headlineLarge?.copyWith(
+                        color: theme.colorScheme.onBackground,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 28,
+                        fontFamily: 'Plus Jakarta Sans',
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: _logout,
-                    icon: Icon(
-                      LucideIcons.logOut,
-                      color: theme.colorScheme.error,
-                      size: 22,
+                    IconButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Notifications coming soon!',
+                              style: TextStyle(
+                                color: theme.colorScheme.onSecondaryContainer,
+                              ),
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor:
+                                theme.colorScheme.secondaryContainer,
+                          ),
+                        );
+                      },
+                      icon: Icon(
+                        LucideIcons.bell,
+                        color: theme.colorScheme.onBackground,
+                        size: 24,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               SizedBox(height: AppSpacing.lg),
 
@@ -301,9 +536,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(AppRadius.card),
                 border: Border.all(
-                  color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+                  color: theme.colorScheme.outline.withOpacity(0.4),
                   width: 1.0,
                 ),
+                boxShadow: theme.brightness == Brightness.dark ? AppShadows.none : AppShadows.sm,
               ),
               child: SwitchListTile(
                 title: const Text('Switch to Owner Mode'),
@@ -331,6 +567,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         );
                     ref.read(appModeProvider.notifier).state = newMode;
                     await _load();
+                    // Navigate to owner dashboard when switching to owner mode
+                    if (newMode == UserAppMode.owner && mounted) {
+                      context.go('/app/owner');
+                    }
                   } on DioException catch (e) {
                     ScaffoldMessenger.of(
                       context,
@@ -384,41 +624,161 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             const SizedBox(height: 24),
             const Text(
-              'Verification',
+              'Account Settings',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            _VerificationStep(
-              label: 'Email verified',
-              done: user.verificationLevel >= 0,
-            ),
-            _VerificationStep(
-              label: 'Phone verified',
-              done: user.verificationLevel >= 1,
-            ),
-            _VerificationStep(
-              label: 'NIC submitted',
-              done: user.verificationLevel >= 2,
-            ),
-            _VerificationStep(
-              label: 'Face verified',
-              done: user.verificationLevel >= 3,
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: () async {
-                final refreshed = await context.push<bool>(
-                  '/app/profile/verification',
-                );
-                if (refreshed == true && mounted) _load();
-              },
-              icon: const Icon(Icons.verified_user_outlined, size: 18),
-              label: Text(
-                user.verificationLevel >= 3
-                    ? 'View verification'
-                    : 'Complete verification',
+            Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(AppRadius.card),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withOpacity(0.4),
+                  width: 1.0,
+                ),
+                boxShadow: theme.brightness == Brightness.dark ? AppShadows.none : AppShadows.sm,
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Icon(
+                      LucideIcons.user,
+                      color: theme.colorScheme.primary,
+                      size: 20,
+                    ),
+                    title: const Text('Personal Information'),
+                    subtitle: const Text('Update name, email, and phone'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      final updated = await context.push<bool>('/app/profile/edit');
+                      if (updated == true && mounted) _load();
+                    },
+                  ),
+                  Divider(
+                    height: 1,
+                    color: theme.colorScheme.outline.withOpacity(0.2),
+                    indent: 56,
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      LucideIcons.shieldCheck,
+                      color: theme.colorScheme.primary,
+                      size: 20,
+                    ),
+                    title: const Text('Identity Verification'),
+                    subtitle: Text(
+                      user.verificationLevel >= 3
+                          ? 'Fully Verified (Face)'
+                          : (user.verificationLevel >= 2
+                              ? 'NIC Submitted'
+                              : (user.verificationLevel >= 1
+                                  ? 'Phone Verified'
+                                  : 'Basic (Email Only)')),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (user.verificationLevel >= 3)
+                          Icon(Icons.verified, color: theme.colorScheme.primary, size: 20)
+                        else
+                          const Icon(Icons.chevron_right),
+                      ],
+                    ),
+                    onTap: () async {
+                      final refreshed = await context.push<bool>('/app/profile/verification');
+                      if (refreshed == true && mounted) _load();
+                    },
+                  ),
+                ],
               ),
             ),
+            const SizedBox(height: 24),
+            const Text(
+              'Support & Information',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(AppRadius.card),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withOpacity(0.4),
+                  width: 1.0,
+                ),
+                boxShadow: theme.brightness == Brightness.dark ? AppShadows.none : AppShadows.sm,
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Icon(
+                      LucideIcons.helpCircle,
+                      color: theme.colorScheme.primary,
+                      size: 20,
+                    ),
+                    title: const Text('Help Center & FAQs'),
+                    subtitle: const Text('Guides on renting, listings, & deposits'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _showHelpCenterSheet(context),
+                  ),
+                  Divider(
+                    height: 1,
+                    color: theme.colorScheme.outline.withOpacity(0.2),
+                    indent: 56,
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      LucideIcons.info,
+                      color: theme.colorScheme.primary,
+                      size: 20,
+                    ),
+                    title: const Text('About RentLanka'),
+                    subtitle: const Text('Version, Terms & Privacy Policy'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _showAboutDialog(context),
+                  ),
+                ],
+              ),
+            ),
+            if (appMode == UserAppMode.owner) ...[
+              const SizedBox(height: 24),
+              const Text(
+                'Verification',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              _VerificationStep(
+                label: 'Email verified',
+                done: user.verificationLevel >= 0,
+              ),
+              _VerificationStep(
+                label: 'Phone verified',
+                done: user.verificationLevel >= 1,
+              ),
+              _VerificationStep(
+                label: 'NIC submitted',
+                done: user.verificationLevel >= 2,
+              ),
+              _VerificationStep(
+                label: 'Face verified',
+                done: user.verificationLevel >= 3,
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final refreshed = await context.push<bool>(
+                    '/app/profile/verification',
+                  );
+                  if (refreshed == true && mounted) _load();
+                },
+                icon: const Icon(Icons.verified_user_outlined, size: 18),
+                label: Text(
+                  user.verificationLevel >= 3
+                      ? 'View verification'
+                      : 'Complete verification',
+                ),
+              ),
+            ],
             if (appMode == UserAppMode.owner) ...[
               const SizedBox(height: 24),
               const Text(
@@ -431,9 +791,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(AppRadius.card),
                   border: Border.all(
-                    color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+                    color: theme.colorScheme.outline.withOpacity(0.4),
                     width: 1.0,
                   ),
+                  boxShadow: theme.brightness == Brightness.dark ? AppShadows.none : AppShadows.sm,
                 ),
                 child: ListTile(
                   leading: Icon(
@@ -478,9 +839,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(AppRadius.card),
                       border: Border.all(
-                        color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+                        color: theme.colorScheme.outline.withOpacity(0.4),
                         width: 1.0,
                       ),
+                      boxShadow: theme.brightness == Brightness.dark ? AppShadows.none : AppShadows.sm,
                     ),
                     child: ListTile(
                       title: Text(l.title),
@@ -527,6 +889,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 ),
             ],
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton.icon(
+                onPressed: _logout,
+                icon: Icon(
+                  LucideIcons.logOut,
+                  color: theme.colorScheme.error,
+                  size: 18,
+                ),
+                label: Text(
+                  'Log Out',
+                  style: TextStyle(
+                    color: theme.colorScheme.error,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(
+                    color: theme.colorScheme.error.withOpacity(0.4),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.card),
+                  ),
+                  backgroundColor: theme.colorScheme.error.withOpacity(0.04),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),

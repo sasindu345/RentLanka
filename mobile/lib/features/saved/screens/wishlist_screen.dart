@@ -27,15 +27,47 @@ class WishlistScreen extends ConsumerWidget {
               // 1. Saved Page Header
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xs),
-                  child: Text(
-                    'Saved',
-                    style: theme.textTheme.headlineLarge?.copyWith(
-                      color: theme.colorScheme.onBackground,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 28,
-                      fontFamily: 'Plus Jakarta Sans',
-                    ),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.lg,
+                    AppSpacing.md,
+                    AppSpacing.xs,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Saved',
+                        style: theme.textTheme.headlineLarge?.copyWith(
+                          color: theme.colorScheme.onBackground,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 28,
+                          fontFamily: 'Plus Jakarta Sans',
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Notifications coming soon!',
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSecondaryContainer,
+                                ),
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                              backgroundColor:
+                                  theme.colorScheme.secondaryContainer,
+                            ),
+                          );
+                        },
+                        icon: Icon(
+                          LucideIcons.bell,
+                          color: theme.colorScheme.onBackground,
+                          size: 24,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -43,14 +75,18 @@ class WishlistScreen extends ConsumerWidget {
               // 2. Wishlist Grid Content
               wishlistState.when(
                 loading: () => SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
                   sliver: SliverGrid(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.66,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.77,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => const ListingCardSkeleton(),
                       childCount: 4,
@@ -65,11 +101,15 @@ class WishlistScreen extends ConsumerWidget {
                       children: [
                         Text(
                           'Failed to load saved items.',
-                          style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         ElevatedButton(
-                          onPressed: () => ref.read(wishlistProvider.notifier).loadWishlist(),
+                          onPressed: () => ref
+                              .read(wishlistProvider.notifier)
+                              .loadWishlist(),
                           child: const Text('Retry'),
                         ),
                       ],
@@ -82,22 +122,28 @@ class WishlistScreen extends ConsumerWidget {
                         child: EmptyState(
                           icon: LucideIcons.heart,
                           title: 'No saved items yet',
-                          subtitle: 'Save gear you want to rent for later and they will appear here.',
+                          subtitle:
+                              'Save gear you want to rent for later and they will appear here.',
                           actionLabel: 'Explore gear',
                           onActionPressed: () => context.go('/app/explore'),
                         ),
                       )
                     : SliverPadding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.sm,
+                        ),
                         sliver: SliverGrid(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.66,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                          ),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 0.77,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                              ),
                           delegate: SliverChildBuilderDelegate(
-                            (context, index) => ListingCard(listing: items[index]),
+                            (context, index) =>
+                                ListingCard(listing: items[index]),
                             childCount: items.length,
                           ),
                         ),

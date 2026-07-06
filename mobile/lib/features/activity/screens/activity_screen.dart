@@ -1026,35 +1026,152 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Activity Page Header
               Padding(
                 padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xs),
-                child: Text(
-                  'Activity',
-                  style: theme.textTheme.headlineLarge?.copyWith(
-                    color: theme.colorScheme.onBackground,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 28,
-                    fontFamily: 'Plus Jakarta Sans',
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Activity',
+                      style: theme.textTheme.headlineLarge?.copyWith(
+                        color: theme.colorScheme.onBackground,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 28,
+                        fontFamily: 'Plus Jakarta Sans',
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Notifications coming soon!',
+                              style: TextStyle(
+                                color: theme.colorScheme.onSecondaryContainer,
+                              ),
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor:
+                                theme.colorScheme.secondaryContainer,
+                          ),
+                        );
+                      },
+                      icon: Icon(
+                        LucideIcons.bell,
+                        color: theme.colorScheme.onBackground,
+                        size: 24,
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
-              // 2. Custom Tabs selector
-              TabBar(
-                controller: _tabController,
-                indicatorColor: theme.colorScheme.primary,
-                indicatorWeight: 3.0,
-                labelColor: theme.colorScheme.primary,
-                unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 16),
-                tabs: const [
-                  Tab(text: 'Bookings'),
-                  Tab(text: 'Messages'),
-                ],
+              // 2. Premium Sliding Segmented Control Tabs Selector
+              AnimatedBuilder(
+                animation: _tabController.animation!,
+                builder: (context, child) {
+                  final value = _tabController.animation!.value;
+                  return Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.xs,
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: theme.brightness == Brightness.dark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final width = constraints.maxWidth;
+                        final pillWidth = width / 2;
+                        return Stack(
+                          children: [
+                            // Sliding background pill card
+                            Positioned(
+                              left: value * pillWidth,
+                              width: pillWidth,
+                              height: constraints.maxHeight,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: theme.brightness == Brightness.dark
+                                      ? const Color(0xFF0F172A)
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            // Interactive Tab Texts
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      _tabController.animateTo(0);
+                                    },
+                                    child: Center(
+                                      child: Text(
+                                        'Bookings',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: value < 0.5 ? FontWeight.w700 : FontWeight.w500,
+                                          color: value < 0.5
+                                              ? (theme.brightness == Brightness.dark
+                                                  ? Colors.white
+                                                  : theme.colorScheme.primary)
+                                              : (theme.brightness == Brightness.dark
+                                                  ? const Color(0xFF94A3B8)
+                                                  : const Color(0xFF64748B)),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      _tabController.animateTo(1);
+                                    },
+                                    child: Center(
+                                      child: Text(
+                                        'Messages',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: value >= 0.5 ? FontWeight.w700 : FontWeight.w500,
+                                          color: value >= 0.5
+                                              ? (theme.brightness == Brightness.dark
+                                                  ? Colors.white
+                                                  : theme.colorScheme.primary)
+                                              : (theme.brightness == Brightness.dark
+                                                  ? const Color(0xFF94A3B8)
+                                                  : const Color(0xFF64748B)),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
-              const Divider(height: 1, thickness: 1),
+              const SizedBox(height: AppSpacing.xs),
 
               // 3. TabBarView Content
               Expanded(

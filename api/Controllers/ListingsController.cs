@@ -194,9 +194,39 @@ public class ListingsController : AuthorizedControllerBase
     {
         try
         {
-            // Abort if any listings already exist — data is already seeded.
+            // If listings already exist, clean up and update any existing seeded listings with long titles!
             if (await context.Listings.AnyAsync())
-                return Ok(new { Message = "Database already contains listings. Seed skipped.", SeededCount = 0 });
+            {
+                var listingsToUpdate = await context.Listings.ToListAsync();
+                int updatedCount = 0;
+                foreach (var listing in listingsToUpdate)
+                {
+                    string oldTitle = listing.Title;
+                    string newTitle = oldTitle;
+                    if (oldTitle == "Sony Alpha 7 IV Mirrorless Camera") newTitle = "Sony Alpha 7 IV Camera";
+                    else if (oldTitle == "Sigma 24-70mm f/2.8 DG DN Art Lens") newTitle = "Sigma 24-70mm f/2.8 Art Lens";
+                    else if (oldTitle == "Deuter Aircontact Lite 50+10 Backpack") newTitle = "Deuter Aircontact 50+10 Backpack";
+                    else if (oldTitle == "DJI Mini 3 Pro Drone (with RC Controller)") newTitle = "DJI Mini 3 Pro Drone with RC";
+                    else if (oldTitle == "Bosch Professional Demolition Jackhammer") newTitle = "Bosch Demolition Jackhammer";
+                    else if (oldTitle == "JBL PartyBox 310 Portable Bluetooth Speaker") newTitle = "JBL PartyBox 310 Speaker";
+                    else if (oldTitle == "Spalding TF-1000 Professional Basketball") newTitle = "Spalding TF-1000 Basketball";
+                    else if (oldTitle.Length > 32)
+                    {
+                        newTitle = oldTitle.Substring(0, 29) + "...";
+                    }
+
+                    if (newTitle != oldTitle)
+                    {
+                        listing.Title = newTitle;
+                        updatedCount++;
+                    }
+                }
+                if (updatedCount > 0)
+                {
+                    await context.SaveChangesAsync();
+                }
+                return Ok(new { Message = $"Database already contains listings. Cleaned and updated {updatedCount} long titles.", SeededCount = 0, UpdatedCount = updatedCount });
+            }
 
             var adminUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "admin@rentlanka.lk");
             var ownerId = adminUser?.Id ?? (await context.Users.FirstOrDefaultAsync())?.Id;

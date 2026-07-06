@@ -19,7 +19,8 @@ class SearchResultsScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<SearchResultsScreen> createState() => _SearchResultsScreenState();
+  ConsumerState<SearchResultsScreen> createState() =>
+      _SearchResultsScreenState();
 }
 
 class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
@@ -35,7 +36,9 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
   Future<void> _search() async {
     setState(() => _loading = true);
     try {
-      final data = await ref.read(listingsApiProvider).searchListings(
+      final data = await ref
+          .read(listingsApiProvider)
+          .searchListings(
             query: widget.initialQuery.isNotEmpty ? widget.initialQuery : null,
             category: widget.category,
             pageSize: 24,
@@ -67,7 +70,7 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
               padding: const EdgeInsets.all(AppSpacing.lg),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.68,
+                childAspectRatio: 0.77,
                 crossAxisSpacing: AppSpacing.md,
                 mainAxisSpacing: AppSpacing.md,
               ),
@@ -75,24 +78,26 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
               itemBuilder: (context, index) => const ListingCardSkeleton(),
             )
           : _results == null || _results!.items.isEmpty
-              ? EmptyState(
-                  icon: LucideIcons.search,
-                  title: 'No results found',
-                  subtitle: 'Try adjusting your search terms or filters to find what you need.',
-                  actionLabel: 'Go back',
-                  onActionPressed: () => Navigator.maybePop(context),
-                )
-              : GridView.builder(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.68,
-                    crossAxisSpacing: AppSpacing.md,
-                    mainAxisSpacing: AppSpacing.md,
-                  ),
-                  itemCount: _results!.items.length,
-                  itemBuilder: (context, index) => ListingCard(listing: _results!.items[index]),
-                ),
+          ? EmptyState(
+              icon: LucideIcons.search,
+              title: 'No results found',
+              subtitle:
+                  'Try adjusting your search terms or filters to find what you need.',
+              actionLabel: 'Go back',
+              onActionPressed: () => Navigator.maybePop(context),
+            )
+          : GridView.builder(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.77,
+                crossAxisSpacing: AppSpacing.md,
+                mainAxisSpacing: AppSpacing.md,
+              ),
+              itemCount: _results!.items.length,
+              itemBuilder: (context, index) =>
+                  ListingCard(listing: _results!.items[index]),
+            ),
     );
   }
 }

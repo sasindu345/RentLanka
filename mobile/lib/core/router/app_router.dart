@@ -13,6 +13,7 @@ import 'package:mobile/features/explore/screens/booking_request_screen.dart';
 import 'package:mobile/features/explore/screens/search_results_screen.dart';
 import 'package:mobile/features/listings/screens/create_listing_screen.dart';
 import 'package:mobile/features/listings/screens/edit_listing_screen.dart';
+import 'package:mobile/features/listings/screens/owner_dashboard_screen.dart';
 import 'package:mobile/features/profile/screens/edit_profile_screen.dart';
 import 'package:mobile/features/profile/screens/profile_screen.dart';
 import 'package:mobile/features/profile/screens/verification_screen.dart';
@@ -180,6 +181,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                 ],
+              ),
+            ],
+          ),
+          // Branch 5: Owner Dashboard (owner mode home tab)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/app/owner',
+                builder: (context, state) => const OwnerDashboardScreen(),
               ),
             ],
           ),

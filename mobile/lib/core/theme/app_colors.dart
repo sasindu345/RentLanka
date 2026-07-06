@@ -19,7 +19,7 @@ abstract class AppColors {
   static const Color textPrimaryLight = Color(0xFF111827);
   static const Color textSecondaryLight = Color(0xFF6B7280);
   static const Color textDisabledLight = Color(0xFF9CA3AF);
-  static const Color borderLight = Color(0xFFE5E7EB);
+  static const Color borderLight = Color(0xFFECEFF3);
   static const Color dividerLight = Color(0xFFF3F4F6);
 
   // ─── Dark Mode Surfaces ─────────

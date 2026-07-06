@@ -32,10 +32,7 @@ public class BookingService : IBookingService
             return (false, null, "Owner accounts are not allowed to rent or request bookings.");
         }
 
-        if (user.VerificationLevel < VerificationLevel.Level2)
-        {
-            return (false, null, "KYC verification (Level 2 / NIC verification) is required to request bookings.");
-        }
+        // Renter KYC requirement bypassed as per request (only owner needs KYC verification).
 
         var listing = await _context.Listings.Include(l => l.Owner).FirstOrDefaultAsync(l => l.Id == request.ListingId && !l.IsDeleted);
         if (listing == null) return (false, null, "Listing not found.");

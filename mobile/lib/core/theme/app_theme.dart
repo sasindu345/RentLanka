@@ -16,7 +16,7 @@ class AppTheme {
 
   static ThemeData get light {
     final baseTextTheme = GoogleFonts.plusJakartaSansTextTheme();
-    
+
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -37,20 +37,71 @@ class AppTheme {
         surfaceVariant: AppColors.surfaceSecondaryLight,
         onSurfaceVariant: AppColors.textSecondaryLight,
         outline: AppColors.borderLight,
+        outlineVariant: AppColors.dividerLight,
       ),
       scaffoldBackgroundColor: AppColors.backgroundLight,
       dividerColor: AppColors.dividerLight,
-      
+      dividerTheme: const DividerThemeData(
+        color: AppColors.dividerLight,
+        thickness: 0.8,
+        space: 1,
+      ),
+
       // Typography Scale
       textTheme: baseTextTheme.copyWith(
-        displayLarge: baseTextTheme.displayLarge?.copyWith(fontSize: 36, fontWeight: FontWeight.bold, height: 1.2, letterSpacing: -0.5, color: AppColors.textPrimaryLight),
-        headlineLarge: baseTextTheme.headlineLarge?.copyWith(fontSize: 28, fontWeight: FontWeight.bold, height: 1.3, letterSpacing: -0.3, color: AppColors.textPrimaryLight),
-        headlineMedium: baseTextTheme.headlineMedium?.copyWith(fontSize: 24, fontWeight: FontWeight.w600, height: 1.3, letterSpacing: -0.2, color: AppColors.textPrimaryLight),
-        titleLarge: baseTextTheme.titleLarge?.copyWith(fontSize: 20, fontWeight: FontWeight.w600, height: 1.4, color: AppColors.textPrimaryLight),
-        bodyLarge: baseTextTheme.bodyLarge?.copyWith(fontSize: 16, fontWeight: FontWeight.w400, height: 1.6, color: AppColors.textPrimaryLight),
-        bodyMedium: baseTextTheme.bodyMedium?.copyWith(fontSize: 14, fontWeight: FontWeight.w400, height: 1.5, color: AppColors.textPrimaryLight),
-        labelLarge: baseTextTheme.labelLarge?.copyWith(fontSize: 12, fontWeight: FontWeight.w500, height: 1.4, letterSpacing: 0.1, color: AppColors.textSecondaryLight),
-        labelSmall: baseTextTheme.labelSmall?.copyWith(fontSize: 11, fontWeight: FontWeight.w500, height: 1.3, letterSpacing: 0.2, color: AppColors.textSecondaryLight),
+        displayLarge: baseTextTheme.displayLarge?.copyWith(
+          fontSize: 36,
+          fontWeight: FontWeight.bold,
+          height: 1.2,
+          letterSpacing: -0.5,
+          color: AppColors.textPrimaryLight,
+        ),
+        headlineLarge: baseTextTheme.headlineLarge?.copyWith(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          height: 1.3,
+          letterSpacing: -0.3,
+          color: AppColors.textPrimaryLight,
+        ),
+        headlineMedium: baseTextTheme.headlineMedium?.copyWith(
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
+          height: 1.3,
+          letterSpacing: -0.2,
+          color: AppColors.textPrimaryLight,
+        ),
+        titleLarge: baseTextTheme.titleLarge?.copyWith(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          height: 1.4,
+          color: AppColors.textPrimaryLight,
+        ),
+        bodyLarge: baseTextTheme.bodyLarge?.copyWith(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          height: 1.6,
+          color: AppColors.textPrimaryLight,
+        ),
+        bodyMedium: baseTextTheme.bodyMedium?.copyWith(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          height: 1.5,
+          color: AppColors.textPrimaryLight,
+        ),
+        labelLarge: baseTextTheme.labelLarge?.copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          height: 1.4,
+          letterSpacing: 0.1,
+          color: AppColors.textSecondaryLight,
+        ),
+        labelSmall: baseTextTheme.labelSmall?.copyWith(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          height: 1.3,
+          letterSpacing: 0.2,
+          color: AppColors.textSecondaryLight,
+        ),
       ),
 
       // App Bar Theme
@@ -61,6 +112,13 @@ class AppTheme {
         centerTitle: false,
         scrolledUnderElevation: 0,
         iconTheme: IconThemeData(color: AppColors.textPrimaryLight, size: 22),
+        titleTextStyle: TextStyle(
+          fontFamily: 'Plus Jakarta Sans',
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          letterSpacing: -0.3,
+          color: AppColors.textPrimaryLight,
+        ),
       ),
 
       // Navigation Bar Theme
@@ -72,15 +130,26 @@ class AppTheme {
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         labelTextStyle: MaterialStateProperty.resolveWith((states) {
           if (states.contains(MaterialState.selected)) {
-            return const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary);
+            return const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
+            );
           }
-          return const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondaryLight);
+          return const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textSecondaryLight,
+          );
         }),
         iconTheme: MaterialStateProperty.resolveWith((states) {
           if (states.contains(MaterialState.selected)) {
             return const IconThemeData(color: AppColors.primary, size: 24);
           }
-          return const IconThemeData(color: AppColors.textSecondaryLight, size: 24);
+          return const IconThemeData(
+            color: AppColors.textSecondaryLight,
+            size: 24,
+          );
         }),
       ),
 
@@ -91,7 +160,7 @@ class AppTheme {
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.card),
-          side: const BorderSide(color: AppColors.borderLight),
+          side: const BorderSide(color: AppColors.borderLight, width: 1.0),
         ),
       ),
 
@@ -101,27 +170,42 @@ class AppTheme {
         fillColor: AppColors.surfaceSecondaryLight,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.borderLight),
+          borderSide: const BorderSide(
+            color: AppColors.borderLight,
+            width: 1.0,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.borderLight),
+          borderSide: const BorderSide(
+            color: AppColors.borderLight,
+            width: 1.0,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.error, width: 2),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.2),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.error, width: 2),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 14),
-        hintStyle: const TextStyle(color: AppColors.textDisabledLight, fontSize: 14),
-        labelStyle: const TextStyle(color: AppColors.textSecondaryLight, fontSize: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: 14,
+        ),
+        hintStyle: const TextStyle(
+          color: AppColors.textDisabledLight,
+          fontSize: 14,
+        ),
+        labelStyle: const TextStyle(
+          color: AppColors.textSecondaryLight,
+          fontSize: 14,
+        ),
       ),
 
       // Buttons Theme
@@ -185,7 +269,9 @@ class AppTheme {
   }
 
   static ThemeData get dark {
-    final baseTextTheme = GoogleFonts.plusJakartaSansTextTheme(ThemeData.dark().textTheme);
+    final baseTextTheme = GoogleFonts.plusJakartaSansTextTheme(
+      ThemeData.dark().textTheme,
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -207,20 +293,71 @@ class AppTheme {
         surfaceVariant: AppColors.surfaceSecondaryDark,
         onSurfaceVariant: AppColors.textSecondaryDark,
         outline: AppColors.borderDark,
+        outlineVariant: AppColors.dividerDark,
       ),
       scaffoldBackgroundColor: AppColors.backgroundDark,
       dividerColor: AppColors.dividerDark,
+      dividerTheme: const DividerThemeData(
+        color: AppColors.dividerDark,
+        thickness: 0.8,
+        space: 1,
+      ),
 
       // Typography Scale
       textTheme: baseTextTheme.copyWith(
-        displayLarge: baseTextTheme.displayLarge?.copyWith(fontSize: 36, fontWeight: FontWeight.bold, height: 1.2, letterSpacing: -0.5, color: AppColors.textPrimaryDark),
-        headlineLarge: baseTextTheme.headlineLarge?.copyWith(fontSize: 28, fontWeight: FontWeight.bold, height: 1.3, letterSpacing: -0.3, color: AppColors.textPrimaryDark),
-        headlineMedium: baseTextTheme.headlineMedium?.copyWith(fontSize: 24, fontWeight: FontWeight.w600, height: 1.3, letterSpacing: -0.2, color: AppColors.textPrimaryDark),
-        titleLarge: baseTextTheme.titleLarge?.copyWith(fontSize: 20, fontWeight: FontWeight.w600, height: 1.4, color: AppColors.textPrimaryDark),
-        bodyLarge: baseTextTheme.bodyLarge?.copyWith(fontSize: 16, fontWeight: FontWeight.w400, height: 1.6, color: AppColors.textPrimaryDark),
-        bodyMedium: baseTextTheme.bodyMedium?.copyWith(fontSize: 14, fontWeight: FontWeight.w400, height: 1.5, color: AppColors.textPrimaryDark),
-        labelLarge: baseTextTheme.labelLarge?.copyWith(fontSize: 12, fontWeight: FontWeight.w500, height: 1.4, letterSpacing: 0.1, color: AppColors.textSecondaryDark),
-        labelSmall: baseTextTheme.labelSmall?.copyWith(fontSize: 11, fontWeight: FontWeight.w500, height: 1.3, letterSpacing: 0.2, color: AppColors.textSecondaryDark),
+        displayLarge: baseTextTheme.displayLarge?.copyWith(
+          fontSize: 36,
+          fontWeight: FontWeight.bold,
+          height: 1.2,
+          letterSpacing: -0.5,
+          color: AppColors.textPrimaryDark,
+        ),
+        headlineLarge: baseTextTheme.headlineLarge?.copyWith(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          height: 1.3,
+          letterSpacing: -0.3,
+          color: AppColors.textPrimaryDark,
+        ),
+        headlineMedium: baseTextTheme.headlineMedium?.copyWith(
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
+          height: 1.3,
+          letterSpacing: -0.2,
+          color: AppColors.textPrimaryDark,
+        ),
+        titleLarge: baseTextTheme.titleLarge?.copyWith(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          height: 1.4,
+          color: AppColors.textPrimaryDark,
+        ),
+        bodyLarge: baseTextTheme.bodyLarge?.copyWith(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          height: 1.6,
+          color: AppColors.textPrimaryDark,
+        ),
+        bodyMedium: baseTextTheme.bodyMedium?.copyWith(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          height: 1.5,
+          color: AppColors.textPrimaryDark,
+        ),
+        labelLarge: baseTextTheme.labelLarge?.copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          height: 1.4,
+          letterSpacing: 0.1,
+          color: AppColors.textSecondaryDark,
+        ),
+        labelSmall: baseTextTheme.labelSmall?.copyWith(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          height: 1.3,
+          letterSpacing: 0.2,
+          color: AppColors.textSecondaryDark,
+        ),
       ),
 
       // App Bar Theme
@@ -231,6 +368,13 @@ class AppTheme {
         centerTitle: false,
         scrolledUnderElevation: 0,
         iconTheme: IconThemeData(color: AppColors.textPrimaryDark, size: 22),
+        titleTextStyle: TextStyle(
+          fontFamily: 'Plus Jakarta Sans',
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          letterSpacing: -0.3,
+          color: AppColors.textPrimaryDark,
+        ),
       ),
 
       // Navigation Bar Theme
@@ -242,15 +386,26 @@ class AppTheme {
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         labelTextStyle: MaterialStateProperty.resolveWith((states) {
           if (states.contains(MaterialState.selected)) {
-            return const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary);
+            return const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
+            );
           }
-          return const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondaryDark);
+          return const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textSecondaryDark,
+          );
         }),
         iconTheme: MaterialStateProperty.resolveWith((states) {
           if (states.contains(MaterialState.selected)) {
             return const IconThemeData(color: AppColors.primary, size: 24);
           }
-          return const IconThemeData(color: AppColors.textSecondaryDark, size: 24);
+          return const IconThemeData(
+            color: AppColors.textSecondaryDark,
+            size: 24,
+          );
         }),
       ),
 
@@ -261,7 +416,10 @@ class AppTheme {
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.card),
-          side: const BorderSide(color: AppColors.borderDark),
+          side: BorderSide(
+            color: AppColors.borderDark.withOpacity(0.3),
+            width: 1.0,
+          ),
         ),
       ),
 
@@ -271,27 +429,42 @@ class AppTheme {
         fillColor: AppColors.surfaceSecondaryDark,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.borderDark),
+          borderSide: BorderSide(
+            color: AppColors.borderDark.withOpacity(0.3),
+            width: 1.0,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.borderDark),
+          borderSide: BorderSide(
+            color: AppColors.borderDark.withOpacity(0.3),
+            width: 1.0,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.error, width: 2),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.2),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.error, width: 2),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 14),
-        hintStyle: const TextStyle(color: AppColors.textDisabledDark, fontSize: 14),
-        labelStyle: const TextStyle(color: AppColors.textSecondaryDark, fontSize: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: 14,
+        ),
+        hintStyle: const TextStyle(
+          color: AppColors.textDisabledDark,
+          fontSize: 14,
+        ),
+        labelStyle: const TextStyle(
+          color: AppColors.textSecondaryDark,
+          fontSize: 14,
+        ),
       ),
 
       // Buttons Theme

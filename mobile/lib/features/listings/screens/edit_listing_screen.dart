@@ -289,7 +289,11 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            TextField(controller: _titleController, decoration: const InputDecoration(labelText: 'Title')),
+            TextField(
+              controller: _titleController,
+              maxLength: 32,
+              decoration: const InputDecoration(labelText: 'Title'),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: _descriptionController,
