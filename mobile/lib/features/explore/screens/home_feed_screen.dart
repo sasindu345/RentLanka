@@ -106,7 +106,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                         style: theme.textTheme.headlineLarge?.copyWith(
                           color: theme.colorScheme.onBackground,
                           fontWeight: FontWeight.bold,
-                          fontSize: 32,
+                          fontSize: 28,
                           fontFamily: 'Plus Jakarta Sans',
                         ),
                       ),

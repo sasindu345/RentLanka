@@ -585,10 +585,18 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
     final total = booking.totalPrice + booking.securityDeposit;
     final statusColor = _getStatusColor(booking.status, theme);
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+          width: 1.0,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -929,8 +937,16 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
       }
     }
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+          width: 1.0,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
@@ -1004,174 +1020,218 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          title: const Text('Activity'),
-          bottom: TabBar(
-            controller: _tabController,
-            indicatorColor: theme.colorScheme.primary,
-            labelColor: theme.colorScheme.primary,
-            unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-            tabs: const [
-              Tab(text: 'Bookings'),
-              Tab(text: 'Messages'),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            // Bookings tab content
-            Column(
-              children: [
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: _loadAll,
-                    child: _loading
-                        ? const Center(child: CircularProgressIndicator())
-                        : activeSegment == 0
-                            ? (_renterBookings.isEmpty
-                                ? EmptyState(
-                                    icon: LucideIcons.calendar,
-                                    title: 'No Rentals yet',
-                                    subtitle: 'Find awesome gear and submit booking requests.',
-                                    actionLabel: 'Explore gear',
-                                    onActionPressed: () => context.go('/app/explore'),
-                                  )
-                                : ListView.builder(
-                                    itemCount: _renterBookings.length,
-                                    itemBuilder: (context, index) {
-                                      return _buildBookingCard(
-                                        _renterBookings[index],
-                                        false,
-                                      );
-                                    },
-                                  ))
-                            : ListView(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                children: [
-                                  // --- SECTION 1: BOOKING REQUESTS ---
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xs),
-                                    child: Row(
-                                      children: [
-                                        Icon(LucideIcons.calendar, size: 18, color: theme.colorScheme.primary),
-                                        const SizedBox(width: AppSpacing.xs),
-                                        Text(
-                                          'Booking Requests',
-                                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                        ),
-                                        const SizedBox(width: AppSpacing.xs),
-                                        if (_ownerBookings.isNotEmpty)
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: theme.colorScheme.primary.withOpacity(0.08),
-                                              borderRadius: BorderRadius.circular(AppRadius.button),
-                                            ),
-                                            child: Text(
-                                              '${_ownerBookings.length}',
-                                              style: theme.textTheme.labelSmall?.copyWith(
-                                                color: theme.colorScheme.primary,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (_ownerBookings.isEmpty)
-                                    Card(
-                                      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(AppSpacing.lg),
-                                        child: Column(
-                                          children: [
-                                            Icon(LucideIcons.calendarClock, size: 36, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5)),
-                                            const SizedBox(height: AppSpacing.xs),
-                                            Text(
-                                              'No active requests',
-                                              style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              'Once a renter requests to book your gear, it will show up here.',
-                                              textAlign: TextAlign.center,
-                                              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                  else
-                                    ..._ownerBookings.map((b) => _buildBookingCard(b, true)),
-
-                                  const SizedBox(height: AppSpacing.lg),
-
-                                  // --- SECTION 2: YOUR LISTED EQUIPMENT ---
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.xs),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(LucideIcons.store, size: 18, color: theme.colorScheme.primary),
-                                            const SizedBox(width: AppSpacing.xs),
-                                            Text(
-                                              'Your Gear & Approval Status',
-                                              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        ),
-                                        Text(
-                                          '${_myListings.length} items',
-                                          style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (_myListings.isEmpty)
-                                    Card(
-                                      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(AppSpacing.lg),
-                                        child: Column(
-                                          children: [
-                                            Icon(LucideIcons.packagePlus, size: 36, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5)),
-                                            const SizedBox(height: AppSpacing.xs),
-                                            Text(
-                                              'No listings published',
-                                              style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              'List your equipment to start earning on RentLanka.',
-                                              textAlign: TextAlign.center,
-                                              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                                            ),
-                                            const SizedBox(height: AppSpacing.md),
-                                            FilledButton.icon(
-                                              onPressed: () => context.go('/app/list'),
-                                              icon: const Icon(LucideIcons.plus, size: 16),
-                                              label: const Text('Publish Gear'),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                  else
-                                    ..._myListings.map((l) => _buildGearStatusCard(l, theme)),
-                                ],
-                              ),
+        backgroundColor: theme.colorScheme.background,
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Activity Page Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xs),
+                child: Text(
+                  'Activity',
+                  style: theme.textTheme.headlineLarge?.copyWith(
+                    color: theme.colorScheme.onBackground,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 28,
+                    fontFamily: 'Plus Jakarta Sans',
                   ),
                 ),
-              ],
-            ),
+              ),
 
-            // Messages tab content
-            const InboxScreen(),
-          ],
+              // 2. Custom Tabs selector
+              TabBar(
+                controller: _tabController,
+                indicatorColor: theme.colorScheme.primary,
+                indicatorWeight: 3.0,
+                labelColor: theme.colorScheme.primary,
+                unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 16),
+                tabs: const [
+                  Tab(text: 'Bookings'),
+                  Tab(text: 'Messages'),
+                ],
+              ),
+              const Divider(height: 1, thickness: 1),
+
+              // 3. TabBarView Content
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    // Bookings tab content
+                    Column(
+                      children: [
+                        Expanded(
+                          child: RefreshIndicator(
+                            onRefresh: _loadAll,
+                            child: _loading
+                                ? const Center(child: CircularProgressIndicator())
+                                : activeSegment == 0
+                                    ? (_renterBookings.isEmpty
+                                        ? EmptyState(
+                                            icon: LucideIcons.calendar,
+                                            title: 'No Rentals yet',
+                                            subtitle: 'Find awesome gear and submit booking requests.',
+                                            actionLabel: 'Explore gear',
+                                            onActionPressed: () => context.go('/app/explore'),
+                                          )
+                                        : ListView.builder(
+                                            itemCount: _renterBookings.length,
+                                            itemBuilder: (context, index) {
+                                              return _buildBookingCard(
+                                                _renterBookings[index],
+                                                false,
+                                              );
+                                            },
+                                          ))
+                                    : ListView(
+                                        physics: const AlwaysScrollableScrollPhysics(),
+                                        children: [
+                                          // --- SECTION 1: BOOKING REQUESTS ---
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xs),
+                                            child: Row(
+                                              children: [
+                                                Icon(LucideIcons.calendar, size: 18, color: theme.colorScheme.primary),
+                                                const SizedBox(width: AppSpacing.xs),
+                                                Text(
+                                                  'Booking Requests',
+                                                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                                ),
+                                                const SizedBox(width: AppSpacing.xs),
+                                                if (_ownerBookings.isNotEmpty)
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: theme.colorScheme.primary.withOpacity(0.08),
+                                                      borderRadius: BorderRadius.circular(AppRadius.button),
+                                                    ),
+                                                    child: Text(
+                                                      '${_ownerBookings.length}',
+                                                      style: theme.textTheme.labelSmall?.copyWith(
+                                                        color: theme.colorScheme.primary,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (_ownerBookings.isEmpty)
+                                            Container(
+                                              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                                              decoration: BoxDecoration(
+                                                color: theme.colorScheme.surface,
+                                                borderRadius: BorderRadius.circular(AppRadius.card),
+                                                border: Border.all(
+                                                  color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+                                                  width: 1.0,
+                                                ),
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(AppSpacing.lg),
+                                                child: Column(
+                                                  children: [
+                                                    Icon(LucideIcons.calendarClock, size: 36, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5)),
+                                                    const SizedBox(height: AppSpacing.xs),
+                                                    Text(
+                                                      'No active requests',
+                                                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Text(
+                                                      'Once a renter requests to book your gear, it will show up here.',
+                                                      textAlign: TextAlign.center,
+                                                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            )
+                                          else
+                                            ..._ownerBookings.map((b) => _buildBookingCard(b, true)),
+
+                                          const SizedBox(height: AppSpacing.lg),
+
+                                          // --- SECTION 2: YOUR LISTED EQUIPMENT ---
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.xs),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Icon(LucideIcons.store, size: 18, color: theme.colorScheme.primary),
+                                                    const SizedBox(width: AppSpacing.xs),
+                                                    Text(
+                                                      'Your Gear & Approval Status',
+                                                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Text(
+                                                  '${_myListings.length} items',
+                                                  style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (_myListings.isEmpty)
+                                            Container(
+                                              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                                              decoration: BoxDecoration(
+                                                color: theme.colorScheme.surface,
+                                                borderRadius: BorderRadius.circular(AppRadius.card),
+                                                border: Border.all(
+                                                  color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+                                                  width: 1.0,
+                                                ),
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(AppSpacing.lg),
+                                                child: Column(
+                                                  children: [
+                                                    Icon(LucideIcons.packagePlus, size: 36, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5)),
+                                                    const SizedBox(height: AppSpacing.xs),
+                                                    Text(
+                                                      'No listings published',
+                                                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Text(
+                                                      'List your equipment to start earning on RentLanka.',
+                                                      textAlign: TextAlign.center,
+                                                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                                                    ),
+                                                    const SizedBox(height: AppSpacing.md),
+                                                    FilledButton.icon(
+                                                      onPressed: () => context.go('/app/list'),
+                                                      icon: const Icon(LucideIcons.plus, size: 16),
+                                                      label: const Text('Publish Gear'),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            )
+                                          else
+                                            ..._myListings.map((l) => _buildGearStatusCard(l, theme)),
+                                        ],
+                                      ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Messages tab content
+                    const InboxScreen(),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

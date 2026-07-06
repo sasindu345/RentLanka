@@ -41,6 +41,14 @@ public class Program
                 {
                     var key = parts[0].Trim();
                     var val = parts[1].Trim();
+                    if (val.StartsWith("\"") && val.EndsWith("\""))
+                    {
+                        val = val.Substring(1, val.Length - 2);
+                    }
+                    else if (val.StartsWith("'") && val.EndsWith("'"))
+                    {
+                        val = val.Substring(1, val.Length - 2);
+                    }
                     Environment.SetEnvironmentVariable(key, val);
                     var displayVal = (key.Contains("Pass", StringComparison.OrdinalIgnoreCase) || 
                                       key.Contains("Key", StringComparison.OrdinalIgnoreCase) || 
@@ -79,6 +87,19 @@ public class Program
 
         // Database context registration
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        
+        // Load connection override from environment variable if present
+        var envDbUrl = Environment.GetEnvironmentVariable("DATABASE_URL") ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+        if (!string.IsNullOrEmpty(envDbUrl))
+        {
+            connectionString = ConvertPostgresUriToConnectionString(envDbUrl);
+            Console.WriteLine("[DB CONFIG] Using database connection override from environment variable.");
+        }
+        else
+        {
+            Console.WriteLine($"[DB CONFIG] Using local connection string from appsettings: Host={connectionString?.Split(';').FirstOrDefault(x => x.StartsWith("Host=", StringComparison.OrdinalIgnoreCase)) ?? "Not Specified"}");
+        }
+
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString,
                 npgsqlOptions =>
@@ -184,5 +205,65 @@ public class Program
         app.MapHub<ChatHub>("/hubs/chat");
 
         app.Run();
+    }
+
+    private static string ConvertPostgresUriToConnectionString(string uriString)
+    {
+        if (string.IsNullOrWhiteSpace(uriString))
+        {
+            return uriString;
+        }
+
+        uriString = uriString.Trim('"', '\'').Trim();
+
+        if (!uriString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) && 
+            !uriString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        {
+            return uriString;
+        }
+
+        try
+        {
+            var uri = new Uri(uriString);
+            var userInfo = uri.UserInfo.Split(':');
+            var username = userInfo[0];
+            var password = userInfo.Length > 1 ? userInfo[1] : "";
+            var host = uri.Host;
+            var port = uri.Port > 0 ? uri.Port : 5432;
+            var database = uri.AbsolutePath.TrimStart('/');
+
+            var connStr = $"Host={host};Port={port};Database={database};Username={username};Password={password};";
+
+            // Enforce SSL Mode for Neon DB remote connections
+            if (uriString.Contains("sslmode=require", StringComparison.OrdinalIgnoreCase) || 
+                uriString.Contains("sslmode=prefer", StringComparison.OrdinalIgnoreCase) ||
+                uriString.Contains("sslmode=disable", StringComparison.OrdinalIgnoreCase))
+            {
+                if (uriString.Contains("sslmode=require", StringComparison.OrdinalIgnoreCase))
+                {
+                    connStr += "SSL Mode=Require;Trust Server Certificate=true;";
+                }
+                else if (uriString.Contains("sslmode=prefer", StringComparison.OrdinalIgnoreCase))
+                {
+                    connStr += "SSL Mode=Prefer;Trust Server Certificate=true;";
+                }
+                else if (uriString.Contains("sslmode=disable", StringComparison.OrdinalIgnoreCase))
+                {
+                    connStr += "SSL Mode=Disable;";
+                }
+            }
+            else
+            {
+                // Default to SSL Mode Require for security with Neon
+                connStr += "SSL Mode=Require;Trust Server Certificate=true;";
+            }
+
+            return connStr;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DB CONFIG] Error converting postgres URI: {ex.Message}");
+            return uriString;
+        }
     }
 }

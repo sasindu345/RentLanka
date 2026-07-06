@@ -123,7 +123,7 @@ class ListingCard extends ConsumerWidget {
 
             // Card details
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -138,7 +138,6 @@ class ListingCard extends ConsumerWidget {
                       fontSize: 14,
                     ),
                   ),
-                  const SizedBox(height: 1),
 
                   // Location and Distance
                   Row(
@@ -158,8 +157,6 @@ class ListingCard extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 1),
-
                   // Rating
                   Row(
                     children: [

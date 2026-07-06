@@ -8,6 +8,8 @@ import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/theme/app_spacing.dart';
+import 'package:mobile/core/theme/app_radius.dart';
 import 'package:mobile/core/providers/app_mode_provider.dart';
 import 'package:mobile/core/providers/theme_provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -171,6 +173,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -186,90 +189,122 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final themeMode = ref.watch(themeProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          IconButton(onPressed: _logout, icon: const Icon(Icons.logout)),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _load,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundColor: AppTheme.primary,
-                  backgroundImage: user.avatarUrl != null
-                      ? CachedNetworkImageProvider(
-                          resolveMediaUrl(user.avatarUrl!),
-                        )
-                      : null,
-                  child: user.avatarUrl == null
-                      ? Text(
-                          user.firstName.isNotEmpty ? user.firstName[0].toUpperCase() : 'U',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            color: Colors.white,
-                          ),
-                        )
-                      : null,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${user.firstName} ${user.lastName}',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        user.email,
-                        style: const TextStyle(color: AppTheme.muted),
-                      ),
-                      if (user.phoneNumber.isNotEmpty)
-                        Text(
-                          user.phoneNumber,
-                          style: const TextStyle(
-                            color: AppTheme.muted,
-                            fontSize: 13,
-                          ),
-                        ),
-                      if (user.isTrustedUser)
-                        const Text(
-                          'Trusted member',
-                          style: TextStyle(
-                            color: AppTheme.primary,
-                            fontSize: 12,
-                          ),
-                        ),
-                    ],
+      backgroundColor: theme.colorScheme.background,
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          onRefresh: _load,
+          child: ListView(
+            padding: EdgeInsets.all(AppSpacing.md),
+            children: [
+              // 1. Profile Page Header Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Profile',
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      color: theme.colorScheme.onBackground,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 28,
+                      fontFamily: 'Plus Jakarta Sans',
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined),
-                  onPressed: () async {
-                    final updated = await context.push<bool>(
-                      '/app/profile/edit',
-                    );
-                    if (updated == true && mounted) _load();
-                  },
-                ),
-              ],
-            ),
+                  IconButton(
+                    onPressed: _logout,
+                    icon: Icon(
+                      LucideIcons.logOut,
+                      color: theme.colorScheme.error,
+                      size: 22,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: AppSpacing.lg),
+
+              // 2. Profile Details Row
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 32,
+                    backgroundColor: theme.colorScheme.primary,
+                    backgroundImage: user.avatarUrl != null
+                        ? CachedNetworkImageProvider(
+                            resolveMediaUrl(user.avatarUrl!),
+                          )
+                        : null,
+                    child: user.avatarUrl == null
+                        ? Text(
+                            user.firstName.isNotEmpty ? user.firstName[0].toUpperCase() : 'U',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              color: Colors.white,
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${user.firstName} ${user.lastName}',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          user.email,
+                          style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                        ),
+                        if (user.phoneNumber.isNotEmpty)
+                          Text(
+                            user.phoneNumber,
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontSize: 13,
+                            ),
+                          ),
+                        if (user.isTrustedUser)
+                          Text(
+                            'Trusted member',
+                            style: TextStyle(
+                              color: theme.colorScheme.primary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(LucideIcons.edit3),
+                    onPressed: () async {
+                      final updated = await context.push<bool>(
+                        '/app/profile/edit',
+                      );
+                      if (updated == true && mounted) _load();
+                    },
+                  ),
+                ],
+              ),
             const SizedBox(height: 24),
             const Text(
               'Application Mode',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Card(
+            Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(AppRadius.card),
+                border: Border.all(
+                  color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+                  width: 1.0,
+                ),
+              ),
               child: SwitchListTile(
                 title: const Text('Switch to Owner Mode'),
                 subtitle: Text(
@@ -278,7 +313,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       : 'Showing renter explore & wishlist',
                 ),
                 value: appMode == UserAppMode.owner,
-                activeColor: AppTheme.primary,
+                activeColor: theme.colorScheme.primary,
                 onChanged: (val) async {
                   if (_user == null) return;
                   final newMode = val ? UserAppMode.owner : UserAppMode.renter;
@@ -341,9 +376,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 showSelectedIcon: false,
                 style: SegmentedButton.styleFrom(
                   visualDensity: VisualDensity.compact,
-                  selectedForegroundColor: AppTheme.primary,
-                  selectedBackgroundColor: AppTheme.primary.withOpacity(0.08),
-                  side: BorderSide(color: Theme.of(context).dividerColor),
+                  selectedForegroundColor: theme.colorScheme.primary,
+                  selectedBackgroundColor: theme.colorScheme.primary.withOpacity(0.08),
+                  side: BorderSide(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
                 ),
               ),
             ),
@@ -391,11 +426,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              Card(
+              Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.card),
+                  border: Border.all(
+                    color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+                    width: 1.0,
+                  ),
+                ),
                 child: ListTile(
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.account_balance_wallet_outlined,
-                    color: AppTheme.primary,
+                    color: theme.colorScheme.primary,
                   ),
                   title: const Text('Host Earnings & Payouts'),
                   subtitle: const Text(
@@ -417,20 +460,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   Text(
                     '${_myListings.length} items',
-                    style: const TextStyle(color: AppTheme.muted),
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
               if (_myListings.isEmpty)
-                const Text(
+                Text(
                   'No listings yet. Tap List tab to publish.',
-                  style: TextStyle(color: AppTheme.muted),
+                  style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                 )
               else
                 ..._myListings.map(
-                  (l) => Card(
+                  (l) => Container(
                     margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(AppRadius.card),
+                      border: Border.all(
+                        color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+                        width: 1.0,
+                      ),
+                    ),
                     child: ListTile(
                       title: Text(l.title),
                       subtitle: Text(
@@ -449,16 +500,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               style: const TextStyle(fontSize: 11),
                             ),
                             backgroundColor: l.isPaused
-                                ? Colors.orange.shade50
+                                ? Colors.orange.withOpacity(0.08)
                                 : (l.status == 'PendingApproval'
-                                    ? Colors.blue.shade50
-                                    : (l.status == 'Rejected' ? Colors.red.shade50 : Colors.green.shade50)),
+                                    ? Colors.blue.withOpacity(0.08)
+                                    : (l.status == 'Rejected'
+                                        ? theme.colorScheme.error.withOpacity(0.08)
+                                        : Colors.green.withOpacity(0.08))),
                             side: BorderSide(
                               color: l.isPaused
-                                  ? Colors.orange.shade200
+                                  ? Colors.orange.withOpacity(0.2)
                                   : (l.status == 'PendingApproval'
-                                      ? Colors.blue.shade200
-                                      : (l.status == 'Rejected' ? Colors.red.shade200 : Colors.green.shade200)),
+                                      ? Colors.blue.withOpacity(0.2)
+                                      : (l.status == 'Rejected'
+                                          ? theme.colorScheme.error.withOpacity(0.2)
+                                          : Colors.green.withOpacity(0.2))),
                             ),
                           ),
                           IconButton(
@@ -475,8 +530,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _VerificationStep extends StatelessWidget {
@@ -487,17 +543,23 @@ class _VerificationStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Icon(
-            done ? Icons.check_circle : Icons.radio_button_unchecked,
+            done ? LucideIcons.checkCircle2 : LucideIcons.circle,
             size: 20,
-            color: done ? AppTheme.primary : AppTheme.muted,
+            color: done ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 8),
-          Text(label, style: TextStyle(color: done ? null : AppTheme.muted)),
+          Text(
+            label,
+            style: TextStyle(
+              color: done ? theme.colorScheme.onBackground : theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );
