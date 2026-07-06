@@ -85,6 +85,11 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
+    // Card dimensions — shared across both horizontal and grid sections
+    // so both render pixel-perfect identical cards.
+    final double cardWidth =
+        (MediaQuery.of(context).size.width - AppSpacing.md * 3) / 2;
+    final double cardHeight = cardWidth / 0.78;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
@@ -223,8 +228,9 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                       child: Text(
                         'Categories',
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'Plus Jakarta Sans',
                           color: theme.colorScheme.onBackground,
                         ),
                       ),
@@ -293,8 +299,9 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                           Text(
                             'Recommended for you',
                             style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              fontFamily: 'Plus Jakarta Sans',
                               color: theme.colorScheme.onBackground,
                             ),
                           ),
@@ -312,30 +319,34 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                         ],
                       ),
                     ),
-                    SizedBox(
-                      height: 260,
+                     SizedBox(
+                      height: cardHeight,
                       child: _loading
                           ? ListView.separated(
                               scrollDirection: Axis.horizontal,
                               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                               itemCount: 3,
-                              separatorBuilder: (_, __) => const SizedBox(width: 14),
-                              itemBuilder: (_, __) => const SizedBox(
-                                width: 190,
-                                child: ListingCardSkeleton(),
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: AppSpacing.md),
+                              itemBuilder: (_, __) => SizedBox(
+                                width: cardWidth,
+                                child: const ListingCardSkeleton(),
                               ),
                             )
                           : (_listings == null || _listings!.items.isEmpty)
                               ? const Center(child: Text('No listings yet'))
                               : ListView.separated(
                                   scrollDirection: Axis.horizontal,
-                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: AppSpacing.md),
                                   itemCount: _listings!.items.length,
-                                  separatorBuilder: (_, __) => const SizedBox(width: 14),
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(width: AppSpacing.md),
                                   itemBuilder: (context, index) {
                                     return SizedBox(
-                                      width: 190,
-                                      child: ListingCard(listing: _listings!.items[index]),
+                                      width: cardWidth,
+                                      child: ListingCard(
+                                          listing: _listings!.items[index]),
                                     );
                                   },
                                 ),
@@ -349,8 +360,10 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                   padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xs),
                   child: Text(
                     'Latest listings',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'Plus Jakarta Sans',
                       color: theme.colorScheme.onBackground,
                     ),
                   ),
@@ -362,7 +375,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                   sliver: SliverGrid(
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 0.72,
+                      childAspectRatio: 0.78,
                       crossAxisSpacing: AppSpacing.md,
                       mainAxisSpacing: AppSpacing.md,
                     ),
@@ -388,7 +401,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                   sliver: SliverGrid(
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 0.66, // Slightly taller aspect ratio to fit text safely
+                      childAspectRatio: 0.78,
                       crossAxisSpacing: AppSpacing.md,
                       mainAxisSpacing: AppSpacing.md,
                     ),

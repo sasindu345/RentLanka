@@ -45,7 +45,7 @@ class ListingCard extends ConsumerWidget {
           children: [
             // Top aspect ratio image stack
             AspectRatio(
-              aspectRatio: 4 / 3,
+              aspectRatio: 16 / 10,
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.card - 1)),
                 child: Stack(
@@ -123,7 +123,7 @@ class ListingCard extends ConsumerWidget {
 
             // Card details
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
