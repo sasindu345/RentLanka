@@ -82,58 +82,59 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
       backgroundColor: theme.colorScheme.background,
       body: SafeArea(
         bottom: false,
-        child: RefreshIndicator(
-          onRefresh: _load,
-          child: _loading
-              ? const Center(child: CircularProgressIndicator())
-              : CustomScrollView(
-                  slivers: [
-                    // ── Header ─────────────────────────────────────
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                            AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xs),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Host Dashboard',
-                                  style: theme.textTheme.headlineLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 28,
-                                    fontFamily: 'Plus Jakarta Sans',
-                                    color: theme.colorScheme.onBackground,
-                                  ),
-                                ),
-                                if (_user != null)
-                                  Text(
-                                    'Welcome back, ${_user!.firstName}',
-                                    style: TextStyle(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Notifications coming soon!'),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              },
-                              icon: Icon(LucideIcons.bell,
-                                  color: theme.colorScheme.onBackground, size: 24),
-                            ),
-                          ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xs),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Host Dashboard',
+                        style: theme.textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 28,
+                          fontFamily: 'Plus Jakarta Sans',
+                          color: theme.colorScheme.onBackground,
                         ),
                       ),
-                    ),
+                      if (_user != null)
+                        Text(
+                          'Welcome back, ${_user!.firstName}',
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontSize: 13,
+                          ),
+                        ),
+                    ],
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Notifications coming soon!'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                    icon: Icon(LucideIcons.bell,
+                        color: theme.colorScheme.onBackground, size: 24),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _load,
+                child: _loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : CustomScrollView(
+                        slivers: [
 
                     // ── Verification Banner ──────────────────────────
                     if (_user != null && _user!.verificationLevel < 1)
@@ -341,11 +342,16 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
                     const SliverToBoxAdapter(child: SizedBox(height: 100)),
                   ],
                 ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
+
 
 // ─── Section Header ───────────────────────────────────────────────────────────
 
@@ -883,6 +889,14 @@ class _EarningsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    // Light: solid primary card with white text
+    // Dark: surface card with neutral text (no blue)
+    final cardBg = isDark ? theme.colorScheme.surface : primary;
+    final labelColor = isDark ? theme.colorScheme.onSurfaceVariant : Colors.white60;
+    final valueColor = isDark ? theme.colorScheme.onSurface : Colors.white;
+    final iconColor = isDark ? theme.colorScheme.onSurfaceVariant : Colors.white70;
+
     return GestureDetector(
       onTap: onTap,
       child: Padding(
@@ -890,8 +904,11 @@ class _EarningsCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: primary,
+            color: cardBg,
             borderRadius: BorderRadius.circular(AppRadius.card),
+            border: isDark
+                ? Border.all(color: theme.colorScheme.outline.withOpacity(0.25))
+                : null,
             boxShadow: isDark
                 ? AppShadows.none
                 : [
@@ -907,20 +924,18 @@ class _EarningsCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(LucideIcons.trendingUp,
-                      color: Colors.white70, size: 16),
+                  Icon(LucideIcons.trendingUp, color: iconColor, size: 16),
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     'Your Earnings',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: iconColor,
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                     ),
                   ),
                   const Spacer(),
-                  const Icon(LucideIcons.chevronRight,
-                      color: Colors.white54, size: 16),
+                  Icon(LucideIcons.chevronRight, color: iconColor, size: 16),
                 ],
               ),
               const SizedBox(height: 16),
@@ -932,27 +947,29 @@ class _EarningsCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Total Earned',
-                            style: TextStyle(color: Colors.white60, fontSize: 11),
+                            style: TextStyle(color: labelColor, fontSize: 11),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             earnings != null
                                 ? ListingsApi.formatPrice(earnings!.totalEarned)
                                 : 'LKR 0',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'Plus Jakarta Sans',
-                              color: Colors.white,
+                              color: valueColor,
                             ),
                           ),
                         ],
                       ),
                     ),
                     VerticalDivider(
-                      color: Colors.white.withOpacity(0.2),
+                      color: isDark
+                          ? theme.colorScheme.outline.withOpacity(0.3)
+                          : Colors.white.withOpacity(0.2),
                       thickness: 1,
                       width: 32,
                     ),
@@ -960,20 +977,20 @@ class _EarningsCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Available',
-                            style: TextStyle(color: Colors.white60, fontSize: 11),
+                            style: TextStyle(color: labelColor, fontSize: 11),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             earnings != null
                                 ? ListingsApi.formatPrice(earnings!.availableBalance)
                                 : 'LKR 0',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'Plus Jakarta Sans',
-                              color: Colors.white,
+                              color: valueColor,
                             ),
                           ),
                         ],

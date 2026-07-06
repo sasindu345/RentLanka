@@ -227,12 +227,60 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(title: const Text('List an Item')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+      body: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.lg,
+                AppSpacing.md,
+                AppSpacing.xs,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'List an Item',
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      color: theme.colorScheme.onBackground,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 28,
+                      fontFamily: 'Plus Jakarta Sans',
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Notifications coming soon!',
+                            style: TextStyle(
+                              color: theme.colorScheme.onSecondaryContainer,
+                            ),
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: theme.colorScheme.secondaryContainer,
+                        ),
+                      );
+                    },
+                    icon: Icon(
+                      LucideIcons.bell,
+                      color: theme.colorScheme.onBackground,
+                      size: 24,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(AppSpacing.md),
@@ -460,6 +508,10 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
               child: FilledButton(
                 onPressed: (_loading || _uploadingImage) ? null : _submit,
                 child: Text(_loading ? 'Publishing...' : 'Publish Listing'),
+              ),
+            ),
+                  ],
+                ),
               ),
             ),
           ],

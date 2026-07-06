@@ -70,7 +70,7 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
               padding: const EdgeInsets.all(AppSpacing.lg),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.77,
+                childAspectRatio: 0.73,
                 crossAxisSpacing: AppSpacing.md,
                 mainAxisSpacing: AppSpacing.md,
               ),
@@ -90,7 +90,7 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
               padding: const EdgeInsets.all(AppSpacing.lg),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.77,
+                childAspectRatio: 0.73,
                 crossAxisSpacing: AppSpacing.md,
                 mainAxisSpacing: AppSpacing.md,
               ),

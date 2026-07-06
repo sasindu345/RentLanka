@@ -403,58 +403,63 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       backgroundColor: theme.colorScheme.background,
       body: SafeArea(
         bottom: false,
-        child: RefreshIndicator(
-          onRefresh: _load,
-          child: ListView(
-            padding: const EdgeInsets.only(
-              left: AppSpacing.md,
-              right: AppSpacing.md,
-              bottom: AppSpacing.md,
-            ),
-            children: [
-              // 1. Profile Page Header Row
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: AppSpacing.lg,
-                  bottom: AppSpacing.xs,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Profile',
-                      style: theme.textTheme.headlineLarge?.copyWith(
-                        color: theme.colorScheme.onBackground,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 28,
-                        fontFamily: 'Plus Jakarta Sans',
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Notifications coming soon!',
-                              style: TextStyle(
-                                color: theme.colorScheme.onSecondaryContainer,
-                              ),
-                            ),
-                            behavior: SnackBarBehavior.floating,
-                            backgroundColor:
-                                theme.colorScheme.secondaryContainer,
-                          ),
-                        );
-                      },
-                      icon: Icon(
-                        LucideIcons.bell,
-                        color: theme.colorScheme.onBackground,
-                        size: 24,
-                      ),
-                    ),
-                  ],
-                ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.lg,
+                AppSpacing.md,
+                AppSpacing.xs,
               ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Profile',
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      color: theme.colorScheme.onBackground,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 28,
+                      fontFamily: 'Plus Jakarta Sans',
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Notifications coming soon!',
+                            style: TextStyle(
+                              color: theme.colorScheme.onSecondaryContainer,
+                            ),
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor:
+                              theme.colorScheme.secondaryContainer,
+                        ),
+                      );
+                    },
+                    icon: Icon(
+                      LucideIcons.bell,
+                      color: theme.colorScheme.onBackground,
+                      size: 24,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _load,
+                child: ListView(
+                  padding: const EdgeInsets.only(
+                    left: AppSpacing.md,
+                    right: AppSpacing.md,
+                    bottom: AppSpacing.md,
+                  ),
+                  children: [
               SizedBox(height: AppSpacing.lg),
 
               // 2. Profile Details Row
@@ -920,12 +925,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 class _VerificationStep extends StatelessWidget {

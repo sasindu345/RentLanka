@@ -20,57 +20,58 @@ class WishlistScreen extends ConsumerWidget {
       backgroundColor: theme.colorScheme.background,
       body: SafeArea(
         bottom: false,
-        child: RefreshIndicator(
-          onRefresh: () => ref.read(wishlistProvider.notifier).loadWishlist(),
-          child: CustomScrollView(
-            slivers: [
-              // 1. Saved Page Header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    AppSpacing.lg,
-                    AppSpacing.md,
-                    AppSpacing.xs,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Saved',
-                        style: theme.textTheme.headlineLarge?.copyWith(
-                          color: theme.colorScheme.onBackground,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 28,
-                          fontFamily: 'Plus Jakarta Sans',
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Notifications coming soon!',
-                                style: TextStyle(
-                                  color: theme.colorScheme.onSecondaryContainer,
-                                ),
-                              ),
-                              behavior: SnackBarBehavior.floating,
-                              backgroundColor:
-                                  theme.colorScheme.secondaryContainer,
-                            ),
-                          );
-                        },
-                        icon: Icon(
-                          LucideIcons.bell,
-                          color: theme.colorScheme.onBackground,
-                          size: 24,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.lg,
+                AppSpacing.md,
+                AppSpacing.xs,
               ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Saved',
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      color: theme.colorScheme.onBackground,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 28,
+                      fontFamily: 'Plus Jakarta Sans',
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Notifications coming soon!',
+                            style: TextStyle(
+                              color: theme.colorScheme.onSecondaryContainer,
+                            ),
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor:
+                              theme.colorScheme.secondaryContainer,
+                        ),
+                      );
+                    },
+                    icon: Icon(
+                      LucideIcons.bell,
+                      color: theme.colorScheme.onBackground,
+                      size: 24,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => ref.read(wishlistProvider.notifier).loadWishlist(),
+                child: CustomScrollView(
+                  slivers: [
 
               // 2. Wishlist Grid Content
               wishlistState.when(
@@ -83,7 +84,7 @@ class WishlistScreen extends ConsumerWidget {
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          childAspectRatio: 0.77,
+                          childAspectRatio: 0.73,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
                         ),
@@ -137,7 +138,7 @@ class WishlistScreen extends ConsumerWidget {
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
-                                childAspectRatio: 0.77,
+                                childAspectRatio: 0.73,
                                 crossAxisSpacing: 12,
                                 mainAxisSpacing: 12,
                               ),
@@ -150,8 +151,11 @@ class WishlistScreen extends ConsumerWidget {
                       ),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 80)),
-            ],
-          ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
