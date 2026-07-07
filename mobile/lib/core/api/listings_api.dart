@@ -3,19 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/storage/token_storage.dart';
+import 'package:mobile/core/services/notification_service.dart';
 
 final listingsApiProvider = Provider((ref) {
   return ListingsApi(
     ref.watch(dioProvider),
     ref.watch(tokenStorageProvider),
+    ref,
   );
 });
 
 class ListingsApi {
   final Dio _dio;
   final TokenStorage _storage;
+  final Ref _ref;
 
-  ListingsApi(this._dio, this._storage);
+  ListingsApi(this._dio, this._storage, this._ref);
 
   Future<void> login(String email, String password) async {
     final response = await _dio.post('/api/auth/login', data: {
@@ -24,6 +27,9 @@ class ListingsApi {
     });
     final token = response.data['token'] as String;
     await _storage.saveToken(token);
+    
+    // Register FCM Device Token for the newly logged-in user
+    await _ref.read(notificationServiceProvider).registerToken();
   }
 
   Future<void> register({

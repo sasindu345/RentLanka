@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "167075879563",
+    "project_id": "rentlanka-6687a",
+    "storage_bucket": "rentlanka-6687a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:167075879563:android:b0d837e8a625ee47dd528e",
+        "android_client_info": {
+          "package_name": "com.example.rentlanka"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlc6KvFGgLxAI38emlN6vEEJ9CWE7C8_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
