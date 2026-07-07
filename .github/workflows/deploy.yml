@@ -36,23 +36,3 @@ jobs:
         with:
           app-name: rentlanka-api
           package: ./publish-api
-
-  deploy-web:
-    name: Build & Deploy Next.js Frontend
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Deploy Static Web App
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_SWA_TOKEN }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: 'upload'
-          app_location: '/web'
-          api_location: ''
-          output_location: '.next'
-          app_build_command: 'npm run build'
-        env:
-          NEXT_PUBLIC_API_URL: 'https://rentlanka-api.azurewebsites.net'
