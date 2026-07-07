@@ -38,6 +38,16 @@ jobs:
           app-name: rentlanka-api
           package: ./publish-api
 
+      - name: Run Deployment Smoke Test
+        run: |
+          echo "Running Smoke Test against production API health endpoint..."
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://rentlanka-api.azurewebsites.net/health)
+          if [ "$STATUS_CODE" -ne 200 ]; then
+            echo "Smoke test failed! Production health check returned HTTP status $STATUS_CODE"
+            exit 1
+          fi
+          echo "Smoke test passed! Production API is healthy."
+
   build-android-apk:
     name: Build Flutter Android APK
     runs-on: ubuntu-latest
