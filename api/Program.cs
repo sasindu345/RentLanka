@@ -11,6 +11,12 @@ using RentLanka.Api.Middleware;
 using RentLanka.Api.Services.Implementations;
 using RentLanka.Api.Services.Interfaces;
 using RentLanka.Api.Hubs;
+using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Http;
 
 using System;
 using System.IO;
@@ -63,10 +69,39 @@ public class Program
             Console.WriteLine($"[ENV LOADER] No .env file found at {envPath}");
         }
 
-        var builder = WebApplication.CreateBuilder(args);
+        // Initialize Serilog bootstrap logger
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .WriteTo.Console(new CompactJsonFormatter())
+            .CreateBootstrapLogger();
 
-        // Add services to the container.
-        builder.Services.AddControllers();
+        try
+        {
+            Log.Information("Configuring host and services...");
+
+            var builder = WebApplication.CreateBuilder(args);
+
+            // Configure Serilog
+            builder.Host.UseSerilog((context, services, configuration) =>
+            {
+                configuration
+                    .ReadFrom.Configuration(context.Configuration)
+                    .ReadFrom.Services(services)
+                    .Enrich.FromLogContext()
+                    .WriteTo.Console(new CompactJsonFormatter());
+
+                var telemetryConfig = services.GetService<TelemetryConfiguration>();
+                if (telemetryConfig != null)
+                {
+                    configuration.WriteTo.ApplicationInsights(telemetryConfig, TelemetryConverter.Traces);
+                }
+            });
+
+            // Add services to the container.
+            builder.Services.AddApplicationInsightsTelemetry();
+            builder.Services.AddControllers();
 
         builder.Services.AddCors(options =>
         {
@@ -112,13 +147,42 @@ public class Program
             Console.WriteLine($"[DB CONFIG] Using local connection string from appsettings: Host={connectionString?.Split(';').FirstOrDefault(x => x.StartsWith("Host=", StringComparison.OrdinalIgnoreCase)) ?? "Not Specified"}");
         }
 
-        builder.Services.AddDbContext<AppDbContext>(options =>
+        // Dynamically enforce connection limits to protect Neon DB connection boundaries
+        if (!string.IsNullOrEmpty(connectionString))
+        {
+            if (!connectionString.EndsWith(";"))
+            {
+                connectionString += ";";
+            }
+            if (!connectionString.Contains("Max Pool Size=", StringComparison.OrdinalIgnoreCase))
+            {
+                connectionString += "Max Pool Size=8;Connection Timeout=15;";
+            }
+        }
+
+        builder.Services.AddDbContextPool<AppDbContext>(options =>
             options.UseNpgsql(connectionString,
                 npgsqlOptions =>
                 {
                     npgsqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
                     npgsqlOptions.UseNetTopologySuite();
+                    npgsqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 3,
+                        maxRetryDelay: TimeSpan.FromSeconds(5),
+                        errorCodesToAdd: null);
                 }));
+
+        // Configure Rate Limiting
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.AddFixedWindowLimiter("AuthLimit", opt =>
+            {
+                opt.Window = TimeSpan.FromMinutes(1);
+                opt.PermitLimit = 10;
+                opt.QueueLimit = 0;
+            });
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        });
 
         // Configure Authentication
         var secret = builder.Configuration["JwtSettings:Secret"];
@@ -212,6 +276,7 @@ public class Program
         Directory.CreateDirectory(Path.Combine(webRoot, "uploads"));
 
         // Configure the HTTP request pipeline.
+        app.UseMiddleware<CorrelationIdMiddleware>();
         app.UseMiddleware<ExceptionMiddleware>();
 
         if (app.Environment.IsDevelopment())
@@ -225,6 +290,7 @@ public class Program
 
         app.UseCors("RentLankaClients");
 
+        app.UseRateLimiter();
 
         app.UseStaticFiles();
 
@@ -239,6 +305,15 @@ public class Program
 
 
         app.Run();
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "Host terminated unexpectedly");
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
     }
 
     private static string ConvertPostgresUriToConnectionString(string uriString)

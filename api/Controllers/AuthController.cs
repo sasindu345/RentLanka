@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RentLanka.Api.Models.Requests;
 using RentLanka.Api.Services.Interfaces;
 
@@ -7,6 +8,7 @@ namespace RentLanka.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("AuthLimit")]
 public class AuthController : ControllerBase
 {
     private readonly IIdentityService _identityService;
