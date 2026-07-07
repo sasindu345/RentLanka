@@ -17,6 +17,9 @@ using Serilog.Formatting.Compact;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Http;
+using Sentry;
+using Sentry.AspNetCore;
+using Microsoft.Extensions.Logging;
 
 using System;
 using System.IO;
@@ -82,6 +85,16 @@ public class Program
             Log.Information("Configuring host and services...");
 
             var builder = WebApplication.CreateBuilder(args);
+
+            // Configure WebHost to use Sentry
+            builder.WebHost.UseSentry((SentryAspNetCoreOptions options) =>
+            {
+                options.Dsn = builder.Configuration["Sentry:Dsn"] ?? "https://d9fbb3f7215c4d3da9f1a26bfa33d456@o4507000000000000.ingest.us.sentry.io/4507000000000000";
+                options.Debug = false;
+                options.TracesSampleRate = 1.0;
+                options.MinimumEventLevel = LogLevel.Error;
+                options.MinimumBreadcrumbLevel = LogLevel.Information;
+            });
 
             // Configure Serilog
             builder.Host.UseSerilog((context, services, configuration) =>
