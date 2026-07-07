@@ -73,7 +73,7 @@ jobs:
         working-directory: mobile
 
       - name: Build Release APK
-        run: flutter build apk --release --dart-define=API_BASE_URL=https://rentlanka-api.azurewebsites.net
+        run: flutter build apk --release --dart-define=API_BASE_URL=https://rentlanka-api.azurewebsites.net --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }}
         working-directory: mobile
 
       - name: Upload APK Artifact
