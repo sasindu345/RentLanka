@@ -72,18 +72,30 @@ public class Program
         {
             options.AddPolicy("RentLankaClients", policy =>
             {
-                policy.WithOrigins(
-                        "http://localhost:3000",
-                        "http://127.0.0.1:3000",
-                        "http://localhost:3001",
-                        "http://127.0.0.1:3001",
-                        "http://localhost:3002",
-                        "http://127.0.0.1:3002")
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials();
+                var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>();
+                if (allowedOrigins != null && allowedOrigins.Length > 0)
+                {
+                    policy.WithOrigins(allowedOrigins)
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                }
+                else
+                {
+                    policy.WithOrigins(
+                            "http://localhost:3000",
+                            "http://127.0.0.1:3000",
+                            "http://localhost:3001",
+                            "http://127.0.0.1:3001",
+                            "http://localhost:3002",
+                            "http://127.0.0.1:3002")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                }
             });
         });
+
 
         // Database context registration
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -109,9 +121,22 @@ public class Program
                 }));
 
         // Configure Authentication
-        var secret = builder.Configuration["JwtSettings:Secret"] ?? "super_secret_key_rentlanka_1234567890_long_enough";
+        var secret = builder.Configuration["JwtSettings:Secret"];
+        if (string.IsNullOrEmpty(secret))
+        {
+            if (builder.Environment.IsDevelopment())
+            {
+                secret = "super_secret_key_rentlanka_1234567890_long_enough";
+                Console.WriteLine("[WARN] JwtSettings:Secret is empty. Falling back to development dummy key.");
+            }
+            else
+            {
+                throw new InvalidOperationException("CRITICAL: JwtSettings:Secret is not configured. The API cannot start in non-development mode without a signing key.");
+            }
+        }
         var issuer = builder.Configuration["JwtSettings:Issuer"] ?? "RentLanka";
         var audience = builder.Configuration["JwtSettings:Audience"] ?? "RentLankaUsers";
+
 
         builder.Services.AddAuthentication(options =>
         {
@@ -193,8 +218,13 @@ public class Program
         {
             app.MapOpenApi();
         }
+        else
+        {
+            app.UseHttpsRedirection();
+        }
 
         app.UseCors("RentLankaClients");
+
 
         app.UseStaticFiles();
 
@@ -203,6 +233,10 @@ public class Program
 
         app.MapControllers();
         app.MapHub<ChatHub>("/hubs/chat");
+        
+        // Simple health check endpoint for Azure ping probes
+        app.MapGet("/health", () => Results.Ok("healthy"));
+
 
         app.Run();
     }

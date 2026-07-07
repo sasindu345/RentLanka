@@ -83,8 +83,21 @@ public class IdentityService : IIdentityService
 
     private string GenerateJwtToken(User user)
     {
-        var secret = _configuration["JwtSettings:Secret"] ?? "super_secret_key_rentlanka_1234567890_long_enough";
+        var secret = _configuration["JwtSettings:Secret"];
+        if (string.IsNullOrEmpty(secret))
+        {
+            var isDevelopment = string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Development", StringComparison.OrdinalIgnoreCase);
+            if (isDevelopment)
+            {
+                secret = "super_secret_key_rentlanka_1234567890_long_enough";
+            }
+            else
+            {
+                throw new InvalidOperationException("CRITICAL: JwtSettings:Secret is not configured for token generation.");
+            }
+        }
         var issuer = _configuration["JwtSettings:Issuer"] ?? "RentLanka";
+
         var audience = _configuration["JwtSettings:Audience"] ?? "RentLankaUsers";
         var expiryInMinutes = double.Parse(_configuration["JwtSettings:ExpiryInMinutes"] ?? "1440"); // 1 day
 

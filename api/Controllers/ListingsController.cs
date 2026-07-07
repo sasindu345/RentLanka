@@ -188,6 +188,7 @@ public class ListingsController : AuthorizedControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet("seed")]
     [HttpPost("seed")]
     public async Task<IActionResult> SeedListings([FromServices] AppDbContext context)
