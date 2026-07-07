@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/api/">
+    <Project Path="api/RentLanka.Api.csproj" />
+  </Folder>
+  <Project Path="api.tests/api.tests.csproj" />
+</Solution>

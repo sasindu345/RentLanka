@@ -268,7 +268,35 @@ public class Program
         }
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        builder.Services.AddOpenApi();
+        builder.Services.AddOpenApi(options =>
+        {
+            options.AddDocumentTransformer((document, context, cancellationToken) =>
+            {
+                document.Info.Title = "RentLanka API";
+                document.Info.Version = "v1";
+                document.Info.Description = "RentLanka Peer-to-Peer Rental Marketplace API Backend Services";
+
+                // Add JWT Security Scheme
+                var securityScheme = new Microsoft.OpenApi.OpenApiSecurityScheme
+                {
+                    Type = Microsoft.OpenApi.SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    Description = "Enter your JWT token. Format: Bearer {token}"
+                };
+
+                document.Components ??= new Microsoft.OpenApi.OpenApiComponents();
+                document.Components.SecuritySchemes.Add("Bearer", securityScheme);
+
+                // Enforce global security requirement for authorization testing in swagger
+                document.Security.Add(new Microsoft.OpenApi.OpenApiSecurityRequirement
+                {
+                    { new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", document), new List<string>() }
+                });
+
+                return Task.CompletedTask;
+            });
+        });
 
         var app = builder.Build();
 
