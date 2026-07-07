@@ -89,7 +89,7 @@ public class Program
             // Configure WebHost to use Sentry
             builder.WebHost.UseSentry((SentryAspNetCoreOptions options) =>
             {
-                options.Dsn = builder.Configuration["Sentry:Dsn"] ?? "https://d9fbb3f7215c4d3da9f1a26bfa33d456@o4507000000000000.ingest.us.sentry.io/4507000000000000";
+                options.Dsn = builder.Configuration["Sentry:Dsn"] ?? "https://f404fbd98484757a872624c5d6a662ce@o4511590911836160.ingest.us.sentry.io/4511694253064192";
                 options.Debug = false;
                 options.TracesSampleRate = 1.0;
                 options.MinimumEventLevel = LogLevel.Error;

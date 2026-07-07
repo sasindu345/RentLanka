@@ -16,7 +16,7 @@ void main() async {
     (options) {
       options.dsn = const String.fromEnvironment(
         'SENTRY_DSN',
-        defaultValue: 'https://d9fbb3f7215c4d3da9f1a26bfa33d456@o4507000000000000.ingest.us.sentry.io/4507000000000000', // Production-ready placeholder DSN for Solo dev setup
+        defaultValue: 'https://b65bc124cd06722001df13ad9411abbf@o4511590911836160.ingest.us.sentry.io/4511694264860672',
       );
       options.tracesSampleRate = 1.0;
     },
