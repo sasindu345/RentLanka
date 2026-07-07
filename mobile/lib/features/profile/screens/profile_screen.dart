@@ -328,7 +328,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(LucideIcons.pocket, color: theme.colorScheme.primary),
+            Icon(LucideIcons.info, color: theme.colorScheme.primary),
             const SizedBox(width: 8),
             const Text(
               'About RentLanka',
