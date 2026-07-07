@@ -36,3 +36,36 @@ jobs:
         with:
           app-name: rentlanka-api
           package: ./publish-api
+
+  build-android-apk:
+    name: Build Flutter Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Get packages
+        run: flutter pub get
+        working-directory: mobile
+
+      - name: Build Release APK
+        run: flutter build apk --release --dart-define=API_BASE_URL=https://rentlanka-api.azurewebsites.net
+        working-directory: mobile
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rentlanka-android-apk
+          path: mobile/build/app/outputs/flutter-apk/app-release.apk
+
