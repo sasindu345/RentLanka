@@ -154,9 +154,9 @@ public class Program
             {
                 connectionString += ";";
             }
-            if (!connectionString.Contains("Max Pool Size=", StringComparison.OrdinalIgnoreCase))
+            if (!connectionString.Contains("Maximum Pool Size=", StringComparison.OrdinalIgnoreCase))
             {
-                connectionString += "Max Pool Size=8;Connection Timeout=15;";
+                connectionString += "Maximum Pool Size=8;Timeout=15;";
             }
         }
 
@@ -267,6 +267,8 @@ public class Program
             builder.Services.AddSingleton<IFileStorageService, CloudinaryFileStorageService>();
         }
 
+        builder.Services.AddProblemDetails();
+
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi(options =>
         {
@@ -306,6 +308,7 @@ public class Program
         // Configure the HTTP request pipeline.
         app.UseMiddleware<CorrelationIdMiddleware>();
         app.UseMiddleware<ExceptionMiddleware>();
+        app.UseStatusCodePages();
 
         if (app.Environment.IsDevelopment())
         {

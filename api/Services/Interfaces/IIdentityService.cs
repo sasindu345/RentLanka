@@ -13,7 +13,11 @@ public interface IIdentityService
         string phoneNumber,
         string role);
 
-    Task<(bool Succeeded, string? Token, string? Error)> LoginAsync(
+    Task<(bool Succeeded, string? Token, string? RefreshToken, string? Error)> LoginAsync(
         string email, 
         string password);
+
+    Task<(bool Succeeded, string? Token, string? RefreshToken, string? Error)> RefreshTokenAsync(
+        string expiredToken, 
+        string refreshToken);
 }

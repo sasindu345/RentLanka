@@ -36,19 +36,26 @@ public class ExceptionMiddleware
 
     private Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        context.Response.ContentType = "application/json";
+        context.Response.ContentType = "application/problem+json";
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-        var response = new ApiException(
-            context.Response.StatusCode, 
-            "An unexpected error occurred.", 
-            _env.IsDevelopment() ? exception.Message : null);
+        var problemDetails = new Microsoft.AspNetCore.Mvc.ProblemDetails
+        {
+            Status = context.Response.StatusCode,
+            Title = "An unexpected error occurred.",
+            Detail = _env.IsDevelopment() ? exception.Message : "An internal server error occurred. Please reference the correlation ID when contacting support.",
+            Instance = context.Request.Path
+        };
+
+        // Extract Correlation ID from response headers if present
+        if (context.Response.Headers.TryGetValue("X-Correlation-ID", out var correlationId))
+        {
+            problemDetails.Extensions["correlationId"] = correlationId.ToString();
+        }
 
         var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-        var json = JsonSerializer.Serialize(response, options);
+        var json = JsonSerializer.Serialize(problemDetails, options);
 
         return context.Response.WriteAsync(json);
     }
 }
-
-public record ApiException(int StatusCode, string Message, string? Detail);

@@ -26,7 +26,8 @@ class ListingsApi {
       'password': password,
     });
     final token = response.data['token'] as String;
-    await _storage.saveToken(token);
+    final refreshToken = response.data['refreshToken'] as String;
+    await _storage.saveTokens(token, refreshToken);
     
     // Register FCM Device Token for the newly logged-in user
     await _ref.read(notificationServiceProvider).registerToken();

@@ -40,13 +40,26 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var (succeeded, token, error) = await _identityService.LoginAsync(request.Email, request.Password);
+        var (succeeded, token, refreshToken, error) = await _identityService.LoginAsync(request.Email, request.Password);
 
         if (!succeeded)
         {
             return Unauthorized(new { Error = error });
         }
 
-        return Ok(new { Token = token });
+        return Ok(new { Token = token, RefreshToken = refreshToken });
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
+    {
+        var (succeeded, token, refreshToken, error) = await _identityService.RefreshTokenAsync(request.Token, request.RefreshToken);
+
+        if (!succeeded)
+        {
+            return BadRequest(new { Error = error });
+        }
+
+        return Ok(new { Token = token, RefreshToken = refreshToken });
     }
 }

@@ -20,6 +20,8 @@ public class User
     public bool IsBanned { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
+    public string? RefreshTokenHash { get; set; }
+    public DateTime? RefreshTokenExpiry { get; set; }
 
     public ICollection<Listing> Listings { get; set; } = new List<Listing>();
     public ICollection<WishlistItem> WishlistItems { get; set; } = new List<WishlistItem>();

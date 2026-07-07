@@ -11,3 +11,7 @@ public record RegisterRequest(
 public record LoginRequest(
     string Email, 
     string Password);
+
+public record RefreshRequest(
+    string Token,
+    string RefreshToken);

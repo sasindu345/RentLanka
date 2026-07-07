@@ -42,6 +42,7 @@ public class AppDbContext : DbContext
             entity.Property(u => u.NicDocumentUrl).HasMaxLength(2048);
             entity.Property(u => u.Role).IsRequired().HasMaxLength(50).HasDefaultValue("Renter");
             entity.Property(u => u.IsBanned).HasDefaultValue(false);
+            entity.Property(u => u.RefreshTokenHash).HasMaxLength(512);
         });
 
         modelBuilder.Entity<User>().HasData(new User
