@@ -6,7 +6,7 @@ import 'package:mobile/shared/widgets/listing_card.dart';
 import 'package:mobile/shared/widgets/shimmer_skeleton.dart';
 import 'package:mobile/shared/widgets/empty_state.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class SearchResultsScreen extends ConsumerStatefulWidget {
   final String initialQuery;

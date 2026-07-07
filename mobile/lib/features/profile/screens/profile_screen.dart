@@ -15,7 +15,7 @@ import 'package:mobile/core/theme/app_radius.dart';
 import 'package:mobile/core/theme/app_shadows.dart';
 import 'package:mobile/core/providers/app_mode_provider.dart';
 import 'package:mobile/core/providers/theme_provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});

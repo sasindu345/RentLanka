@@ -11,7 +11,7 @@ import 'package:mobile/core/api/reviews_api.dart';
 import 'package:mobile/core/api/chats_api.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/providers/wishlist_provider.dart';
 
 class ListingDetailScreen extends ConsumerStatefulWidget {

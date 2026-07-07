@@ -6,7 +6,7 @@ import 'package:mobile/core/api/bookings_api.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class EarningsScreen extends ConsumerStatefulWidget {
   const EarningsScreen({super.key});

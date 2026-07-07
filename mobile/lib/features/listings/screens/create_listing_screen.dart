@@ -11,7 +11,7 @@ import 'package:mobile/core/constants.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class CreateListingScreen extends ConsumerStatefulWidget {
   const CreateListingScreen({super.key});

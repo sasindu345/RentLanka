@@ -8,7 +8,7 @@ import 'package:mobile/core/api/verification_api.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class VerificationScreen extends ConsumerStatefulWidget {
   const VerificationScreen({super.key});

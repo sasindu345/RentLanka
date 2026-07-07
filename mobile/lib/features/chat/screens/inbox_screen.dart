@@ -7,7 +7,7 @@ import 'package:mobile/shared/widgets/listing_image.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:mobile/shared/widgets/empty_state.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class InboxScreen extends ConsumerStatefulWidget {
   const InboxScreen({super.key});

@@ -6,7 +6,7 @@ import 'package:mobile/features/profile/screens/notifications_screen.dart';
 
 import 'package:mobile/shared/widgets/shimmer_skeleton.dart';
 import 'package:mobile/shared/widgets/empty_state.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 

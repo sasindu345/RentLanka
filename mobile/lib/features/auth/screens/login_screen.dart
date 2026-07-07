@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/shared/widgets/rentlanka_logo.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {

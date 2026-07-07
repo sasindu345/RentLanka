@@ -11,7 +11,7 @@ import 'package:mobile/shared/widgets/shimmer_skeleton.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:mobile/core/theme/app_shadows.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class HomeFeedScreen extends ConsumerStatefulWidget {
