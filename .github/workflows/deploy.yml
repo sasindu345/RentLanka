@@ -20,6 +20,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
           cache: true
+          cache-dependency-path: api/RentLanka.Api.csproj
 
       - name: Restore dependencies
         run: dotnet restore api/RentLanka.Api.csproj
