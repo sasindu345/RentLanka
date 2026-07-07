@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/api/notifications_api.dart';
 import 'package:mobile/core/api/listings_api.dart';
 
+import 'package:mobile/core/providers/notification_provider.dart';
+
 final notificationServiceProvider = Provider((ref) {
   return NotificationService(ref);
 });
@@ -98,7 +100,10 @@ class NotificationService {
     // 2. Listen for tap action when app is opened via notification from background state
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       developer.log('🔔 App opened via notification: ${message.data}');
-      // Custom routing/handling can be added here in the future
+      
+      final title = message.notification?.title ?? 'Notification Alert';
+      final body = message.notification?.body ?? '';
+      _ref.read(notificationListProvider.notifier).addNotification(title, body);
     });
   }
 
@@ -107,9 +112,9 @@ class NotificationService {
     final title = message.notification?.title ?? 'New Notification';
     final body = message.notification?.body ?? '';
 
-    // Since we don't always have access to a ScaffoldMessenger context at the Service level,
-    // we can either trigger a UI provider state or use standard ScaffoldMessenger if a context is active.
-    // In this case, we print it to console/logs, and developers can extend this to update local activity states.
+    // Add to history
+    _ref.read(notificationListProvider.notifier).addNotification(title, body);
+
     developer.log('🔔 SHOW ALERT: [$title] - $body');
   }
 }

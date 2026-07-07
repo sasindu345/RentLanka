@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/listings_api.dart';
+import 'package:mobile/features/profile/screens/notifications_screen.dart';
+
 import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/shared/widgets/listing_card.dart';
@@ -86,7 +88,6 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
     // Card dimensions — shared across both horizontal and grid sections
     // so both render pixel-perfect identical cards.
     final double cardWidth =
@@ -121,18 +122,13 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                   ),
                   IconButton(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Notifications coming soon!',
-                            style: TextStyle(
-                              color: theme.colorScheme.onSecondaryContainer,
-                            ),
-                          ),
-                          behavior: SnackBarBehavior.floating,
-                          backgroundColor: theme.colorScheme.secondaryContainer,
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationsScreen(),
                         ),
                       );
+
                     },
                     icon: Icon(
                       LucideIcons.bell,

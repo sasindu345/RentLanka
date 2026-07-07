@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/bookings_api.dart';
+import 'package:mobile/features/profile/screens/notifications_screen.dart';
+
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/shared/widgets/listing_image.dart';
 import 'package:mobile/core/providers/app_mode_provider.dart';
@@ -1042,19 +1044,13 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                     ),
                     IconButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Notifications coming soon!',
-                              style: TextStyle(
-                                color: theme.colorScheme.onSecondaryContainer,
-                              ),
-                            ),
-                            behavior: SnackBarBehavior.floating,
-                            backgroundColor:
-                                theme.colorScheme.secondaryContainer,
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const NotificationsScreen(),
                           ),
                         );
+
                       },
                       icon: Icon(
                         LucideIcons.bell,

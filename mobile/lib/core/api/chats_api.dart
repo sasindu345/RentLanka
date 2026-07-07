@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/api/api_client.dart';
+import 'package:mobile/core/services/encryption_service.dart';
 
 final chatsApiProvider = Provider((ref) {
   return ChatsApi(ref.watch(dioProvider));
@@ -34,8 +35,12 @@ class ConversationResponse {
   });
 
   factory ConversationResponse.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String;
+    final lastMsg = json['lastMessageContent'] as String? ?? '';
+    final decryptedLastMsg = EncryptionService.decryptMessage(lastMsg, id);
+
     return ConversationResponse(
-      id: json['id'] as String,
+      id: id,
       userOneId: json['userOneId'] as String,
       userOneName: json['userOneName'] as String,
       userTwoId: json['userTwoId'] as String,
@@ -44,7 +49,7 @@ class ConversationResponse {
       listingTitle: json['listingTitle'] as String?,
       listingImage: json['listingImage'] as String?,
       lastMessageAt: DateTime.parse(json['lastMessageAt'] as String),
-      lastMessageContent: json['lastMessageContent'] as String? ?? '',
+      lastMessageContent: decryptedLastMsg,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
@@ -70,12 +75,16 @@ class MessageResponse {
   });
 
   factory MessageResponse.fromJson(Map<String, dynamic> json) {
+    final conversationId = json['conversationId'] as String;
+    final encryptedContent = json['content'] as String;
+    final decryptedContent = EncryptionService.decryptMessage(encryptedContent, conversationId);
+
     return MessageResponse(
       id: json['id'] as String,
-      conversationId: json['conversationId'] as String,
+      conversationId: conversationId,
       senderId: json['senderId'] as String,
       senderName: json['senderName'] as String,
-      content: json['content'] as String,
+      content: decryptedContent,
       isRead: json['isRead'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
@@ -102,8 +111,9 @@ class ChatsApi {
   }
 
   Future<MessageResponse> sendMessage(String conversationId, String content) async {
+    final encryptedContent = EncryptionService.encryptMessage(content, conversationId);
     final response = await _dio.post('/api/chats/$conversationId/messages', data: {
-      'content': content,
+      'content': encryptedContent,
     });
     return MessageResponse.fromJson(response.data as Map<String, dynamic>);
   }

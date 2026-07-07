@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:mobile/core/api/bookings_api.dart';
+import 'package:mobile/features/profile/screens/notifications_screen.dart';
+
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/models/listing.dart';
@@ -115,12 +117,13 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
                   ),
                   IconButton(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Notifications coming soon!'),
-                          behavior: SnackBarBehavior.floating,
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationsScreen(),
                         ),
                       );
+
                     },
                     icon: Icon(LucideIcons.bell,
                         color: theme.colorScheme.onBackground, size: 24),

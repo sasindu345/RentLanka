@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/api_client.dart';
+import 'package:mobile/features/profile/screens/notifications_screen.dart';
+
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/models/listing.dart';
@@ -427,19 +429,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   IconButton(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Notifications coming soon!',
-                            style: TextStyle(
-                              color: theme.colorScheme.onSecondaryContainer,
-                            ),
-                          ),
-                          behavior: SnackBarBehavior.floating,
-                          backgroundColor:
-                              theme.colorScheme.secondaryContainer,
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationsScreen(),
                         ),
                       );
+
                     },
                     icon: Icon(
                       LucideIcons.bell,
