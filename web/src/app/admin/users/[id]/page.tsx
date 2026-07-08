@@ -88,8 +88,14 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
   if (error || !user) {
     return (
       <div className="space-y-4">
-        <Link href="/admin/users" className="text-sm text-indigo-400 hover:underline">
-          ← Back to Users List
+        <Link 
+          href="/admin/users" 
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-slate-100 hover:border-slate-700 transition duration-150 group"
+        >
+          <svg className="w-3.5 h-3.5 text-slate-400 group-hover:-translate-x-0.5 transition-transform duration-150" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to User Management
         </Link>
         <div className="p-6 bg-red-950/20 border border-red-800/40 rounded-2xl text-red-400">
           <p className="font-semibold">Error Loading Detail</p>
@@ -103,8 +109,14 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div>
-        <Link href="/admin/users" className="text-sm text-slate-400 hover:text-indigo-400 transition flex items-center gap-1">
-          <span>←</span> Back to Users List
+        <Link 
+          href="/admin/users" 
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-slate-100 hover:border-slate-700 transition duration-150 group"
+        >
+          <svg className="w-3.5 h-3.5 text-slate-400 group-hover:-translate-x-0.5 transition-transform duration-150" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to User Management
         </Link>
         <h2 className="text-2xl font-bold mt-3 text-slate-100">
           {user.firstName} {user.lastName}
@@ -179,7 +191,10 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/40 text-indigo-400 hover:text-indigo-300 transition duration-150"
                     >
-                      📎 View Document Attachment <span>↗</span>
+                      <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                      </svg>
+                      View Document Attachment <span>↗</span>
                     </a>
                   </div>
                 ) : (
@@ -188,7 +203,11 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
               </div>
             ) : (
               <div className="py-4 text-center">
-                <span className="text-3xl text-slate-600 block">📭</span>
+                <div className="flex justify-center mb-2">
+                  <svg className="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5" />
+                  </svg>
+                </div>
                 <p className="text-sm text-slate-500 mt-2">
                   User has not submitted National Identity Card (NIC) details yet.
                 </p>
@@ -261,8 +280,11 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/40 border border-slate-800/60">
                 <span className="text-xs text-slate-400 font-medium">Trusted Badge</span>
                 {user.isTrustedUser ? (
-                  <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-indigo-950/40 text-indigo-400 border border-indigo-500/20">
-                    Trusted 🛡️
+                  <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full font-bold bg-indigo-950/40 text-indigo-400 border border-indigo-500/20">
+                    <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    Trusted
                   </span>
                 ) : (
                   <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-slate-800 text-slate-400 border border-slate-700/60">
@@ -294,19 +316,26 @@ export default function AdminUserDetail({ params }: { params: Promise<{ id: stri
             </h3>
 
             <form onSubmit={handleOverride} className="space-y-4">
-              <label className="flex flex-col gap-1.5 text-xs text-slate-400 font-semibold uppercase">
+              <label className="flex flex-col gap-1.5 text-xs text-slate-400 font-semibold uppercase relative">
                 Verification level
-                <select
-                  value={overrideLevel}
-                  onChange={(e) => setOverrideLevel(Number(e.target.value))}
-                  className="rounded-xl border border-slate-800 bg-slate-955 px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-indigo-500 transition mt-1"
-                >
-                  <option value={-1}>Unverified (-1)</option>
-                  <option value={0}>L0: Email Verified (0)</option>
-                  <option value={1}>L1: Phone Verified (1)</option>
-                  <option value={2}>L2: NIC Submitted (2)</option>
-                  <option value={3}>L3: Face Verified / Trusted (3)</option>
-                </select>
+                <div className="relative mt-1">
+                  <select
+                    value={overrideLevel}
+                    onChange={(e) => setOverrideLevel(Number(e.target.value))}
+                    className="w-full appearance-none rounded-xl border border-slate-800 bg-slate-955 px-4 pr-10 py-2.5 text-sm text-slate-200 outline-none focus:border-indigo-500 transition cursor-pointer"
+                  >
+                    <option value={-1}>Unverified (-1)</option>
+                    <option value={0}>L0: Email Verified (0)</option>
+                    <option value={1}>L1: Phone Verified (1)</option>
+                    <option value={2}>L2: NIC Submitted (2)</option>
+                    <option value={3}>L3: Face Verified / Trusted (3)</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </label>
 
               <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-800/60 bg-slate-900/30 cursor-pointer select-none">

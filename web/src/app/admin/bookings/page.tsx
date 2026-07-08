@@ -88,9 +88,12 @@ export default function AdminBookingsOversight() {
         </div>
         <button
           onClick={loadBookings}
-          className="self-start px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl text-slate-300 text-xs font-semibold hover:text-slate-100 transition duration-150 cursor-pointer"
+          className="self-start inline-flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl text-slate-300 text-xs font-semibold hover:text-slate-100 transition duration-150 cursor-pointer"
         >
-          🔄 Refresh Data
+          <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3 3L22 4" />
+          </svg>
+          Refresh Data
         </button>
       </div>
 
@@ -111,11 +114,11 @@ export default function AdminBookingsOversight() {
             className="w-full pl-4 pr-10 py-2.5 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl text-slate-200 text-sm outline-none placeholder-slate-600 transition"
           />
         </div>
-        <div className="w-full md:w-48">
+        <div className="w-full md:w-48 relative">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl text-slate-200 text-sm outline-none transition cursor-pointer"
+            className="w-full appearance-none pl-4 pr-10 py-2.5 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl text-slate-200 text-sm outline-none transition cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
@@ -125,6 +128,11 @@ export default function AdminBookingsOversight() {
             <option value="completed">Completed</option>
             <option value="rejected">Rejected</option>
           </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+            <svg className="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
         </div>
       </div>
 

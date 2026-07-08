@@ -9,6 +9,7 @@ import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/shared/widgets/rentlanka_logo.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -141,9 +142,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           }
         }
       }
-    } on DioException catch (e) {
+    } on DioException catch (e, stackTrace) {
+      Sentry.captureException(e, stackTrace: stackTrace);
       setState(() => _error = extractError(e));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      Sentry.captureException(e, stackTrace: stackTrace);
       setState(() => _error = 'Google Sign-In failed: $e');
     } finally {
       if (mounted && !_success) {

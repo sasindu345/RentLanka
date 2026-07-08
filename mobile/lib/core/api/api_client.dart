@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/storage/token_storage.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 final tokenStorageProvider = Provider((ref) => TokenStorage());
 
@@ -74,6 +75,7 @@ final dioProvider = Provider((ref) {
           await storage.clearAll();
         }
       }
+      Sentry.captureException(error, stackTrace: error.stackTrace);
       handler.next(error);
     },
   ));

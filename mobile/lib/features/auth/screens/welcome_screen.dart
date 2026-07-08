@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/shared/widgets/rentlanka_logo.dart';
-import 'package:mobile/features/auth/screens/login_screen.dart';
-import 'package:mobile/features/auth/screens/register_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});

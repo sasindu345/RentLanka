@@ -11,13 +11,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  silent: true,
-  org: "rentlanka",
-  project: "web-admin",
-  widenClientFileUpload: true,
-  tunnelRoute: "/monitoring",
-  hideSourceMaps: true,
-  disableLogger: true,
-  automaticVercelMonitors: true,
-});
+const isDev = process.env.NODE_ENV === "development";
+
+export default isDev
+  ? nextConfig
+  : withSentryConfig(nextConfig, {
+      silent: true,
+      org: "rentlanka",
+      project: "web-admin",
+      widenClientFileUpload: true,
+      tunnelRoute: "/monitoring",
+      hideSourceMaps: true,
+      disableLogger: true,
+      automaticVercelMonitors: true,
+    });

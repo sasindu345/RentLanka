@@ -318,53 +318,7 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
               child: Divider(),
             ),
 
-            // Verification Check Block
-            if (!isVerified) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.error.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(AppRadius.card),
-                  border: Border.all(color: theme.colorScheme.error.withOpacity(0.2)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(LucideIcons.alertTriangle, color: theme.colorScheme.error),
-                        const SizedBox(width: AppSpacing.xs),
-                        Text(
-                          'Verification Required',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.error,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      'You must complete KYC Verification (Level 2 / NIC Approved) before booking items.',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    OutlinedButton.icon(
-                      onPressed: () => context.push('/app/profile/verification'),
-                      icon: const Icon(LucideIcons.shieldCheck, size: 16),
-                      label: const Text('Complete Verification'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: theme.colorScheme.error,
-                        side: BorderSide(color: theme.colorScheme.error),
-                        minimumSize: const Size.fromHeight(40),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-            ],
+
 
             // Dates Selection
             Text(

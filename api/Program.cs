@@ -301,9 +301,11 @@ public class Program
                 };
 
                 document.Components ??= new Microsoft.OpenApi.OpenApiComponents();
+                document.Components.SecuritySchemes ??= new Dictionary<string, Microsoft.OpenApi.IOpenApiSecurityScheme>();
                 document.Components.SecuritySchemes.Add("Bearer", securityScheme);
 
                 // Enforce global security requirement for authorization testing in swagger
+                document.Security ??= new List<Microsoft.OpenApi.OpenApiSecurityRequirement>();
                 document.Security.Add(new Microsoft.OpenApi.OpenApiSecurityRequirement
                 {
                     { new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", document), new List<string>() }

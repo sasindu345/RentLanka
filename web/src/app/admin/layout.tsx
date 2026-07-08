@@ -24,6 +24,7 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [adminName, setAdminName] = useState("Admin User");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const token = getToken();
@@ -37,6 +38,11 @@ export default function AdminLayout({
     }
   }, []);
 
+  // Close sidebar on path changes (mobile)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
   function handleLogout() {
     clearToken();
     router.push("/login");
@@ -44,25 +50,51 @@ export default function AdminLayout({
   }
 
   const menuItems = [
-    { label: "Overview", href: "/admin", icon: "📊" },
-    { label: "Users List", href: "/admin/users", icon: "👥" },
-    { label: "KYC Queue", href: "/admin/kyc", icon: "📄" },
-    { label: "Listings Moderation", href: "/admin/listings", icon: "🏷️" },
-    { label: "Bookings List", href: "/admin/bookings", icon: "📅" },
-    { label: "Payments & Payouts", href: "/admin/payments", icon: "💳" },
-    { label: "Disputes Queue", href: "/admin/disputes", icon: "⚠️" },
-    { label: "Platform Settings", href: "/admin/settings", icon: "⚙️" },
+    { label: "Dashboard Overview", href: "/admin" },
+    { label: "User Management", href: "/admin/users" },
+    { label: "Identity Verification", href: "/admin/kyc" },
+    { label: "Listings Moderation", href: "/admin/listings" },
+    { label: "Booking Records", href: "/admin/bookings" },
+    { label: "Financial Ledger", href: "/admin/payments" },
+    { label: "Dispute Center", href: "/admin/disputes" },
+    { label: "System Settings", href: "/admin/settings" },
   ];
 
+  const currentTitle = menuItems.find(
+    (item) => pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href))
+  )?.label || "Dashboard";
+
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-100">
-      {/* Sidebar */}
-      <aside className="w-64 flex-shrink-0 border-r border-slate-800 bg-slate-900/60 backdrop-blur-lg flex flex-col justify-between">
+    <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-100 relative">
+      
+      {/* Mobile Drawer Overlay Back Drop */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm lg:hidden transition-opacity duration-300"
+        />
+      )}
+
+      {/* Sidebar - Collapsible sliding drawer on mobile, static on desktop */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 border-r border-slate-800 bg-slate-900 flex flex-col justify-between transition-transform duration-300 transform lg:translate-x-0 lg:relative ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <div>
-          <div className="h-16 flex items-center px-6 border-b border-slate-800">
-            <span className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
+          <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800">
+            <span className="text-xl font-bold text-indigo-400">
               RentLanka Admin
             </span>
+            {/* Close Button on Mobile Drawer */}
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden text-slate-400 hover:text-slate-200 p-1"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
 
           <nav className="mt-6 px-4 space-y-1">
@@ -72,13 +104,12 @@ export default function AdminLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? "bg-indigo-950/40 text-indigo-400 border-l-4 border-indigo-500 shadow-inner"
+                      ? "bg-slate-800 text-slate-100"
                       : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-200"
                   }`}
                 >
-                  <span className="text-base">{item.icon}</span>
                   {item.label}
                 </Link>
               );
@@ -86,10 +117,10 @@ export default function AdminLayout({
           </nav>
         </div>
 
-        {/* Footer in Sidebar */}
+        {/* Sidebar Profile Footer */}
         <div className="p-4 border-t border-slate-800 bg-slate-900/40">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold">
+            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold flex-shrink-0">
               {adminName[0]}
             </div>
             <div className="overflow-hidden">
@@ -99,20 +130,36 @@ export default function AdminLayout({
           </div>
           <button
             onClick={handleLogout}
-            className="w-full py-2.5 px-4 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-900 text-sm font-semibold text-slate-300 hover:text-slate-100 transition duration-200 flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-2.5 px-4 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-900 text-sm font-semibold text-slate-300 hover:text-slate-100 transition duration-200 flex items-center justify-center gap-2 cursor-pointer group"
           >
-            <span>🚪</span> Logout
+            <svg className="w-4 h-4 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="h-16 border-b border-slate-800 bg-slate-900/20 backdrop-blur-md flex items-center justify-between px-8">
-          <h1 className="text-lg font-bold text-slate-200">
-            {menuItems.find((item) => pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href)))?.label || "Dashboard"}
-          </h1>
+        
+        {/* Responsive Header */}
+        <header className="h-16 border-b border-slate-800 bg-slate-900/20 backdrop-blur-md flex items-center justify-between px-4 sm:px-8">
+          <div className="flex items-center gap-4">
+            {/* Hamburger Toggle Trigger (Visible on Mobile only) */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-200"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <h1 className="text-base sm:text-lg font-bold text-slate-200">
+              {currentTitle}
+            </h1>
+          </div>
+          
           <div className="flex items-center gap-4">
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
               Live Environment
@@ -121,7 +168,7 @@ export default function AdminLayout({
         </header>
 
         {/* Content Body */}
-        <main className="flex-1 overflow-y-auto p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-8">
           <div className="mx-auto max-w-7xl">
             {children}
           </div>

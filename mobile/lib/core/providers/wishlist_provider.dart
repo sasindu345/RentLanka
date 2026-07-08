@@ -18,7 +18,7 @@ class WishlistNotifier extends StateNotifier<AsyncValue<List<Listing>>> {
     }
   }
 
-  bool isWishlisted(int listingId) {
+  bool isWishlisted(String listingId) {
     return state.maybeWhen(
       data: (items) => items.any((item) => item.id == listingId),
       orElse: () => false,

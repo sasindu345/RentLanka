@@ -9,7 +9,6 @@ import 'package:mobile/features/profile/screens/notifications_screen.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/models/listing.dart';
-import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:mobile/core/theme/app_shadows.dart';
