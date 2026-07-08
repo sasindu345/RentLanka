@@ -1,7 +1,9 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -216,8 +218,129 @@ public class IdentityService : IIdentityService
 
     private string HashToken(string token)
     {
-        using var sha256 = System.Security.Cryptography.SHA256.Create();
-        var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
-        return Convert.ToBase64String(hashedBytes);
+      using var sha256 = System.Security.Cryptography.SHA256.Create();
+      var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
+      return Convert.ToBase64String(hashedBytes);
+    }
+
+    public async Task<(bool Succeeded, string? Token, string? RefreshToken, string? Role, string? Error)> SocialLoginOrRegisterAsync(
+        string? idToken,
+        string? fallbackEmail,
+        string? fallbackFirstName,
+        string? fallbackLastName,
+        string? role)
+    {
+        string? email = fallbackEmail;
+        string? firstName = fallbackFirstName;
+        string? lastName = fallbackLastName;
+
+        if (!string.IsNullOrEmpty(idToken))
+        {
+            var (verifiedEmail, verifiedFirstName, verifiedLastName, error) = await VerifyGoogleTokenAsync(idToken);
+            if (error != null)
+            {
+                return (false, null, null, null, error);
+            }
+            email = verifiedEmail;
+            firstName = verifiedFirstName;
+            lastName = verifiedLastName;
+        }
+
+        if (string.IsNullOrEmpty(email))
+        {
+            return (false, null, null, null, "Email is required.");
+        }
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (user != null)
+        {
+            if (user.IsBanned)
+            {
+                return (false, null, null, null, "Your account has been banned.");
+            }
+
+            var token = GenerateJwtToken(user);
+            var refreshToken = GenerateRandomTokenString();
+
+            user.RefreshTokenHash = HashToken(refreshToken);
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(30);
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return (true, token, refreshToken, user.Role, null);
+        }
+        else
+        {
+            // Registration path: role must be selected
+            if (string.IsNullOrEmpty(role) || (role != "Renter" && role != "Owner"))
+            {
+                return (false, null, null, null, "A valid role (Renter or Owner) is required to sign up with Google.");
+            }
+
+            var randomPassword = Guid.NewGuid().ToString("N");
+            var passwordHash = BC.HashPassword(randomPassword);
+
+            user = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = email,
+                PasswordHash = passwordHash,
+                FirstName = firstName ?? "Google",
+                LastName = lastName ?? "User",
+                PhoneNumber = "",
+                Role = role,
+                VerificationLevel = VerificationLevel.Unverified,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            var token = GenerateJwtToken(user);
+            var refreshToken = GenerateRandomTokenString();
+
+            user.RefreshTokenHash = HashToken(refreshToken);
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(30);
+
+            await _context.SaveChangesAsync();
+            return (true, token, refreshToken, user.Role, null);
+        }
+    }
+
+    private async Task<(string? Email, string? FirstName, string? LastName, string? Error)> VerifyGoogleTokenAsync(string idToken)
+    {
+        try
+        {
+            using var client = new HttpClient();
+            var response = await client.GetAsync($"https://oauth2.googleapis.com/tokeninfo?id_token={idToken}");
+            if (!response.IsSuccessStatusCode)
+            {
+                return (null, null, null, "Invalid Google token response.");
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(content);
+            var root = doc.RootElement;
+
+            if (root.TryGetProperty("error_description", out var errorProp))
+            {
+                return (null, null, null, errorProp.GetString() ?? "Token verification failed.");
+            }
+
+            string? email = root.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
+            string? firstName = root.TryGetProperty("given_name", out var fnProp) ? fnProp.GetString() : null;
+            string? lastName = root.TryGetProperty("family_name", out var lnProp) ? lnProp.GetString() : null;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return (null, null, null, "Email claim is missing in Google token.");
+            }
+
+            return (email, firstName ?? "", lastName ?? "", null);
+        }
+        catch (Exception ex)
+        {
+            return (null, null, null, $"Failed to verify Google token: {ex.Message}");
+        }
     }
 }

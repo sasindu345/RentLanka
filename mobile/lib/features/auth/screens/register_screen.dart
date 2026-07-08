@@ -8,6 +8,7 @@ import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/shared/widgets/rentlanka_logo.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -67,6 +68,56 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       setState(() => _error = extractError(e));
     } finally {
       if (mounted && !_success) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _handleGoogleSignIn(String? role) async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final googleSignIn = GoogleSignIn(scopes: ['email']);
+      final googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) {
+        setState(() => _loading = false);
+        return; // User cancelled
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+
+      final returnedRole = await ref.read(listingsApiProvider).loginWithGoogle(
+            idToken: idToken,
+            email: googleUser.email,
+            firstName: googleUser.displayName?.split(' ').first ?? 'Google',
+            lastName: googleUser.displayName?.split(' ').skip(1).join(' ') ?? (role ?? 'User'),
+            role: role,
+          );
+
+      if (mounted) {
+        setState(() {
+          _success = true;
+        });
+        await Future.delayed(const Duration(milliseconds: 1600));
+        if (mounted) {
+          if (returnedRole == 'Owner') {
+            context.go('/app/owner');
+          } else {
+            context.go('/app/explore');
+          }
+        }
+      }
+    } on DioException catch (e) {
+      setState(() => _error = extractError(e));
+    } catch (e) {
+      setState(() => _error = 'Google Sign-In failed: $e');
+    } finally {
+      if (mounted && !_success) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -319,11 +370,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             width: double.infinity,
                             height: 52,
                             child: OutlinedButton.icon(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Signing up with Google as $_role...')),
-                                );
-                              },
+                              onPressed: _loading ? null : () => _handleGoogleSignIn(_role),
                               icon: Image.asset(
                                 'assets/images/google-logo.png',
                                 width: 20,

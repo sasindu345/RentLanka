@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'dart:ui';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +8,7 @@ import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/shared/widgets/rentlanka_logo.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -55,6 +55,100 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       setState(() => _error = extractError(e));
     } finally {
       if (mounted && !_success) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final googleSignIn = GoogleSignIn(scopes: ['email']);
+      final googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) {
+        setState(() => _loading = false);
+        return; // User cancelled
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+
+      String? role;
+      String? returnedRole;
+      bool completed = false;
+
+      while (!completed) {
+        try {
+          returnedRole = await ref.read(listingsApiProvider).loginWithGoogle(
+                idToken: idToken,
+                email: googleUser.email,
+                firstName: googleUser.displayName?.split(' ').first ?? 'Google',
+                lastName: googleUser.displayName?.split(' ').skip(1).join(' ') ?? 'User',
+                role: role,
+              );
+          completed = true;
+        } on DioException catch (e) {
+          final errStr = extractError(e);
+          if (errStr.contains('role (Renter or Owner) is required')) {
+            if (!mounted) return;
+            final selectedRole = await showDialog<String>(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) {
+                return AlertDialog(
+                  title: const Text('Choose Your Role'),
+                  content: const Text(
+                    'No RentLanka account is registered with this Google email yet. Please choose your role to sign up:',
+                  ),
+                  actions: [
+                    OutlinedButton(
+                      onPressed: () => Navigator.pop(context, 'Renter'),
+                      child: const Text('Renter'),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(context, 'Owner'),
+                      child: const Text('Owner'),
+                    ),
+                  ],
+                );
+              },
+            );
+
+            if (selectedRole == null) {
+              setState(() => _loading = false);
+              return;
+            }
+            role = selectedRole;
+          } else {
+            rethrow;
+          }
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _success = true;
+        });
+        await Future.delayed(const Duration(milliseconds: 1600));
+        if (mounted) {
+          if (returnedRole == 'Owner') {
+            context.go('/app/owner');
+          } else {
+            context.go('/app/explore');
+          }
+        }
+      }
+    } on DioException catch (e) {
+      setState(() => _error = extractError(e));
+    } catch (e) {
+      setState(() => _error = 'Google Sign-In failed: $e');
+    } finally {
+      if (mounted && !_success) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -230,11 +324,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 width: double.infinity,
                 height: 52,
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Google Sign-In will be configured soon.')),
-                    );
-                  },
+                  onPressed: _loading ? null : _handleGoogleSignIn,
                   icon: Image.asset(
                     'assets/images/google-logo.png',
                     width: 20,

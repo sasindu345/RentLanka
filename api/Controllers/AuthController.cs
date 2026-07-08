@@ -62,4 +62,22 @@ public class AuthController : ControllerBase
 
         return Ok(new { Token = token, RefreshToken = refreshToken });
     }
+
+    [HttpPost("google")]
+    public async Task<IActionResult> GoogleAuth([FromBody] GoogleAuthRequest request)
+    {
+        var (succeeded, token, refreshToken, role, error) = await _identityService.SocialLoginOrRegisterAsync(
+            request.IdToken,
+            request.Email,
+            request.FirstName,
+            request.LastName,
+            request.Role);
+
+        if (!succeeded)
+        {
+            return BadRequest(new { Error = error });
+        }
+
+        return Ok(new { Token = token, RefreshToken = refreshToken, Role = role });
+    }
 }

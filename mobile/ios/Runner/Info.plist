@@ -49,5 +49,16 @@
 	<string>RentLanka needs access to your photos to add listing images.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>RentLanka needs camera access to photograph items for your listing.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.167075879563-ntaj1gkrs8m1ltn3ir0upsmqq8d3658k</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

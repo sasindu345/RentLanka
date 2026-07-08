@@ -15,3 +15,10 @@ public record LoginRequest(
 public record RefreshRequest(
     string Token,
     string RefreshToken);
+
+public record GoogleAuthRequest(
+    string? IdToken,
+    string? Email,
+    string? FirstName,
+    string? LastName,
+    string? Role);

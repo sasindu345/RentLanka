@@ -20,4 +20,11 @@ public interface IIdentityService
     Task<(bool Succeeded, string? Token, string? RefreshToken, string? Error)> RefreshTokenAsync(
         string expiredToken, 
         string refreshToken);
+
+    Task<(bool Succeeded, string? Token, string? RefreshToken, string? Role, string? Error)> SocialLoginOrRegisterAsync(
+        string? idToken,
+        string? fallbackEmail,
+        string? fallbackFirstName,
+        string? fallbackLastName,
+        string? role);
 }

@@ -33,6 +33,31 @@ class ListingsApi {
     await _ref.read(notificationServiceProvider).registerToken();
   }
 
+  Future<String> loginWithGoogle({
+    String? idToken,
+    String? email,
+    String? firstName,
+    String? lastName,
+    String? role,
+  }) async {
+    final response = await _dio.post('/api/auth/google', data: {
+      'idToken': idToken,
+      'email': email,
+      'firstName': firstName,
+      'lastName': lastName,
+      'role': role,
+    });
+    final token = response.data['token'] as String;
+    final refreshToken = response.data['refreshToken'] as String;
+    final returnedRole = response.data['role'] as String;
+    await _storage.saveTokens(token, refreshToken);
+    
+    // Register FCM Device Token for the newly logged-in user
+    await _ref.read(notificationServiceProvider).registerToken();
+
+    return returnedRole;
+  }
+
   Future<void> register({
     required String email,
     required String password,

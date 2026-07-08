@@ -12,7 +12,20 @@
           "package_name": "com.example.rentlanka"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "167075879563-34cadipduog6aipegmuhb6di50ttamdu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.rentlanka",
+            "certificate_hash": "5042236df2af746e9e185047a7efb59e0eecf9f8"
+          }
+        },
+        {
+          "client_id": "167075879563-pe9pongb8afj702cut56dsrbfd8b8kn8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAlc6KvFGgLxAI38emlN6vEEJ9CWE7C8_o"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "167075879563-pe9pongb8afj702cut56dsrbfd8b8kn8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "167075879563-ntaj1gkrs8m1ltn3ir0upsmqq8d3658k.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.rentlanka"
+              }
+            }
+          ]
         }
       }
     }
