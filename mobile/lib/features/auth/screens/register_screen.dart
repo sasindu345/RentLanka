@@ -10,6 +10,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/shared/widgets/rentlanka_logo.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:mobile/core/theme/app_theme.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -229,11 +230,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
+    return Theme(
+      data: AppTheme.light,
+      child: Builder(
+        builder: (context) {
+          final theme = Theme.of(context);
+          final primaryColor = theme.colorScheme.primary;
 
-    final scaffold = Scaffold(
-      backgroundColor: Colors.white,
+          final scaffold = Scaffold(
+            backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -649,6 +654,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       );
     }
 
-    return scaffold;
+          return scaffold;
+        },
+      ),
+    );
   }
 }

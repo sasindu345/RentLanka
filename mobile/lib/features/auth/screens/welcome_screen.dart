@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/shared/widgets/rentlanka_logo.dart';
+import 'package:mobile/core/theme/app_theme.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -82,13 +83,17 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
-    const scaffoldBgColor = Color(
-      0xFFFAFAFA,
-    ); // Consistent Off-White background
+    return Theme(
+      data: AppTheme.light,
+      child: Builder(
+        builder: (context) {
+          final theme = Theme.of(context);
+          final primaryColor = theme.colorScheme.primary;
+          const scaffoldBgColor = Color(
+            0xFFFAFAFA,
+          ); // Consistent Off-White background
 
-    return Scaffold(
+          return Scaffold(
       backgroundColor: scaffoldBgColor,
       body: SafeArea(
         bottom: false,
@@ -301,6 +306,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             ),
           ],
         ),
+      ),
+    );
+        },
       ),
     );
   }
