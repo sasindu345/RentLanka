@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using RentLanka.Api.Models.Requests;
 using RentLanka.Api.Services.Interfaces;
+using Sentry;
 
 namespace RentLanka.Api.Controllers;
 
@@ -31,6 +32,7 @@ public class AuthController : ControllerBase
 
         if (!succeeded)
         {
+            SentrySdk.CaptureMessage($"Registration failed for {request.Email}: {error}", SentryLevel.Warning);
             return BadRequest(new { Error = error });
         }
 
@@ -44,6 +46,7 @@ public class AuthController : ControllerBase
 
         if (!succeeded)
         {
+            SentrySdk.CaptureMessage($"Login failed for {request.Email}: {error}", SentryLevel.Warning);
             return Unauthorized(new { Error = error });
         }
 
@@ -57,6 +60,7 @@ public class AuthController : ControllerBase
 
         if (!succeeded)
         {
+            SentrySdk.CaptureMessage($"Token refresh failed: {error}", SentryLevel.Warning);
             return BadRequest(new { Error = error });
         }
 
@@ -75,6 +79,7 @@ public class AuthController : ControllerBase
 
         if (!succeeded)
         {
+            SentrySdk.CaptureMessage($"Google Auth failed for {request.Email ?? "Unknown"}: {error}", SentryLevel.Warning);
             return BadRequest(new { Error = error });
         }
 
