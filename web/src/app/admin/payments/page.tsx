@@ -90,9 +90,12 @@ export default function AdminFinancialLedger() {
         </div>
         <button
           onClick={loadFinancialData}
-          className="self-start px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl text-slate-300 text-xs font-semibold hover:text-slate-100 transition duration-150 cursor-pointer"
+          className="self-start inline-flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl text-slate-300 text-xs font-semibold hover:text-slate-100 transition duration-150 cursor-pointer"
         >
-          🔄 Refresh Ledger
+          <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3 3L22 4" />
+          </svg>
+          Refresh Ledger
         </button>
       </div>
 
@@ -106,23 +109,29 @@ export default function AdminFinancialLedger() {
       <div className="flex border-b border-slate-800">
         <button
           onClick={() => setActiveTab("payments")}
-          className={`px-6 py-3 text-sm font-semibold border-b-2 transition duration-150 cursor-pointer ${
+          className={`inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold border-b-2 transition duration-150 cursor-pointer ${
             activeTab === "payments"
               ? "border-indigo-500 text-indigo-400 bg-indigo-950/10"
               : "border-transparent text-slate-400 hover:text-slate-200"
           }`}
         >
-          Ref: 💳 Escrow Payments Log ({payments.length})
+          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+          Escrow Payments Log ({payments.length})
         </button>
         <button
           onClick={() => setActiveTab("payouts")}
-          className={`px-6 py-3 text-sm font-semibold border-b-2 transition duration-150 cursor-pointer ${
+          className={`inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold border-b-2 transition duration-150 cursor-pointer ${
             activeTab === "payouts"
               ? "border-indigo-500 text-indigo-400 bg-indigo-950/10"
               : "border-transparent text-slate-400 hover:text-slate-200"
           }`}
         >
-          💰 Host Withdrawal Requests ({payouts.length})
+          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Host Withdrawal Requests ({payouts.length})
         </button>
       </div>
 

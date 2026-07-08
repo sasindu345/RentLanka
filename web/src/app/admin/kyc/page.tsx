@@ -191,7 +191,9 @@ export default function AdminKycQueue() {
                           </div>
                         ) : (
                           <div className="w-full py-8 border border-dashed border-slate-800/80 rounded-lg flex flex-col items-center justify-center text-slate-600 bg-slate-900/30">
-                            <span className="text-3xl">📄</span>
+                            <svg className="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
                             <span className="text-xs text-slate-500 mt-2">
                               No image preview available. Open link in a new tab.
                             </span>
@@ -213,20 +215,28 @@ export default function AdminKycQueue() {
                     onClick={() => handleApprove(selectedUser.id)}
                     className="flex-1 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition duration-150 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    <span>✅</span> Approve KYC
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Approve KYC
                   </button>
                   <button
                     disabled={actionLoading}
                     onClick={() => handleReject(selectedUser.id)}
                     className="flex-1 py-3 px-4 rounded-xl bg-red-950/20 hover:bg-red-950/40 border border-red-900/30 hover:border-red-800 text-red-400 font-bold text-sm transition duration-150 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    <span>❌</span> Reject KYC
+                    <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Reject KYC
                   </button>
                 </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-slate-600">
-                <span className="text-4xl block">🔍</span>
+                <svg className="w-10 h-10 text-slate-700 mb-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
                 <p className="text-sm mt-3">Select a KYC request from the queue to start reviewing.</p>
               </div>
             )}

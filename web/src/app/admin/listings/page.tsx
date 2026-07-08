@@ -183,22 +183,31 @@ export default function AdminListingsModeration() {
               }}
               className="w-full rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-2.5 pl-10 text-sm outline-none focus:border-indigo-500 transition"
             />
-            <span className="absolute left-3 top-3.5 text-slate-500 text-sm">🔍</span>
+            <svg className="absolute left-3 top-3.5 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
 
           {activeTab === "moderated" && (
-            <select
-              value={pausedFilter}
-              onChange={(e) => {
-                setPausedFilter(e.target.value);
-                setPage(1);
-              }}
-              className="rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-2.5 text-sm text-slate-300 outline-none focus:border-indigo-500 transition"
-            >
-              <option value="all">All Statuses</option>
-              <option value="active">Active Only</option>
-              <option value="paused">Paused Only</option>
-            </select>
+            <div className="relative">
+              <select
+                value={pausedFilter}
+                onChange={(e) => {
+                  setPausedFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="appearance-none rounded-xl border border-slate-800 bg-slate-900/40 px-4 pr-10 py-2.5 text-sm text-slate-300 outline-none focus:border-indigo-500 transition cursor-pointer"
+              >
+                <option value="all">All Statuses</option>
+                <option value="active">Active Only</option>
+                <option value="paused">Paused Only</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg className="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
           )}
         </div>
 
@@ -227,7 +236,7 @@ export default function AdminListingsModeration() {
               <th className="px-6 py-4">Price / Day</th>
               <th className="px-6 py-4">District</th>
               <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4 text-right">Actions</th>
+              <th className="px-6 py-4 text-right whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60">
@@ -305,7 +314,7 @@ export default function AdminListingsModeration() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-right space-x-2">
+                    <td className="px-6 py-4 text-right whitespace-nowrap space-x-2">
                       {listing.status === "PendingApproval" ? (
                         <>
                           <button

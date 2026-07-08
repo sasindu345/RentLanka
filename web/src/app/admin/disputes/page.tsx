@@ -68,21 +68,30 @@ export default function DisputesPage() {
         </div>
         <button
           onClick={loadDisputes}
-          className="px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 rounded-xl text-sm font-semibold transition cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 rounded-xl text-sm font-semibold transition cursor-pointer"
         >
-          🔄 Refresh Queue
+          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3 3L22 4" />
+          </svg>
+          Refresh Queue
         </button>
       </div>
 
       {successMsg && (
-        <div className="p-4 bg-emerald-950/30 border border-emerald-500/20 text-emerald-400 rounded-xl text-sm">
-          ✅ {successMsg}
+        <div className="flex items-center gap-2 p-4 bg-emerald-950/30 border border-emerald-500/20 text-emerald-400 rounded-xl text-sm">
+          <svg className="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          {successMsg}
         </div>
       )}
 
       {errorMsg && (
-        <div className="p-4 bg-rose-950/30 border border-rose-500/20 text-rose-400 rounded-xl text-sm">
-          ❌ {errorMsg}
+        <div className="flex items-center gap-2 p-4 bg-rose-950/30 border border-rose-500/20 text-rose-400 rounded-xl text-sm">
+          <svg className="w-4 h-4 text-rose-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          {errorMsg}
         </div>
       )}
 
@@ -225,7 +234,7 @@ export default function DisputesPage() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full py-3 bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-bold rounded-xl text-sm transition shadow-lg cursor-pointer disabled:opacity-50"
+                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm transition shadow-lg cursor-pointer disabled:opacity-50"
                   >
                     {submitting ? "Processing Resolution..." : "Execute Resolution Decision"}
                   </button>

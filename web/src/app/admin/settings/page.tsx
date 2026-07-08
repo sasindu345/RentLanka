@@ -87,21 +87,27 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-4xl">
+    <div className="space-y-8">
       <div>
         <h2 className="text-xl font-bold text-slate-100">Platform Settings</h2>
         <p className="text-sm text-slate-400 mt-1">Configure global transaction fees and listing category options.</p>
       </div>
 
       {successMsg && (
-        <div className="p-4 bg-emerald-950/30 border border-emerald-500/20 text-emerald-400 rounded-xl text-sm transition-all duration-200">
-          ✅ {successMsg}
+        <div className="flex items-center gap-2 p-4 bg-emerald-950/30 border border-emerald-500/20 text-emerald-400 rounded-xl text-sm transition-all duration-200">
+          <svg className="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          {successMsg}
         </div>
       )}
 
       {errorMsg && (
-        <div className="p-4 bg-rose-950/30 border border-rose-500/20 text-rose-400 rounded-xl text-sm transition-all duration-200">
-          ❌ {errorMsg}
+        <div className="flex items-center gap-2 p-4 bg-rose-950/30 border border-rose-500/20 text-rose-400 rounded-xl text-sm transition-all duration-200">
+          <svg className="w-4 h-4 text-rose-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          {errorMsg}
         </div>
       )}
 
@@ -155,9 +161,12 @@ export default function AdminSettingsPage() {
             />
             <button
               type="submit"
-              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition cursor-pointer flex-shrink-0"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition cursor-pointer flex-shrink-0"
             >
-              ➕ Add
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Add
             </button>
           </form>
 
@@ -191,9 +200,12 @@ export default function AdminSettingsPage() {
         <button
           onClick={handleSaveSettings}
           disabled={saving}
-          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/10 hover:shadow-indigo-500/20 transition cursor-pointer"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/10 hover:shadow-indigo-500/20 transition cursor-pointer"
         >
-          {saving ? "💾 Saving Settings..." : "💾 Save Changes"}
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+          </svg>
+          {saving ? "Saving Settings..." : "Save Changes"}
         </button>
       </div>
     </div>
