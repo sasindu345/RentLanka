@@ -13,6 +13,7 @@ import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:mobile/core/theme/app_shadows.dart';
 import 'package:mobile/core/providers/app_mode_provider.dart';
+import 'package:mobile/core/providers/theme_provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -397,6 +398,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
 
     final appMode = ref.watch(appModeProvider);
+    final currentThemeMode = ref.watch(themeProvider);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
@@ -647,6 +649,56 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     },
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Theme Preference',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(AppRadius.card),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withOpacity(0.4),
+                  width: 1.0,
+                ),
+                boxShadow: theme.brightness == Brightness.dark ? AppShadows.none : AppShadows.sm,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _ThemeOptionTile(
+                        label: 'Light',
+                        icon: LucideIcons.sun,
+                        isActive: currentThemeMode == ThemeMode.light,
+                        onTap: () => ref.read(themeProvider.notifier).setThemeMode(ThemeMode.light),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _ThemeOptionTile(
+                        label: 'Dark',
+                        icon: LucideIcons.moon,
+                        isActive: currentThemeMode == ThemeMode.dark,
+                        onTap: () => ref.read(themeProvider.notifier).setThemeMode(ThemeMode.dark),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _ThemeOptionTile(
+                        label: 'System',
+                        icon: LucideIcons.smartphone,
+                        isActive: currentThemeMode == ThemeMode.system,
+                        onTap: () => ref.read(themeProvider.notifier).setThemeMode(ThemeMode.system),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -914,6 +966,69 @@ class _VerificationStep extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ThemeOptionTile extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _ThemeOptionTile({
+    required this.label,
+    required this.icon,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isActive 
+              ? theme.colorScheme.primary.withOpacity(0.08) 
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isActive 
+                ? theme.colorScheme.primary.withOpacity(0.3) 
+                : theme.colorScheme.outline.withOpacity(0.15),
+            width: isActive ? 1.5 : 1.0,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isActive 
+                  ? theme.colorScheme.primary 
+                  : theme.colorScheme.onSurfaceVariant,
+              size: 20,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                color: isActive 
+                    ? theme.colorScheme.primary 
+                    : theme.colorScheme.onSurface,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
