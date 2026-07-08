@@ -37,24 +37,12 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   void initState() {
     super.initState();
     _loadListings();
-    _loadUser();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadUser() async {
-    try {
-      final user = await ref.read(listingsApiProvider).getCurrentUser();
-      if (mounted) {
-        setState(() {
-          _user = user;
-        });
-      }
-    } catch (_) {}
   }
 
   Future<void> _loadListings() async {
