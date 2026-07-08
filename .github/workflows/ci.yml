@@ -20,11 +20,11 @@ jobs:
           cache: true
           cache-dependency-path: api/RentLanka.Api.csproj
       - name: Restore dependencies
-        run: dotnet restore RentLanka.sln
+        run: dotnet restore RentLanka.slnx
       - name: Build
-        run: dotnet build RentLanka.sln --no-restore --configuration Release
+        run: dotnet build RentLanka.slnx --no-restore --configuration Release
       - name: Run Unit Tests
-        run: dotnet test RentLanka.sln --no-build --configuration Release
+        run: dotnet test RentLanka.slnx --no-build --configuration Release
 
   frontend-build:
     runs-on: ubuntu-latest
@@ -82,6 +82,6 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - name: Build for CodeQL
-        run: dotnet build RentLanka.sln -c Release
+        run: dotnet build RentLanka.slnx -c Release
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

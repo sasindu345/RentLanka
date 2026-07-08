@@ -4,15 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/features/profile/screens/notifications_screen.dart';
 
-import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/shared/widgets/listing_card.dart';
 import 'package:mobile/shared/widgets/shimmer_skeleton.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
-import 'package:mobile/core/theme/app_radius.dart';
 import 'package:mobile/core/theme/app_shadows.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class HomeFeedScreen extends ConsumerStatefulWidget {
   const HomeFeedScreen({super.key});
@@ -24,7 +21,6 @@ class HomeFeedScreen extends ConsumerStatefulWidget {
 class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   final _searchController = TextEditingController();
   PaginatedListings? _listings;
-  UserProfile? _user;
   bool _loading = true;
   String? _selectedCategory;
 
@@ -78,12 +74,6 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     context.push('/app/explore/search?q=${Uri.encodeComponent(q)}');
   }
 
-  String _getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  }
 
   @override
   Widget build(BuildContext context) {
