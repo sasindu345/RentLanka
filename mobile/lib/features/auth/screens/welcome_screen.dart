@@ -12,7 +12,8 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateMixin {
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with TickerProviderStateMixin {
   late AnimationController _heroController;
   late AnimationController _buttonsController;
 
@@ -36,12 +37,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
       CurvedAnimation(parent: _heroController, curve: Curves.easeOutCubic),
     );
 
-    _heroSlide = Tween<Offset>(
-      begin: const Offset(0.0, 0.08),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _heroController, curve: Curves.easeOutCubic),
-    );
+    _heroSlide = Tween<Offset>(begin: const Offset(0.0, 0.08), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _heroController, curve: Curves.easeOutCubic),
+        );
 
     // Slide-up overlay animation for bottom actions sheet card (slowed to 650ms for elegant visibility)
     _buttonsController = AnimationController(
@@ -53,12 +52,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
       CurvedAnimation(parent: _buttonsController, curve: Curves.easeOutCubic),
     );
 
-    _buttonsSlide = Tween<Offset>(
-      begin: const Offset(0.0, 0.4), // Slide up from 40% offset
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _buttonsController, curve: Curves.easeOutCubic),
-    );
+    _buttonsSlide =
+        Tween<Offset>(
+          begin: const Offset(0.0, 0.4), // Slide up from 40% offset
+          end: Offset.zero,
+        ).animate(
+          CurvedAnimation(
+            parent: _buttonsController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
 
     // Stagger animation sequence: wait for the 700ms Hero transition to complete first
     Future.delayed(const Duration(milliseconds: 550), () {
@@ -79,23 +82,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
     super.dispose();
   }
 
-  void _showAuthSheet({required bool isRegister}) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.4),
-      builder: (context) => isRegister
-          ? const RegisterScreen(isModal: true)
-          : const LoginScreen(isModal: true),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
-    const scaffoldBgColor = Color(0xFFFAFAFA); // Consistent Off-White background
+    const scaffoldBgColor = Color(
+      0xFFFAFAFA,
+    ); // Consistent Off-White background
 
     return Scaffold(
       backgroundColor: scaffoldBgColor,
@@ -109,9 +102,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
             const Hero(
               tag: 'brand-logo-hero',
               child: RentLankaLogo(
-                height: 95, 
+                height: 80,
                 isDarkBackground: false,
-                blendColor: scaffoldBgColor, // Blends perfectly with off-white scaffold
+                blendColor:
+                    scaffoldBgColor, // Blends perfectly with off-white scaffold
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -157,13 +151,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
               child: SlideTransition(
                 position: _heroSlide,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                  ),
                   child: Image.asset(
                     'assets/images/items.png',
                     height: 220,
                     fit: BoxFit.contain,
-                    color: scaffoldBgColor, // Blends perfectly with off-white scaffold
-                    colorBlendMode: BlendMode.multiply, // Dynamically keys out the image background
+                    color:
+                        scaffoldBgColor, // Blends perfectly with off-white scaffold
+                    colorBlendMode: BlendMode
+                        .multiply, // Dynamically keys out the image background
                   ),
                 ),
               ),
@@ -177,7 +175,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
               child: FadeTransition(
                 opacity: _buttonsOpacity,
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xxl + 8),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.md,
+                    AppSpacing.lg,
+                    AppSpacing.xxl + 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: const BorderRadius.vertical(
@@ -187,12 +190,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
                       BoxShadow(
                         color: Colors.black.withOpacity(0.04),
                         blurRadius: 16,
-                        offset: const Offset(0, -6), // Shadow floating over the wave
+                        offset: const Offset(
+                          0,
+                          -6,
+                        ), // Shadow floating over the wave
                       ),
                     ],
                     border: const Border(
                       top: BorderSide(
-                        color: Color(0xFFF3F4F6), // Subtly divides the sheet boundary
+                        color: Color(
+                          0xFFF3F4F6,
+                        ), // Subtly divides the sheet boundary
                         width: 1.5,
                       ),
                     ),
@@ -216,7 +224,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
                         width: double.infinity,
                         height: 52,
                         child: FilledButton(
-                          onPressed: () => _showAuthSheet(isRegister: true),
+                          onPressed: () => context.push('/register'),
                           style: FilledButton.styleFrom(
                             backgroundColor: primaryColor,
                             shape: RoundedRectangleBorder(
@@ -240,13 +248,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
                         width: double.infinity,
                         height: 52,
                         child: OutlinedButton(
-                          onPressed: () => _showAuthSheet(isRegister: false),
+                          onPressed: () => context.push('/login'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFF111827),
                             side: const BorderSide(
                               color: Color(0xFFE5E7EB),
                               width: 1.5,
-								            ),
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
                             ),

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,12 +10,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/shared/widgets/rentlanka_logo.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
-  final bool isModal;
-
-  const RegisterScreen({
-    super.key,
-    this.isModal = false,
-  });
+  const RegisterScreen({super.key});
 
   @override
   ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
@@ -32,6 +28,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _loading = false;
   bool _obscureText = true;
   String? _error;
+  bool _success = false;
 
   @override
   void dispose() {
@@ -58,15 +55,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             role: _role,
           );
       if (mounted) {
-        if (widget.isModal) {
-          Navigator.of(context).pop();
+        setState(() {
+          _success = true;
+        });
+        await Future.delayed(const Duration(milliseconds: 1600));
+        if (mounted) {
+          context.go('/app/profile');
         }
-        context.go('/app/profile');
       }
     } on DioException catch (e) {
       setState(() => _error = extractError(e));
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted && !_success) setState(() => _loading = false);
     }
   }
 
@@ -178,373 +178,427 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
 
-    Widget buildFormContent(BuildContext context) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (widget.isModal) ...[
-            // Top row with central drag handle, left back button (step 2), and right close button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Back button on the left (only visible on step 2)
-                _currentStep > 0
-                    ? IconButton(
-                        icon: const Icon(LucideIcons.arrowLeft, color: Color(0xFF6B7280), size: 20),
-                        onPressed: () {
-                          setState(() {
-                            _currentStep = 0;
-                          });
-                        },
-                      )
-                    : const SizedBox(width: 48), // Symmetrical balancing spacer
-
-                // Center drag handle
-                Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE5E7EB),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+    final scaffold = Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft, color: Color(0xFF111827)),
+          onPressed: () {
+            if (_currentStep > 0) {
+              setState(() {
+                _currentStep = 0;
+              });
+            } else {
+              context.pop();
+            }
+          },
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: AppSpacing.sm),
+              
+              const RentLankaLogo(
+                height: 52, 
+                isDarkBackground: false,
+                blendColor: Colors.white,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              
+              Text(
+                _currentStep == 0 ? 'Choose your role' : 'Join RentLanka',
+                style: theme.textTheme.headlineLarge?.copyWith(
+                  color: const Color(0xFF111827),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 28,
                 ),
-
-                // Close button always on the right side
-                IconButton(
-                  icon: const Icon(LucideIcons.x, color: Color(0xFF6B7280), size: 20),
-                  onPressed: () => Navigator.of(context).pop(),
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              Text(
+                _currentStep == 0
+                    ? 'Select how you want to use the platform to customize your experience.'
+                    : 'Fill in your details below to create your secure account.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: const Color(0xFF4B5563),
                 ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xs),
-          ],
-          
-          const SizedBox(height: AppSpacing.sm),
-          
-          // Typographic brand logo (increased size, removed background)
-          const RentLankaLogo(
-            height: 60, 
-            isDarkBackground: false,
-            blendColor: Colors.white,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          
-          // Title changes depending on wizard step
-          Text(
-            _currentStep == 0 ? 'Choose your role' : 'Join RentLanka',
-            style: theme.textTheme.headlineLarge?.copyWith(
-              color: const Color(0xFF111827),
-              fontWeight: FontWeight.bold,
-              fontSize: 28,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xxs),
-          Text(
-            _currentStep == 0
-                ? 'Select how you want to use the platform to customize your experience.'
-                : 'Fill in your details below to create your secure account.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: const Color(0xFF4B5563),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
+              ),
+              const SizedBox(height: AppSpacing.xl),
 
-          // Animated transition between steps (snappy micro-animation)
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
-            switchInCurve: Curves.easeOutCubic,
-            switchOutCurve: Curves.easeInCubic,
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0.06, 0.0), // Subtle horizontal slide-in
-                  end: Offset.zero,
-                ).animate(animation),
-                child: FadeTransition(
-                  opacity: animation,
-                  child: child,
-                ),
-              );
-            },
-            child: _currentStep == 0
-                ? Column(
-                    key: const ValueKey('step-role'),
-                    children: [
-                      _buildRoleCard(
-                        role: 'Renter',
-                        title: 'I want to rent equipment',
-                        description: 'Rent cameras, tools, camping gear & more.',
-                        icon: LucideIcons.shoppingBag,
-                        primaryColor: primaryColor,
-                        theme: theme,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      _buildRoleCard(
-                        role: 'Owner',
-                        title: 'I want to host equipment',
-                        description: 'Earn money by listing your equipment.',
-                        icon: LucideIcons.store,
-                        primaryColor: primaryColor,
-                        theme: theme,
-                      ),
-                      const SizedBox(height: AppSpacing.jumbo),
-                      
-                      // Next button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: FilledButton(
-                          onPressed: () {
-                            setState(() {
-                              _currentStep = 1;
-                            });
-                          },
-                          style: FilledButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0.06, 0.0),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    ),
+                  );
+                },
+                child: _currentStep == 0
+                    ? Column(
+                        key: const ValueKey('step-role'),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildRoleCard(
+                            role: 'Renter',
+                            title: 'I want to rent equipment',
+                            description: 'Rent cameras, tools, camping gear & more.',
+                            icon: LucideIcons.shoppingBag,
+                            primaryColor: primaryColor,
+                            theme: theme,
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          _buildRoleCard(
+                            role: 'Owner',
+                            title: 'I want to host equipment',
+                            description: 'Earn money by listing your equipment.',
+                            icon: LucideIcons.home,
+                            primaryColor: primaryColor,
+                            theme: theme,
+                          ),
+                          const SizedBox(height: AppSpacing.jumbo),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: FilledButton(
+                              onPressed: () {
+                                setState(() {
+                                  _currentStep = 1;
+                                });
+                              },
+                              style: FilledButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Next Step',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          const SizedBox(height: AppSpacing.lg),
+                          Row(
                             children: [
-                              Text(
-                                'Next Step',
+                              const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                                child: Text(
+                                  'or continue with',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: const Color(0xFF9CA3AF),
+                                  ),
+                                ),
+                              ),
+                              const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Signing up with Google as $_role...')),
+                                );
+                              },
+                              icon: Image.asset(
+                                'assets/images/google-logo.png',
+                                width: 20,
+                                height: 20,
+                                fit: BoxFit.contain,
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF111827),
+                                side: const BorderSide(
+                                  color: Color(0xFFE5E7EB),
+                                  width: 1.5,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              label: const Text(
+                                'Continue with Google',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              SizedBox(width: 8),
-                              Icon(LucideIcons.moveRight, size: 18),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                : Column(
-                    key: const ValueKey('step-details'),
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // First name and Last name side-by-side
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'First name',
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF111827),
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.xs),
-                                TextField(
-                                  controller: _firstNameController,
-                                  decoration: const InputDecoration(hintText: 'John'),
-                                ),
-                              ],
                             ),
                           ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Last name',
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF111827),
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.xs),
-                                TextField(
-                                  controller: _lastNameController,
-                                  decoration: const InputDecoration(hintText: 'Doe'),
-                                ),
-                              ],
-                            ),
-                          ),
+                          const SizedBox(height: AppSpacing.md),
                         ],
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-
-                      // Email Address
-                      Text(
-                        'Email address',
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF111827),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      TextField(
-                        controller: _emailController,
-                        decoration: const InputDecoration(hintText: 'name@example.com'),
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-
-                      // Phone Number
-                      Text(
-                        'Phone number',
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF111827),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      TextField(
-                        controller: _phoneController,
-                        decoration: const InputDecoration(hintText: '+94 77 123 4567'),
-                        keyboardType: TextInputType.phone,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-
-                      // Password
-                      Text(
-                        'Password',
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF111827),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      TextField(
-                        controller: _passwordController,
-                        decoration: InputDecoration(
-                          hintText: 'Minimum 8 characters',
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscureText ? LucideIcons.eye : LucideIcons.eyeOff,
-                              size: 20,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                            onPressed: () {
-                              setState(() => _obscureText = !_obscureText);
-                            },
-                          ),
-                        ),
-                        obscureText: _obscureText,
-                      ),
-
-                      if (_error != null) ...[
-                        const SizedBox(height: AppSpacing.lg),
-                        Container(
-                          padding: const EdgeInsets.all(AppSpacing.md),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.error.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: theme.colorScheme.error.withOpacity(0.15)),
-                          ),
-                          child: Row(
+                      )
+                    : Column(
+                        key: const ValueKey('step-details'),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              Icon(LucideIcons.alertCircle, color: theme.colorScheme.error, size: 18),
-                              const SizedBox(width: AppSpacing.xs),
                               Expanded(
-                                child: Text(
-                                  _error!,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.error,
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'First name',
+                                      style: theme.textTheme.labelLarge?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF111827),
+                                      ),
+                                    ),
+                                    const SizedBox(height: AppSpacing.xs),
+                                    TextField(
+                                      controller: _firstNameController,
+                                      decoration: const InputDecoration(hintText: 'John'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.md),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Last name',
+                                      style: theme.textTheme.labelLarge?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF111827),
+                                      ),
+                                    ),
+                                    const SizedBox(height: AppSpacing.xs),
+                                    TextField(
+                                      controller: _lastNameController,
+                                      decoration: const InputDecoration(hintText: 'Doe'),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: AppSpacing.lg),
 
-                      const SizedBox(height: AppSpacing.xl),
-                      
-                      // Submit button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: FilledButton(
-                          onPressed: _loading ? null : _submit,
-                          style: FilledButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                          Text(
+                            'Email address',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF111827),
                             ),
                           ),
-                          child: _loading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  'Create account',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                          const SizedBox(height: AppSpacing.xs),
+                          TextField(
+                            controller: _emailController,
+                            decoration: const InputDecoration(hintText: 'name@example.com'),
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+
+                          Text(
+                            'Phone number',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF111827),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          TextField(
+                            controller: _phoneController,
+                            decoration: const InputDecoration(hintText: '+94 77 123 4567'),
+                            keyboardType: TextInputType.phone,
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+
+                          Text(
+                            'Password',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF111827),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          TextField(
+                            controller: _passwordController,
+                            decoration: InputDecoration(
+                              hintText: 'Minimum 8 characters',
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureText ? LucideIcons.eye : LucideIcons.eyeOff,
+                                  size: 20,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
-                        ),
+                                onPressed: () {
+                                  setState(() => _obscureText = !_obscureText);
+                                },
+                              ),
+                            ),
+                            obscureText: _obscureText,
+                          ),
+
+                          if (_error != null) ...[
+                            const SizedBox(height: AppSpacing.lg),
+                            Container(
+                              padding: const EdgeInsets.all(AppSpacing.md),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.error.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: theme.colorScheme.error.withOpacity(0.15)),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(LucideIcons.alertCircle, color: theme.colorScheme.error, size: 18),
+                                  const SizedBox(width: AppSpacing.xs),
+                                  Expanded(
+                                    child: Text(
+                                      _error!,
+                                      style: theme.textTheme.bodyMedium?.copyWith(
+                                        color: theme.colorScheme.error,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+
+                          const SizedBox(height: AppSpacing.xl),
+
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: FilledButton(
+                              onPressed: _loading ? null : _submit,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              child: _loading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Create account',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                        ],
                       ),
-                      const SizedBox(height: AppSpacing.md),
-                    ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (_success) {
+      return Stack(
+        children: [
+          scaffold,
+          Positioned.fill(
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+                child: Container(
+                  color: const Color(0xFFEEF2FF).withOpacity(0.85),
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFDCFCE7),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF22C55E).withOpacity(0.12),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              LucideIcons.check,
+                              color: Color(0xFF16A34A),
+                              size: 48,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          Text(
+                            'Account Created!',
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF0F172A),
+                              fontSize: 26,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Welcome to RentLanka! Your account is ready to use.',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: const Color(0xFF475569),
+                              fontSize: 15,
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 48),
+                          const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4F46E5)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
+                ),
+              ),
+            ),
           ),
         ],
       );
     }
 
-    if (widget.isModal) {
-      // Bottom sheet presentation: Container with keyboard lift padding
-      return Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: AnimatedPadding(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOutCubic,
-          padding: EdgeInsets.only(
-            left: AppSpacing.lg,
-            right: AppSpacing.lg,
-            top: AppSpacing.xs,
-            bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.xl,
-          ),
-          child: SingleChildScrollView(
-            child: buildFormContent(context),
-          ),
-        ),
-      );
-    } else {
-      // Standalone page presentation (fallback)
-      return Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(LucideIcons.arrowLeft, color: Color(0xFF111827)),
-            onPressed: () {
-              if (_currentStep > 0) {
-                setState(() {
-                  _currentStep = 0;
-                });
-              } else {
-                context.pop();
-              }
-            },
-          ),
-        ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            child: buildFormContent(context),
-          ),
-        ),
-      );
-    }
+    return scaffold;
   }
 }

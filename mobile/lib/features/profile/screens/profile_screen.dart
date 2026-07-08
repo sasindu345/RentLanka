@@ -14,7 +14,6 @@ import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:mobile/core/theme/app_shadows.dart';
 import 'package:mobile/core/providers/app_mode_provider.dart';
-import 'package:mobile/core/providers/theme_provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -399,7 +398,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
 
     final appMode = ref.watch(appModeProvider);
-    final themeMode = ref.watch(themeProvider);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
@@ -580,47 +578,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     if (mounted) setState(() => _loading = false);
                   }
                 },
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Theme Preference',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: SegmentedButton<ThemeMode>(
-                segments: const [
-                  ButtonSegment<ThemeMode>(
-                    value: ThemeMode.system,
-                    label: Text('System'),
-                    icon: Icon(LucideIcons.laptop, size: 16),
-                  ),
-                  ButtonSegment<ThemeMode>(
-                    value: ThemeMode.light,
-                    label: Text('Light'),
-                    icon: Icon(LucideIcons.sun, size: 16),
-                  ),
-                  ButtonSegment<ThemeMode>(
-                    value: ThemeMode.dark,
-                    label: Text('Dark'),
-                    icon: Icon(LucideIcons.moon, size: 16),
-                  ),
-                ],
-                selected: {themeMode},
-                onSelectionChanged: (Set<ThemeMode> newSelection) {
-                  ref
-                      .read(themeProvider.notifier)
-                      .setThemeMode(newSelection.first);
-                },
-                showSelectedIcon: false,
-                style: SegmentedButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  selectedForegroundColor: theme.colorScheme.primary,
-                  selectedBackgroundColor: theme.colorScheme.primary.withOpacity(0.08),
-                  side: BorderSide(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
-                ),
               ),
             ),
             const SizedBox(height: 24),
