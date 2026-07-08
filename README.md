@@ -9,6 +9,13 @@ RentLanka is a premium, secure peer-to-peer (P2P) equipment rental marketplace t
 
 ---
 
+## 🌐 Live Environments & Client Downloads
+
+* **Live Admin Dashboard:** [lemon-rock-00c82da00.7.azurestaticapps.net](https://lemon-rock-00c82da00.7.azurestaticapps.net)
+* **Mobile Client (APK) Download:** [GitHub Actions Artifacts](https://github.com/sasindu345/RentLanka/actions) (Download the built APK under the latest release action run)
+
+---
+
 ## 🎯 The Problem & Our Solution
 
 ### The Challenge
