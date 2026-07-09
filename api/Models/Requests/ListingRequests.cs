@@ -12,6 +12,7 @@ public record CreateListingRequest(
     string Rules,
     double Latitude,
     double Longitude,
+    [Required] string Address,
     [Required] string District,
     List<string> Images);
 
@@ -24,5 +25,6 @@ public record UpdateListingRequest(
     string Rules,
     double Latitude,
     double Longitude,
+    [Required] string Address,
     [Required] string District,
     List<string> Images);

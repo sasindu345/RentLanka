@@ -9,6 +9,9 @@ import 'package:mobile/core/api/file_api.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/shared/widgets/location_picker_screen.dart';
+import 'package:latlong2/latlong.dart';
 
 class EditListingScreen extends ConsumerStatefulWidget {
   final String listingId;
@@ -25,6 +28,7 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
   final _priceController = TextEditingController();
   final _depositController = TextEditingController();
   final _rulesController = TextEditingController();
+  final _addressController = TextEditingController();
   final _picker = ImagePicker();
 
   List<String> _dynamicCategories = categories;
@@ -70,6 +74,7 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
     _priceController.dispose();
     _depositController.dispose();
     _rulesController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -89,6 +94,7 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
         _rulesController.text = listing.rules;
         _category = listing.category;
         _district = listing.district;
+        _addressController.text = listing.address;
         _latitude = listing.latitude;
         _longitude = listing.longitude;
         _imageUrls = List<String>.from(listing.images);
@@ -161,6 +167,10 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
       setState(() => _error = 'Add at least one photo.');
       return;
     }
+    if (_addressController.text.trim().isEmpty) {
+      setState(() => _error = 'Please provide a pickup address.');
+      return;
+    }
 
     setState(() {
       _saving = true;
@@ -177,6 +187,7 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
         'rules': _rulesController.text.trim(),
         'latitude': _latitude,
         'longitude': _longitude,
+        'address': _addressController.text.trim(),
         'district': _district,
         'images': _imageUrls,
       });
@@ -313,6 +324,64 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
               decoration: const InputDecoration(labelText: 'District'),
               items: districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
               onChanged: (v) => setState(() => _district = v!),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _addressController,
+              decoration: const InputDecoration(labelText: 'Pickup Address'),
+            ),
+            const SizedBox(height: 12),
+            const Text('Map Location Pin', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: () async {
+                final result = await Navigator.push<LatLng>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LocationPickerScreen(
+                      initialLocation: LatLng(_latitude, _longitude),
+                    ),
+                  ),
+                );
+                if (result != null) {
+                  setState(() {
+                    _latitude = result.latitude;
+                    _longitude = result.longitude;
+                  });
+                }
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  borderRadius: BorderRadius.circular(8),
+                  color: AppTheme.card.withOpacity(0.3),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(LucideIcons.map, color: AppTheme.primary),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Edit Location on Map',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Coords: ${_latitude.toStringAsFixed(5)}, ${_longitude.toStringAsFixed(5)}',
+                            style: const TextStyle(fontSize: 12, color: AppTheme.muted),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(LucideIcons.chevronRight, color: AppTheme.muted),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 12),
             TextField(

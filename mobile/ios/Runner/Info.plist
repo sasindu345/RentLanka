@@ -49,6 +49,10 @@
 	<string>RentLanka needs access to your photos to add listing images.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>RentLanka needs camera access to photograph items for your listing.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>RentLanka needs access to your location to find nearby rental equipment and set your pickup coordinates.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>RentLanka needs access to your location to find nearby rental equipment and set your pickup coordinates.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

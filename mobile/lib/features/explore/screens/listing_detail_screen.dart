@@ -11,6 +11,9 @@ import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/providers/wishlist_provider.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ListingDetailScreen extends ConsumerStatefulWidget {
   final String id;
@@ -54,6 +57,31 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
       // Ignore if details load fails
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _openGoogleMaps(double latitude, double longitude, String title) async {
+    final googleMapsUrl = Uri.parse('https://www.google.com/maps/search/?api=1&query=$latitude,$longitude');
+    final appleMapsUrl = Uri.parse('maps://?q=$latitude,$longitude');
+
+    try {
+      if (await canLaunchUrl(googleMapsUrl)) {
+        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+      } else if (await canLaunchUrl(appleMapsUrl)) {
+        await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open map applications.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open map: $e')),
+        );
+      }
     }
   }
 
@@ -323,6 +351,148 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                     child: Divider(),
                   ),
                   
+                  // Pickup Location
+                  Text(
+                    'Pickup Location',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Row(
+                    children: [
+                      Icon(
+                        LucideIcons.mapPin,
+                        color: theme.colorScheme.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: Text(
+                          listing.address.isNotEmpty
+                              ? '${listing.address}, ${listing.district}'
+                              : listing.district,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadius.card),
+                    child: Container(
+                      height: 200,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: theme.colorScheme.outline),
+                        borderRadius: BorderRadius.circular(AppRadius.card),
+                      ),
+                      child: Stack(
+                        children: [
+                          FlutterMap(
+                            options: MapOptions(
+                              initialCenter: LatLng(listing.latitude, listing.longitude),
+                              initialZoom: 13.0,
+                              interactionOptions: const InteractionOptions(
+                                flags: InteractiveFlag.none,
+                              ),
+                            ),
+                            children: [
+                              TileLayer(
+                                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                userAgentPackageName: 'com.rentlanka.app',
+                              ),
+                              MarkerLayer(
+                                markers: [
+                                  Marker(
+                                    point: LatLng(listing.latitude, listing.longitude),
+                                    width: 40.0,
+                                    height: 40.0,
+                                    child: Icon(
+                                      LucideIcons.mapPin,
+                                      color: theme.colorScheme.primary,
+                                      size: 30.0,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          Positioned(
+                            bottom: 12.0,
+                            right: 12.0,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: theme.colorScheme.onPrimary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                                elevation: 4.0,
+                              ),
+                              onPressed: () => _openGoogleMaps(listing.latitude, listing.longitude, listing.title),
+                              icon: const Icon(LucideIcons.navigation, size: 14.0),
+                              label: const Text(
+                                'Navigate',
+                                style: TextStyle(
+                                  fontSize: 12.0,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Plus Jakarta Sans',
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 12.0,
+                            right: 12.0,
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => FullscreenMapScreen(
+                                      latitude: listing.latitude,
+                                      longitude: listing.longitude,
+                                      title: listing.title,
+                                    ),
+                                  ),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(20.0),
+                              child: Container(
+                                padding: const EdgeInsets.all(10.0),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 6.0,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  LucideIcons.maximize2,
+                                  color: Colors.black87,
+                                  size: 18.0,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                    child: Divider(),
+                  ),
+                  
                   // Listing Availability
                   Text(
                     'Listing Availability',
@@ -530,6 +700,104 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class FullscreenMapScreen extends StatelessWidget {
+  final double latitude;
+  final double longitude;
+  final String title;
+
+  const FullscreenMapScreen({
+    super.key,
+    required this.latitude,
+    required this.longitude,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final center = LatLng(latitude, longitude);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        leading: IconButton(
+          icon: const Icon(LucideIcons.minimize2),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Stack(
+        children: [
+          FlutterMap(
+            options: MapOptions(
+              initialCenter: center,
+              initialZoom: 15.0,
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.rentlanka.app',
+              ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: center,
+                    width: 60.0,
+                    height: 60.0,
+                    alignment: Alignment.topCenter,
+                    child: Icon(
+                      LucideIcons.mapPin,
+                      color: theme.colorScheme.primary,
+                      size: 40.0,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          Positioned(
+            bottom: 24.0,
+            left: 24.0,
+            right: 24.0,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
+                padding: const EdgeInsets.symmetric(vertical: 14.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                elevation: 6.0,
+              ),
+              onPressed: () async {
+                final googleMapsUrl = Uri.parse('https://www.google.com/maps/search/?api=1&query=$latitude,$longitude');
+                final appleMapsUrl = Uri.parse('maps://?q=$latitude,$longitude');
+                try {
+                  if (await canLaunchUrl(googleMapsUrl)) {
+                    await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+                  } else if (await canLaunchUrl(appleMapsUrl)) {
+                    await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
+                  }
+                } catch (_) {}
+              },
+              icon: const Icon(LucideIcons.navigation),
+              label: const Text(
+                'Navigate in Google Maps',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

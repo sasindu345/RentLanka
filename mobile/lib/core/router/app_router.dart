@@ -113,6 +113,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'search',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final q = state.uri.queryParameters['q'] ?? '';
                       final category = state.uri.queryParameters['category'];

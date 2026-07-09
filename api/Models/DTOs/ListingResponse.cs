@@ -15,6 +15,7 @@ public record ListingResponse(
     string Rules,
     double Latitude,
     double Longitude,
+    string Address,
     string District,
     List<string> Images,
     bool IsPaused,

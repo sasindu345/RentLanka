@@ -12,6 +12,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/shared/widgets/location_picker_screen.dart';
+import 'package:latlong2/latlong.dart';
 
 class CreateListingScreen extends ConsumerStatefulWidget {
   const CreateListingScreen({super.key});
@@ -26,11 +28,14 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   final _priceController = TextEditingController();
   final _depositController = TextEditingController();
   final _rulesController = TextEditingController();
+  final _addressController = TextEditingController();
   final _picker = ImagePicker();
 
   List<String> _dynamicCategories = categories;
   late String _category;
   String _district = districts.first;
+  double _latitude = 6.9271;
+  double _longitude = 79.8612;
   final List<String> _imageUrls = [];
   bool _loading = false;
   bool _uploadingImage = false;
@@ -67,6 +72,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
     _priceController.dispose();
     _depositController.dispose();
     _rulesController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -142,6 +148,10 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
       setState(() => _error = 'Add at least one photo.');
       return;
     }
+    if (_addressController.text.trim().isEmpty) {
+      setState(() => _error = 'Please provide a pickup address.');
+      return;
+    }
 
     setState(() {
       _loading = true;
@@ -155,8 +165,9 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
         'pricePerDay': double.parse(_priceController.text),
         'securityDeposit': double.parse(_depositController.text),
         'rules': _rulesController.text.trim(),
-        'latitude': 6.9271,
-        'longitude': 79.8612,
+        'latitude': _latitude,
+        'longitude': _longitude,
+        'address': _addressController.text.trim(),
         'district': _district,
         'images': _imageUrls,
       });
@@ -169,7 +180,12 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
         _priceController.clear();
         _depositController.clear();
         _rulesController.clear();
-        setState(() => _imageUrls.clear());
+        _addressController.clear();
+        setState(() {
+          _imageUrls.clear();
+          _latitude = 6.9271;
+          _longitude = 79.8612;
+        });
       }
     } on DioException catch (e) {
       setState(() => _error = extractError(e));
@@ -459,6 +475,70 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
               value: _district,
               items: districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
               onChanged: (v) => setState(() => _district = v!),
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // Pickup Address
+            Text('Pickup Address', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            TextField(
+              controller: _addressController,
+              decoration: const InputDecoration(hintText: 'e.g. 123 Galle Road, Colombo 03'),
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // Map Location Pin
+            Text('Map Location Pin', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            InkWell(
+              onTap: () async {
+                final result = await Navigator.push<LatLng>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LocationPickerScreen(
+                      initialLocation: LatLng(_latitude, _longitude),
+                    ),
+                  ),
+                );
+                if (result != null) {
+                  setState(() {
+                    _latitude = result.latitude;
+                    _longitude = result.longitude;
+                  });
+                }
+              },
+              borderRadius: BorderRadius.circular(AppRadius.input),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                decoration: BoxDecoration(
+                  border: Border.all(color: theme.colorScheme.outline),
+                  borderRadius: BorderRadius.circular(AppRadius.input),
+                  color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                ),
+                child: Row(
+                  children: [
+                    Icon(LucideIcons.map, color: theme.colorScheme.primary),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Select Location on Map',
+                            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Coords: ${_latitude.toStringAsFixed(5)}, ${_longitude.toStringAsFixed(5)}',
+                            style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(LucideIcons.chevronRight, color: theme.colorScheme.onSurfaceVariant),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
             

@@ -18,6 +18,8 @@ public class Listing
     // NetTopologySuite spatial geometry index
     public Point Location { get; set; } = null!; // SRID 4326 (X = Longitude, Y = Latitude)
 
+    public string Address { get; set; } = string.Empty;
+
     public string District { get; set; } = string.Empty;
     public List<string> Images { get; set; } = new();
     public bool IsPaused { get; set; } = false;
