@@ -34,9 +34,9 @@ class _SignupVerificationScreenState
     _activeDevToken = widget.devToken;
     if (_activeDevToken != null) {
       // Printed to terminal console only as requested
-      print('========================================================');
-      print('DEVELOPMENT EMAIL VERIFICATION TOKEN: $_activeDevToken');
-      print('========================================================');
+      debugPrint('========================================================');
+      debugPrint('DEVELOPMENT EMAIL VERIFICATION TOKEN: $_activeDevToken');
+      debugPrint('========================================================');
     }
   }
 
@@ -86,9 +86,9 @@ class _SignupVerificationScreenState
         _success = 'A new verification code has been sent to your email.';
         if (newDevToken != null) {
           _activeDevToken = newDevToken;
-          print('========================================================');
-          print('DEVELOPMENT EMAIL VERIFICATION TOKEN (RESEND): $_activeDevToken');
-          print('========================================================');
+          debugPrint('========================================================');
+          debugPrint('DEVELOPMENT EMAIL VERIFICATION TOKEN (RESEND): $_activeDevToken');
+          debugPrint('========================================================');
         }
       });
     } catch (e) {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/listings_api.dart';
-import 'package:mobile/features/activity/screens/activity_screen.dart';
+
 import 'package:mobile/features/auth/screens/login_screen.dart';
 import 'package:mobile/features/auth/screens/register_screen.dart';
 import 'package:mobile/features/auth/screens/welcome_screen.dart';
@@ -35,8 +35,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) async {
       final loggedIn = await api.isLoggedIn();
       final location = state.matchedLocation;
-      final isAuthRoute =
-          location == '/welcome' || location == '/login' || location == '/register' || location == '/signup-verification';
+
       final isPublicAppRoute = location.startsWith('/app/explore');
       final isProtectedRoute = location.startsWith('/app/') && !isPublicAppRoute;
 
