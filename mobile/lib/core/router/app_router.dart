@@ -124,6 +124,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'listing/:id',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       return ListingDetailScreen(id: state.pathParameters['id']!);
                     },
