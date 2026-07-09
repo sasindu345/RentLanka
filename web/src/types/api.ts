@@ -19,6 +19,7 @@ export interface Listing {
   rules: string;
   latitude: number;
   longitude: number;
+  address: string;
   district: string;
   images: string[];
   isPaused: boolean;

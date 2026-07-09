@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/shared/widgets/rentlanka_logo.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
+import 'package:mobile/core/theme/app_theme.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -51,7 +52,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
       if (mounted) {
         if (loggedIn) {
-          context.go('/app/explore');
+          try {
+            final user = await api.getCurrentUser();
+            if (user.verificationLevel < 0) {
+              if (mounted) context.go('/signup-verification');
+              return;
+            }
+          } catch (_) {
+            // If details load fails (offline/network), fallback to explore
+          }
+          if (mounted) context.go('/app/explore');
         } else {
           context.go('/welcome');
         }
@@ -63,9 +73,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    return Theme(
+      data: AppTheme.light,
+      child: Builder(
+        builder: (context) {
+          final theme = Theme.of(context);
 
-    return Scaffold(
+          return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA), // Clean premium off-white background
       body: Center(
         child: FadeTransition(
@@ -94,6 +108,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
             ],
           ),
         ),
+      ),
+    );
+        },
       ),
     );
   }

@@ -72,17 +72,14 @@ class WishlistScreen extends ConsumerWidget {
               // 2. Wishlist Grid Content
               wishlistState.when(
                 loading: () => SliverPadding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
-                  ),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   sliver: SliverGrid(
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          childAspectRatio: 0.73,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.77,
+                          crossAxisSpacing: AppSpacing.md,
+                          mainAxisSpacing: AppSpacing.md,
                         ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => const ListingCardSkeleton(),
@@ -126,17 +123,14 @@ class WishlistScreen extends ConsumerWidget {
                         ),
                       )
                     : SliverPadding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: AppSpacing.sm,
-                        ),
+                        padding: const EdgeInsets.all(AppSpacing.md),
                         sliver: SliverGrid(
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
-                                childAspectRatio: 0.73,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
+                                childAspectRatio: 0.77,
+                                crossAxisSpacing: AppSpacing.md,
+                                mainAxisSpacing: AppSpacing.md,
                               ),
                           delegate: SliverChildBuilderDelegate(
                             (context, index) =>

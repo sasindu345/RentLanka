@@ -58,7 +58,7 @@ class ListingsApi {
     return returnedRole;
   }
 
-  Future<void> register({
+  Future<Map<String, dynamic>> register({
     required String email,
     required String password,
     required String firstName,
@@ -66,7 +66,7 @@ class ListingsApi {
     required String phoneNumber,
     required String role,
   }) async {
-    await _dio.post('/api/auth/register', data: {
+    final response = await _dio.post('/api/auth/register', data: {
       'email': email,
       'password': password,
       'firstName': firstName,
@@ -75,6 +75,7 @@ class ListingsApi {
       'role': role,
     });
     await login(email, password);
+    return response.data as Map<String, dynamic>;
   }
 
   Future<void> logout() => _storage.clearToken();
@@ -108,12 +109,15 @@ class ListingsApi {
     String? query,
     String? category,
     String? district,
+    double? lat,
+    double? lon,
+    double? distanceMeters,
     int page = 1,
     int pageSize = 20,
     String sortBy = 'newest',
   }) async {
-    // If text query is provided, use the AI Semantic Search endpoint
-    if (query != null && query.isNotEmpty) {
+    // If text query is provided and no coordinates are given, use the AI Semantic Search endpoint
+    if (query != null && query.isNotEmpty && lat == null && lon == null) {
       final response = await _dio.get('/api/ai/search', queryParameters: {
         'query': query,
       });
@@ -128,10 +132,14 @@ class ListingsApi {
       );
     }
 
-    // Default category/feed filter search
+    // Default category/feed filter and spatial proximity search
     final response = await _dio.get('/api/listings/search', queryParameters: {
+      if (query != null && query.isNotEmpty) 'query': query,
       if (category != null && category.isNotEmpty) 'category': category,
       if (district != null && district.isNotEmpty) 'district': district,
+      'lat': ?lat,
+      'lon': ?lon,
+      'distanceMeters': ?distanceMeters,
       'page': page,
       'pageSize': pageSize,
       'sortBy': sortBy,

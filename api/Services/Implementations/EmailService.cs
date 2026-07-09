@@ -44,8 +44,7 @@ public class EmailService : IEmailService
             return;
         }
 
-        if (string.Equals(provider, "Smtp", StringComparison.OrdinalIgnoreCase) || 
-            string.Equals(provider, "SES", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(provider, "Smtp", StringComparison.OrdinalIgnoreCase))
         {
             await SendViaSmtpAsync(toEmail, subject, htmlContent, fromEmail, fromName);
             return;

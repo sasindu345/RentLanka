@@ -15,6 +15,7 @@ class RentLankaApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'RentLanka',
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
       themeMode: themeMode,
       routerConfig: router,
       debugShowCheckedModeBanner: false,

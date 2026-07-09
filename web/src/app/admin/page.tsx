@@ -164,7 +164,7 @@ export default function AdminDashboardOverview() {
         {kpis.map((kpi, idx) => (
           <div
             key={idx}
-            className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 shadow-sm hover:border-slate-700/60 transition-all duration-200 flex flex-col justify-between"
+            className="rounded-xl border border-slate-800/60 bg-slate-950/30 backdrop-blur-md p-6 shadow-lg hover:border-slate-700/80 hover:bg-slate-900/40 transition-all duration-300 flex flex-col justify-between"
           >
             <div>
               <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">{kpi.label}</span>
@@ -194,7 +194,7 @@ export default function AdminDashboardOverview() {
       <div className="grid gap-6 lg:grid-cols-3">
         
         {/* Growth Trend Area Chart */}
-        <div className="lg:col-span-2 rounded-xl border border-slate-800 bg-slate-900/40 p-6 flex flex-col justify-between relative overflow-hidden">
+        <div className="lg:col-span-2 rounded-xl border border-slate-800/60 bg-slate-950/30 backdrop-blur-md p-6 flex flex-col justify-between relative overflow-hidden shadow-lg hover:border-slate-700/80 hover:bg-slate-900/40 transition-all duration-300">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h3 className="text-base font-bold text-slate-200">Platform Activity Trends</h3>
@@ -318,7 +318,7 @@ export default function AdminDashboardOverview() {
         </div>
 
         {/* Category Share Donut Chart */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 flex flex-col justify-between">
+        <div className="rounded-xl border border-slate-800/60 bg-slate-950/30 backdrop-blur-md p-6 flex flex-col justify-between shadow-lg hover:border-slate-700/80 hover:bg-slate-900/40 transition-all duration-300">
           <div>
             <h3 className="text-base font-bold text-slate-200">Category Share</h3>
             <p className="text-slate-500 text-xs mt-0.5">Gear listed by gear category</p>
@@ -358,7 +358,7 @@ export default function AdminDashboardOverview() {
       <div className="grid gap-6 lg:grid-cols-3">
 
         {/* User Verification Trust Level Donut Chart */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 flex flex-col justify-between">
+        <div className="rounded-xl border border-slate-800/60 bg-slate-950/30 backdrop-blur-md p-6 flex flex-col justify-between shadow-lg hover:border-slate-700/80 hover:bg-slate-900/40 transition-all duration-300">
           <div>
             <h3 className="text-base font-bold text-slate-200">Trust & Identity</h3>
             <p className="text-slate-500 text-xs mt-0.5">Verification status of registered accounts</p>
@@ -401,7 +401,7 @@ export default function AdminDashboardOverview() {
         </div>
 
         {/* Platform Escrow Fund Bar Stack Chart */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 flex flex-col justify-between">
+        <div className="rounded-xl border border-slate-800/60 bg-slate-950/30 backdrop-blur-md p-6 flex flex-col justify-between shadow-lg hover:border-slate-700/80 hover:bg-slate-900/40 transition-all duration-300">
           <div>
             <h3 className="text-base font-bold text-slate-200">Escrow Ledger</h3>
             <p className="text-slate-500 text-xs mt-0.5">Ratio and distribution of transacted funds</p>
@@ -441,7 +441,7 @@ export default function AdminDashboardOverview() {
         </div>
 
         {/* Live Admin Audit Log */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 flex flex-col justify-between">
+        <div className="rounded-xl border border-slate-800/60 bg-slate-950/30 backdrop-blur-md p-6 flex flex-col justify-between shadow-lg hover:border-slate-700/80 hover:bg-slate-900/40 transition-all duration-300">
           <div>
             <h3 className="text-base font-bold text-slate-200">System Logs</h3>
             <p className="text-slate-500 text-xs mt-0.5">Real-time platform administrative events</p>

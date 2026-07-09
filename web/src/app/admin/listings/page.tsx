@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
+import dynamic from "next/dynamic";
 import {
   getAdminListings,
   toggleListingPause,
@@ -9,6 +10,15 @@ import {
   rejectListing,
 } from "@/lib/api/admin";
 import type { Listing } from "@/types/api";
+
+const AdminMap = dynamic(() => import("@/components/AdminMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[300px] w-full rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 text-xs">
+      Loading interactive map...
+    </div>
+  ),
+});
 
 export default function AdminListingsModeration() {
   const [activeTab, setActiveTab] = useState<"pending" | "moderated">("pending");
@@ -20,6 +30,7 @@ export default function AdminListingsModeration() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [expandedListingId, setExpandedListingId] = useState<string | null>(null);
 
   const pageSize = 15;
 
@@ -259,107 +270,188 @@ export default function AdminListingsModeration() {
                 const coverImage = listing.images && listing.images.length > 0 ? listing.images[0] : null;
 
                 return (
-                  <tr
-                    key={listing.id}
-                    className="hover:bg-slate-900/30 transition duration-150 text-sm"
-                  >
-                    <td className="px-6 py-4">
-                      {coverImage ? (
-                        <img
-                          src={coverImage}
-                          alt={listing.title}
-                          className="w-12 h-12 object-cover rounded-lg border border-slate-800 bg-slate-950"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 bg-slate-900 border border-slate-850 rounded-lg flex items-center justify-center text-slate-600 text-xs">
-                          No Pic
+                  <Fragment key={listing.id}>
+                    <tr className="hover:bg-slate-900/30 transition duration-150 text-sm">
+                      <td className="px-6 py-4">
+                        {coverImage ? (
+                          <img
+                            src={coverImage}
+                            alt={listing.title}
+                            className="w-12 h-12 object-cover rounded-lg border border-slate-800 bg-slate-950"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-slate-900 border border-slate-850 rounded-lg flex items-center justify-center text-slate-600 text-xs">
+                            No Pic
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 font-semibold text-slate-200">
+                        <button
+                          onClick={() => setExpandedListingId(expandedListingId === listing.id ? null : listing.id)}
+                          className="text-left font-semibold text-slate-200 hover:text-indigo-400 focus:outline-none transition cursor-pointer truncate max-w-[200px] block"
+                        >
+                          {listing.title}
+                        </button>
+                        <span className="text-[10px] text-slate-500 block font-mono truncate max-w-[200px]">
+                          ID: {listing.id}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-400">
+                        <div>
+                          {listing.owner.firstName} {listing.owner.lastName}
                         </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-slate-200">
-                      <div className="truncate max-w-[200px]">{listing.title}</div>
-                      <span className="text-[10px] text-slate-500 block font-mono truncate max-w-[200px]">
-                        ID: {listing.id}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-400">
-                      <div>
-                        {listing.owner.firstName} {listing.owner.lastName}
-                      </div>
-                      <span className="text-[10px] text-slate-500 block">
-                        KYC Level {listing.owner.verificationLevel}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-400">{listing.category}</td>
-                    <td className="px-6 py-4 font-semibold text-indigo-400 font-mono">
-                      LKR {listing.pricePerDay.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 text-slate-400">{listing.district}</td>
-                    <td className="px-6 py-4">
-                      {listing.status === "PendingApproval" ? (
-                        <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-950/40 text-amber-400 border border-amber-500/20">
-                          Pending Verification
+                        <span className="text-[10px] text-slate-500 block">
+                          KYC Level {listing.owner.verificationLevel}
                         </span>
-                      ) : listing.status === "Rejected" ? (
-                        <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-rose-950/40 text-rose-400 border border-rose-500/20">
-                          Rejected
-                        </span>
-                      ) : listing.isPaused ? (
-                        <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-slate-950/40 text-slate-400 border border-slate-500/20">
-                          Paused
-                        </span>
-                      ) : (
-                        <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-950/30 text-emerald-400 border border-emerald-500/20">
-                          Active
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right whitespace-nowrap space-x-2">
-                      {listing.status === "PendingApproval" ? (
-                        <>
-                          <button
-                            disabled={isActionLoading}
-                            onClick={() => handleApprove(listing.id)}
-                            className="text-xs px-3 py-1.5 rounded-lg border bg-emerald-950/10 border-emerald-900/30 text-emerald-400 hover:bg-emerald-950/20 hover:border-emerald-800 transition duration-150 cursor-pointer"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            disabled={isActionLoading}
-                            onClick={() => handleReject(listing.id)}
-                            className="text-xs px-3 py-1.5 rounded-lg border bg-rose-950/10 border-rose-900/30 text-rose-400 hover:bg-rose-950/20 hover:border-rose-800 transition duration-150 cursor-pointer"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            disabled={isActionLoading}
-                            onClick={() => handleTogglePause(listing.id)}
-                            className={`text-xs px-3 py-1.5 rounded-lg border transition duration-150 cursor-pointer ${
-                              listing.isPaused
-                                ? "bg-emerald-950/10 border-emerald-900/30 text-emerald-400 hover:bg-emerald-950/20 hover:border-emerald-800"
-                                : "bg-amber-950/10 border-amber-900/30 text-amber-400 hover:bg-amber-950/20 hover:border-amber-800"
-                            }`}
-                          >
-                            {isActionLoading
-                              ? "Wait..."
-                              : listing.isPaused
-                              ? "Activate"
-                              : "Pause"}
-                          </button>
-                          <button
-                            disabled={isActionLoading}
-                            onClick={() => handleDeleteListing(listing.id)}
-                            className="text-xs px-3 py-1.5 rounded-lg border bg-red-950/10 border-red-900/30 text-red-400 hover:bg-red-950/20 hover:border-red-800 transition duration-150 cursor-pointer"
-                          >
-                            {isActionLoading ? "..." : "Delete"}
-                          </button>
-                        </>
-                      )}
-                    </td>
-                  </tr>
+                      </td>
+                      <td className="px-6 py-4 text-slate-400">{listing.category}</td>
+                      <td className="px-6 py-4 font-semibold text-indigo-400 font-mono">
+                        LKR {listing.pricePerDay.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 text-slate-400">{listing.district}</td>
+                      <td className="px-6 py-4">
+                        {listing.status === "PendingApproval" ? (
+                          <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-950/40 text-amber-400 border border-amber-500/20">
+                            Pending Verification
+                          </span>
+                        ) : listing.status === "Rejected" ? (
+                          <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-rose-950/40 text-rose-400 border border-rose-500/20">
+                            Rejected
+                          </span>
+                        ) : listing.isPaused ? (
+                          <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-slate-950/40 text-slate-400 border border-slate-500/20">
+                            Paused
+                          </span>
+                        ) : (
+                          <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-950/30 text-emerald-400 border border-emerald-500/20">
+                            Active
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap space-x-2">
+                        {listing.status === "PendingApproval" ? (
+                          <>
+                            <button
+                              disabled={isActionLoading}
+                              onClick={() => handleApprove(listing.id)}
+                              className="text-xs px-3 py-1.5 rounded-lg border bg-emerald-950/10 border-emerald-900/30 text-emerald-400 hover:bg-emerald-950/20 hover:border-emerald-800 transition duration-150 cursor-pointer"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              disabled={isActionLoading}
+                              onClick={() => handleReject(listing.id)}
+                              className="text-xs px-3 py-1.5 rounded-lg border bg-rose-950/10 border-rose-900/30 text-rose-400 hover:bg-rose-950/20 hover:border-rose-800 transition duration-150 cursor-pointer"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              disabled={isActionLoading}
+                              onClick={() => handleTogglePause(listing.id)}
+                              className={`text-xs px-3 py-1.5 rounded-lg border transition duration-150 cursor-pointer ${
+                                listing.isPaused
+                                  ? "bg-emerald-950/10 border-emerald-900/30 text-emerald-400 hover:bg-emerald-950/20 hover:border-emerald-800"
+                                  : "bg-amber-950/10 border-amber-900/30 text-amber-400 hover:bg-amber-950/20 hover:border-amber-800"
+                              }`}
+                            >
+                              {isActionLoading
+                                ? "Wait..."
+                                : listing.isPaused
+                                ? "Activate"
+                                : "Pause"}
+                            </button>
+                            <button
+                              disabled={isActionLoading}
+                              onClick={() => handleDeleteListing(listing.id)}
+                              className="text-xs px-3 py-1.5 rounded-lg border bg-red-950/10 border-red-900/30 text-red-400 hover:bg-red-950/20 hover:border-red-800 transition duration-150 cursor-pointer"
+                            >
+                              {isActionLoading ? "..." : "Delete"}
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                    {expandedListingId === listing.id && (
+                      <tr className="bg-slate-950/40 border-b border-slate-800/80">
+                        <td colSpan={8} className="px-6 py-6">
+                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-sm">
+                            {/* Left Column: Details */}
+                            <div className="space-y-4">
+                              <div>
+                                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                                  Description
+                                </h4>
+                                <p className="text-slate-300 leading-relaxed max-h-[160px] overflow-y-auto pr-1">
+                                  {listing.description || "No description provided."}
+                                </p>
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                                  Rules & Guidelines
+                                </h4>
+                                <p className="text-slate-300 font-medium">
+                                  {listing.rules || "No specific rules listed."}
+                                </p>
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                                  Pickup Location & Address
+                                </h4>
+                                <p className="text-slate-200 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 font-medium">
+                                  {listing.address || "No address specified."}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Middle Column: Images Carousel */}
+                            <div className="space-y-3">
+                              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                Equipment Images ({listing.images?.length || 0})
+                              </h4>
+                              <div className="grid grid-cols-2 gap-2 max-h-[220px] overflow-y-auto pr-1">
+                                {listing.images && listing.images.length > 0 ? (
+                                  listing.images.map((img, idx) => (
+                                    <a
+                                      key={idx}
+                                      href={img}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="group relative block aspect-video rounded-lg overflow-hidden border border-slate-800 bg-slate-950"
+                                    >
+                                      <img
+                                        src={img}
+                                        alt={`Image ${idx + 1}`}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition duration-200"
+                                      />
+                                    </a>
+                                  ))
+                                ) : (
+                                  <div className="col-span-2 py-8 text-center text-slate-650 border border-dashed border-slate-800 rounded-lg">
+                                    No images uploaded
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Right Column: Leaflet Map */}
+                            <div className="space-y-3">
+                              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                Physical Map Location
+                              </h4>
+                              <AdminMap
+                                latitude={listing.latitude}
+                                longitude={listing.longitude}
+                                address={listing.address}
+                              />
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 );
               })
             )}

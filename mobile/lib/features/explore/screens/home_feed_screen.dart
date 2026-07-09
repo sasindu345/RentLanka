@@ -62,12 +62,9 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     context.push('/app/explore/search?q=${Uri.encodeComponent(q)}');
   }
 
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Card dimensions — shared across both horizontal and grid sections
-    // so both render pixel-perfect identical cards.
     final double cardWidth =
         (MediaQuery.of(context).size.width - AppSpacing.md * 3) / 2;
     final double cardHeight = cardWidth / 0.82;
@@ -106,7 +103,6 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                           builder: (context) => const NotificationsScreen(),
                         ),
                       );
-
                     },
                     icon: Icon(
                       LucideIcons.bell,
@@ -117,197 +113,195 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                 ],
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
+              ),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: theme.colorScheme.outline.withOpacity(0.4),
+                    width: 1.0,
+                  ),
+                  boxShadow: theme.brightness == Brightness.dark
+                      ? AppShadows.none
+                      : AppShadows.md,
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      LucideIcons.search,
+                      color: Color(0xFF9CA3AF),
+                      size: 18,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) => _search(),
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Ask RentLanka AI...',
+                          filled: false,
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                          hintStyle: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurfaceVariant
+                                .withOpacity(0.6),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    GestureDetector(
+                      onTap: () => _search(),
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4F46E5),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            LucideIcons.send,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _loadListings,
                 child: CustomScrollView(
                   slivers: [
-                    // 2. AI Search Input Card
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: AppSpacing.xs,
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.fromLTRB(18, 14, 10, 14),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: theme.colorScheme.outline.withOpacity(0.4),
-                              width: 1.0,
-                            ),
-                            boxShadow: theme.brightness == Brightness.dark
-                                ? AppShadows.none
-                                : AppShadows.md,
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                LucideIcons.search,
-                                color: Color(0xFF9CA3AF),
-                                size: 22,
+                    SliverPersistentHeader(
+                      floating: true,
+                      delegate: _CategoriesSliverDelegate(
+                        height: 130,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                AppSpacing.md,
+                                AppSpacing.sm,
+                                AppSpacing.md,
+                                AppSpacing.xs,
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: TextField(
-                                  controller: _searchController,
-                                  textInputAction: TextInputAction.send,
-                                  onSubmitted: (_) => _search(),
-                                  maxLines: null,
-                                  keyboardType: TextInputType.multiline,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: theme.colorScheme.onSurface,
-                                  ),
-                                  decoration: InputDecoration(
-                                    hintText: 'Ask RentLanka AI...',
-                                    filled: false,
-                                    border: InputBorder.none,
-                                    focusedBorder: InputBorder.none,
-                                    enabledBorder: InputBorder.none,
-                                    errorBorder: InputBorder.none,
-                                    disabledBorder: InputBorder.none,
-                                    isDense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                    hintStyle: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: theme.colorScheme.onSurfaceVariant
-                                          .withOpacity(0.6),
-                                    ),
-                                  ),
+                              child: Text(
+                                'Categories',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  color: theme.colorScheme.onBackground,
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              GestureDetector(
-                                onTap: () => _search(),
-                                child: Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF4F46E5),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Center(
-                                    child: Icon(
-                                      LucideIcons.send,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                  ),
+                            ),
+                            SizedBox(
+                              height: 80,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md,
+                                  vertical: 0.0,
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // 4. Categories Circular List
-                    SliverToBoxAdapter(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(
-                              AppSpacing.md,
-                              AppSpacing.lg,
-                              AppSpacing.md,
-                              AppSpacing.xs,
-                            ),
-                            child: Text(
-                              'Categories',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                fontFamily: 'Plus Jakarta Sans',
-                                color: theme.colorScheme.onBackground,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            height: 92,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.md,
-                              ),
-                              itemCount: _categories.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 16),
-                              itemBuilder: (context, index) {
-                                final cat = _categories[index];
-                                final isSelected =
-                                    _selectedCategory == cat['name'];
-                                return GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      if (_selectedCategory == cat['name']) {
-                                        _selectedCategory = null;
-                                      } else {
-                                        _selectedCategory = cat['name'];
-                                      }
-                                    });
-                                    _loadListings();
-                                  },
-                                  child: Column(
-                                    children: [
-                                      Container(
-                                        width: 56,
-                                        height: 56,
-                                        decoration: BoxDecoration(
-                                          color: isSelected
-                                              ? theme.colorScheme.primary
-                                              : (theme.brightness ==
-                                                        Brightness.dark
-                                                    ? const Color(0xFF1E293B)
-                                                    : const Color(0xFFF1F5F9)),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Center(
-                                          child: Icon(
-                                            cat['icon'],
+                                itemCount: _categories.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(width: 12),
+                                itemBuilder: (context, index) {
+                                  final cat = _categories[index];
+                                  final isSelected =
+                                      _selectedCategory == cat['name'];
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (_selectedCategory == cat['name']) {
+                                          _selectedCategory = null;
+                                        } else {
+                                          _selectedCategory = cat['name'];
+                                        }
+                                      });
+                                      _loadListings();
+                                    },
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          width: 46,
+                                          height: 46,
+                                          decoration: BoxDecoration(
                                             color: isSelected
-                                                ? theme.colorScheme.onPrimary
+                                                ? theme.colorScheme.primary
                                                 : (theme.brightness ==
                                                           Brightness.dark
-                                                      ? const Color(0xFF94A3B8)
-                                                      : const Color(
-                                                          0xFF64748B,
-                                                        )),
-                                            size: 22,
+                                                      ? const Color(0xFF1E293B)
+                                                      : const Color(0xFFF1F5F9)),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Center(
+                                            child: Icon(
+                                              cat['icon'],
+                                              color: isSelected
+                                                  ? theme.colorScheme.onPrimary
+                                                  : (theme.brightness ==
+                                                            Brightness.dark
+                                                        ? const Color(0xFF94A3B8)
+                                                        : const Color(
+                                                            0xFF64748B,
+                                                          )),
+                                              size: 18,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        cat['name'],
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w700
-                                              : FontWeight.w500,
-                                          color: isSelected
-                                              ? theme.colorScheme.primary
-                                              : theme
-                                                    .colorScheme
-                                                    .onSurfaceVariant,
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          cat['name'],
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w700
+                                                : FontWeight.w500,
+                                            color: isSelected
+                                                ? theme.colorScheme.primary
+                                                : theme
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-
-                    // 6. Recommended For You Horizontal Grid List
                     SliverToBoxAdapter(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -386,7 +380,6 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                         ],
                       ),
                     ),
-
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(
@@ -453,7 +446,6 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                           ),
                         ),
                       ),
-
                     const SliverToBoxAdapter(child: SizedBox(height: 80)),
                   ],
                 ),
@@ -463,5 +455,46 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
         ),
       ),
     );
+  }
+}
+
+class _CategoriesSliverDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  final double height;
+
+  _CategoriesSliverDelegate({required this.child, required this.height});
+
+  @override
+  double get minExtent => 0;
+
+  @override
+  double get maxExtent => height;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final double visibleHeight = height - shrinkOffset;
+    final double percent = (visibleHeight / height).clamp(0.0, 1.0);
+
+    return Container(
+      color: Theme.of(context).colorScheme.background,
+      height: visibleHeight,
+      child: ClipRect(
+        child: OverflowBox(
+          minHeight: height,
+          maxHeight: height,
+          alignment: Alignment.topCenter,
+          child: Opacity(
+            opacity: percent,
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_CategoriesSliverDelegate oldDelegate) {
+    return child != oldDelegate.child || height != oldDelegate.height;
   }
 }

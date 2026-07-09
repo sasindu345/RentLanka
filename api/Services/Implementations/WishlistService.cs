@@ -58,6 +58,7 @@ public class WishlistService : IWishlistService
                 l.Rules,
                 l.Location.Y,
                 l.Location.X,
+                l.Address,
                 l.District,
                 l.Images,
                 l.IsPaused,

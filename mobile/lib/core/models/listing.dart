@@ -39,6 +39,7 @@ class Listing {
   final String rules;
   final double latitude;
   final double longitude;
+  final String address;
   final String district;
   final List<String> images;
   final bool isPaused;
@@ -57,6 +58,7 @@ class Listing {
     required this.rules,
     required this.latitude,
     required this.longitude,
+    required this.address,
     required this.district,
     required this.images,
     required this.isPaused,
@@ -77,6 +79,7 @@ class Listing {
       rules: json['rules'] as String? ?? '',
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
+      address: json['address'] as String? ?? '',
       district: json['district'] as String,
       images: (json['images'] as List<dynamic>? ?? []).cast<String>(),
       isPaused: json['isPaused'] as bool? ?? false,

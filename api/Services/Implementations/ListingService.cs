@@ -99,23 +99,44 @@ public class ListingService : IListingService
         if (maxPrice.HasValue)
         {
             dbQuery = dbQuery.Where(l => l.PricePerDay <= maxPrice.Value);
-        }
-
-        if (userLat.HasValue && userLon.HasValue && maxDistanceMeters.HasValue)
+        }        if (userLat.HasValue && userLon.HasValue)
         {
             var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
             var userLocation = geometryFactory.CreatePoint(new Coordinate(userLon.Value, userLat.Value));
-            dbQuery = dbQuery.Where(l => l.Location.Distance(userLocation) <= maxDistanceMeters.Value);
+            
+            double finalDistance = maxDistanceMeters ?? 50000.0;
+            if (!maxDistanceMeters.HasValue)
+            {
+                double[] checkRadii = { 2000.0, 5000.0, 10000.0, 20000.0, 50000.0 };
+                foreach (var radius in checkRadii)
+                {
+                    var count = await dbQuery.CountAsync(l => l.Location.Distance(userLocation) <= radius);
+                    if (count > 0)
+                    {
+                        finalDistance = radius;
+                        break;
+                    }
+                }
+            }
+            
+            dbQuery = dbQuery.Where(l => l.Location.Distance(userLocation) <= finalDistance);
+
+            if (sortBy?.ToLower() == "nearest")
+            {
+                dbQuery = dbQuery.OrderBy(l => l.Location.Distance(userLocation));
+            }
         }
 
-        dbQuery = sortBy?.ToLower() switch
+        if (sortBy?.ToLower() != "nearest" || !userLat.HasValue || !userLon.HasValue)
         {
-            "price_asc" => dbQuery.OrderBy(l => l.PricePerDay),
-            "price_desc" => dbQuery.OrderByDescending(l => l.PricePerDay),
-            "oldest" => dbQuery.OrderBy(l => l.CreatedAt),
-            _ => dbQuery.OrderByDescending(l => l.CreatedAt)
-        };
-
+            dbQuery = sortBy?.ToLower() switch
+            {
+                "price_asc" => dbQuery.OrderBy(l => l.PricePerDay),
+                "price_desc" => dbQuery.OrderByDescending(l => l.PricePerDay),
+                "oldest" => dbQuery.OrderBy(l => l.CreatedAt),
+                _ => dbQuery.OrderByDescending(l => l.CreatedAt)
+            };
+        }
         var total = await dbQuery.CountAsync();
         var listings = await dbQuery
             .Skip((page - 1) * pageSize)
@@ -239,6 +260,7 @@ public class ListingService : IListingService
             SecurityDeposit = request.SecurityDeposit,
             Rules = request.Rules.Trim(),
             Location = location,
+            Address = request.Address.Trim(),
             District = request.District.Trim(),
             Images = request.Images ?? new List<string>(),
             IsPaused = false,
@@ -258,6 +280,7 @@ public class ListingService : IListingService
         listing.SecurityDeposit = request.SecurityDeposit;
         listing.Rules = request.Rules.Trim();
         listing.Location = geometryFactory.CreatePoint(new Coordinate(request.Longitude, request.Latitude));
+        listing.Address = request.Address.Trim();
         listing.District = request.District.Trim();
         listing.Images = request.Images ?? new List<string>();
     }
@@ -291,6 +314,7 @@ public class ListingService : IListingService
             listing.Rules,
             listing.Location.Y,
             listing.Location.X,
+            listing.Address,
             listing.District,
             listing.Images,
             listing.IsPaused,

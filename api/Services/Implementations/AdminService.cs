@@ -357,6 +357,7 @@ public class AdminService : IAdminService
             listing.Rules,
             listing.Location?.Y ?? 0,
             listing.Location?.X ?? 0,
+            listing.Address,
             listing.District,
             listing.Images,
             listing.IsPaused,
