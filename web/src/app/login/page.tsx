@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -88,19 +87,11 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 active:translate-y-0.5 transition duration-150 cursor-pointer"
+              className="w-full py-3 shadow-lg shadow-indigo-500/20 active:translate-y-0.5 transition duration-150 cursor-pointer"
             >
               {loading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
-
-          {/* Link back */}
-          <p className="text-center text-xs text-slate-500 mt-6">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="font-semibold text-indigo-400 hover:underline">
-              Sign up
-            </Link>
-          </p>
         </div>
       </div>
     </div>

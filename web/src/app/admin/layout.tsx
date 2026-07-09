@@ -65,7 +65,17 @@ export default function AdminLayout({
   )?.label || "Dashboard";
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-100 relative">
+    <div 
+      className="flex h-screen overflow-hidden bg-slate-950 text-slate-100 relative"
+      style={{
+        backgroundImage: "url('/images/image.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "bottom left",
+        backgroundRepeat: "no-repeat"
+      }}
+    >
+      {/* Dark overlay for optimal readability, preventing text contrast issues */}
+      <div className="absolute inset-0 bg-slate-950/75 pointer-events-none z-0" />
       
       {/* Mobile Drawer Overlay Back Drop */}
       {sidebarOpen && (
@@ -77,12 +87,12 @@ export default function AdminLayout({
 
       {/* Sidebar - Collapsible sliding drawer on mobile, static on desktop */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 border-r border-slate-800 bg-slate-900 flex flex-col justify-between transition-transform duration-300 transform lg:translate-x-0 lg:relative ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 border-r border-slate-800/60 bg-slate-950/40 backdrop-blur-md flex flex-col justify-between transition-transform duration-300 transform lg:translate-x-0 lg:relative z-10 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div>
-          <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800">
+          <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800/60">
             <span className="text-xl font-bold text-indigo-400">
               RentLanka Admin
             </span>
@@ -118,7 +128,7 @@ export default function AdminLayout({
         </div>
 
         {/* Sidebar Profile Footer */}
-        <div className="p-4 border-t border-slate-800 bg-slate-900/40">
+        <div className="p-4 border-t border-slate-800/60 bg-slate-950/30">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold flex-shrink-0">
               {adminName[0]}
@@ -130,7 +140,7 @@ export default function AdminLayout({
           </div>
           <button
             onClick={handleLogout}
-            className="w-full py-2.5 px-4 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-900 text-sm font-semibold text-slate-300 hover:text-slate-100 transition duration-200 flex items-center justify-center gap-2 cursor-pointer group"
+            className="w-full py-2.5 px-4 rounded-xl border border-slate-800/60 hover:border-slate-700/60 bg-slate-900/20 backdrop-blur-sm text-sm font-semibold text-slate-300 hover:text-slate-100 hover:bg-slate-900/40 transition duration-200 flex items-center justify-center gap-2 cursor-pointer group"
           >
             <svg className="w-4 h-4 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -141,15 +151,15 @@ export default function AdminLayout({
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10">
         
         {/* Responsive Header */}
-        <header className="h-16 border-b border-slate-800 bg-slate-900/20 backdrop-blur-md flex items-center justify-between px-4 sm:px-8">
+        <header className="h-16 border-b border-slate-800/60 bg-slate-950/20 backdrop-blur-md flex items-center justify-between px-4 sm:px-8">
           <div className="flex items-center gap-4">
             {/* Hamburger Toggle Trigger (Visible on Mobile only) */}
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-200"
+              className="lg:hidden p-2 rounded-lg border border-slate-800/60 bg-slate-950/20 text-slate-400 hover:text-slate-200"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
