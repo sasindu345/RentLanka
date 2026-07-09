@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/verification_api.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
-import 'package:mobile/core/theme/app_shadows.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class SignupVerificationScreen extends ConsumerStatefulWidget {
@@ -24,6 +23,7 @@ class _SignupVerificationScreenState
     extends ConsumerState<SignupVerificationScreen> {
   final _tokenController = TextEditingController();
   bool _loading = false;
+  bool _isVerified = false;
   String? _error;
   String? _success;
   String? _activeDevToken;
@@ -33,7 +33,10 @@ class _SignupVerificationScreenState
     super.initState();
     _activeDevToken = widget.devToken;
     if (_activeDevToken != null) {
-      _tokenController.text = _activeDevToken!;
+      // Printed to terminal console only as requested
+      print('========================================================');
+      print('DEVELOPMENT EMAIL VERIFICATION TOKEN: $_activeDevToken');
+      print('========================================================');
     }
   }
 
@@ -59,12 +62,8 @@ class _SignupVerificationScreenState
     try {
       await ref.read(verificationApiProvider).verifyEmail(token);
       setState(() {
-        _success = 'Email verified successfully!';
+        _isVerified = true;
       });
-      await Future.delayed(const Duration(milliseconds: 1500));
-      if (mounted) {
-        context.go('/app/explore');
-      }
     } catch (e) {
       setState(() {
         _error = 'Invalid verification code. Please check and try again.';
@@ -87,7 +86,9 @@ class _SignupVerificationScreenState
         _success = 'A new verification code has been sent to your email.';
         if (newDevToken != null) {
           _activeDevToken = newDevToken;
-          _tokenController.text = newDevToken;
+          print('========================================================');
+          print('DEVELOPMENT EMAIL VERIFICATION TOKEN (RESEND): $_activeDevToken');
+          print('========================================================');
         }
       });
     } catch (e) {
@@ -103,6 +104,77 @@ class _SignupVerificationScreenState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    // If verification succeeded, show the premium welcome success screen
+    if (_isVerified) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Spacer(),
+                // Large animated-looking Success Checkmark
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(24.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0D9488).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      LucideIcons.partyPopper,
+                      size: 80,
+                      color: Color(0xFF0D9488),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Text(
+                  'Welcome to RentLanka! 🎉',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Plus Jakarta Sans',
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'Your email has been verified successfully. Your account is active and you are ready to find premium rental equipment or publish your own items.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onBackground.withOpacity(0.7),
+                    height: 1.5,
+                  ),
+                ),
+                const Spacer(),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.button),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  onPressed: () => context.go('/app/explore'),
+                  child: const Text(
+                    'Get Started',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Default Code Verification input screen
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -146,39 +218,6 @@ class _SignupVerificationScreenState
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
-              
-              if (_activeDevToken != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(AppRadius.card),
-                    border: Border.all(
-                      color: theme.colorScheme.primary.withOpacity(0.2),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        LucideIcons.info,
-                        size: 20,
-                        color: theme.colorScheme.primary,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Expanded(
-                        child: Text(
-                          'Dev mode: Verification token is $_activeDevToken',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-              ],
 
               if (_error != null) ...[
                 Text(
