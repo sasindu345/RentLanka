@@ -7,6 +7,7 @@ import 'package:mobile/features/auth/screens/login_screen.dart';
 import 'package:mobile/features/auth/screens/register_screen.dart';
 import 'package:mobile/features/auth/screens/welcome_screen.dart';
 import 'package:mobile/features/auth/screens/splash_screen.dart';
+import 'package:mobile/features/auth/screens/signup_verification_screen.dart';
 import 'package:mobile/features/explore/screens/home_feed_screen.dart';
 import 'package:mobile/features/explore/screens/listing_detail_screen.dart';
 import 'package:mobile/features/explore/screens/booking_request_screen.dart';
@@ -35,14 +36,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final loggedIn = await api.isLoggedIn();
       final location = state.matchedLocation;
       final isAuthRoute =
-          location == '/welcome' || location == '/login' || location == '/register';
+          location == '/welcome' || location == '/login' || location == '/register' || location == '/signup-verification';
       final isPublicAppRoute = location.startsWith('/app/explore');
       final isProtectedRoute = location.startsWith('/app/') && !isPublicAppRoute;
 
       if (!loggedIn && isProtectedRoute) {
         return '/welcome';
       }
-      if (loggedIn && isAuthRoute) {
+      if (loggedIn && (location == '/welcome' || location == '/login' || location == '/register')) {
         return '/app/explore';
       }
       return null;
@@ -163,22 +164,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/app/activity',
-                builder: (context, state) => const ActivityScreen(),
+                builder: (context, state) => const InboxScreen(),
                 routes: [
                   GoRoute(
-                    path: 'messages',
+                    path: 'messages/thread/:id',
                     parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) => const InboxScreen(),
-                    routes: [
-                      GoRoute(
-                        path: 'thread/:conversationId',
-                        parentNavigatorKey: _rootNavigatorKey,
-                        builder: (context, state) {
-                          final conversationId = state.pathParameters['conversationId']!;
-                          return ChatThreadScreen(conversationId: conversationId);
-                        },
-                      ),
-                    ],
+                    builder: (context, state) {
+                      return ChatThreadScreen(conversationId: state.pathParameters['id']!);
+                    },
                   ),
                 ],
               ),
@@ -230,6 +223,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/signup-verification',
+        builder: (context, state) {
+          final devToken = state.uri.queryParameters['devToken'];
+          return SignupVerificationScreen(devToken: devToken);
+        },
       ),
     ],
   );

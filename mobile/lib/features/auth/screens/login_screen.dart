@@ -50,7 +50,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         });
         await Future.delayed(const Duration(milliseconds: 1600));
         if (mounted) {
-          context.go('/app/explore');
+          try {
+            final user = await ref.read(listingsApiProvider).getCurrentUser();
+            if (user.verificationLevel < 0) {
+              if (mounted) context.go('/signup-verification');
+              return;
+            }
+          } catch (_) {}
+          if (mounted) {
+            context.go('/app/explore');
+          }
         }
       }
     } on DioException catch (e) {

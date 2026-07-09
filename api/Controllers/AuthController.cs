@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Hosting;
 using RentLanka.Api.Models.Requests;
 using RentLanka.Api.Services.Interfaces;
 using Sentry;
@@ -13,10 +15,17 @@ namespace RentLanka.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IIdentityService _identityService;
+    private readonly IVerificationService _verificationService;
+    private readonly IWebHostEnvironment _environment;
 
-    public AuthController(IIdentityService identityService)
+    public AuthController(
+        IIdentityService identityService,
+        IVerificationService verificationService,
+        IWebHostEnvironment environment)
     {
         _identityService = identityService;
+        _verificationService = verificationService;
+        _environment = environment;
     }
 
     [HttpPost("register")]
@@ -36,7 +45,15 @@ public class AuthController : ControllerBase
             return BadRequest(new { Error = error });
         }
 
-        return Ok(new { UserId = userId, Message = "User registered successfully." });
+        // Generate and send email verification token automatically
+        var token = await _verificationService.GenerateEmailVerificationTokenAsync(userId);
+
+        if (_environment.IsDevelopment())
+        {
+            return Ok(new { UserId = userId, Message = "User registered successfully.", DevToken = token });
+        }
+
+        return Ok(new { UserId = userId, Message = "User registered successfully. Verification email sent." });
     }
 
     [HttpPost("login")]

@@ -52,7 +52,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
       if (mounted) {
         if (loggedIn) {
-          context.go('/app/explore');
+          try {
+            final user = await api.getCurrentUser();
+            if (user.verificationLevel < 0) {
+              if (mounted) context.go('/signup-verification');
+              return;
+            }
+          } catch (_) {
+            // If details load fails (offline/network), fallback to explore
+          }
+          if (mounted) context.go('/app/explore');
         } else {
           context.go('/welcome');
         }

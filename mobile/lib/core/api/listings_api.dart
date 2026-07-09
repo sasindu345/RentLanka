@@ -58,7 +58,7 @@ class ListingsApi {
     return returnedRole;
   }
 
-  Future<void> register({
+  Future<Map<String, dynamic>> register({
     required String email,
     required String password,
     required String firstName,
@@ -66,7 +66,7 @@ class ListingsApi {
     required String phoneNumber,
     required String role,
   }) async {
-    await _dio.post('/api/auth/register', data: {
+    final response = await _dio.post('/api/auth/register', data: {
       'email': email,
       'password': password,
       'firstName': firstName,
@@ -75,6 +75,7 @@ class ListingsApi {
       'role': role,
     });
     await login(email, password);
+    return response.data as Map<String, dynamic>;
   }
 
   Future<void> logout() => _storage.clearToken();

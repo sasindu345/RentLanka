@@ -49,7 +49,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       _error = null;
     });
     try {
-      await ref.read(listingsApiProvider).register(
+      final res = await ref.read(listingsApiProvider).register(
             email: _emailController.text.trim(),
             password: _passwordController.text,
             firstName: _firstNameController.text.trim(),
@@ -57,13 +57,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             phoneNumber: _phoneController.text.trim(),
             role: _role,
           );
+      final devToken = res['devToken'] as String?;
       if (mounted) {
         setState(() {
           _success = true;
         });
         await Future.delayed(const Duration(milliseconds: 1600));
         if (mounted) {
-          context.go('/app/profile');
+          final queryStr = devToken != null ? '?devToken=$devToken' : '';
+          context.go('/signup-verification$queryStr');
         }
       }
     } on DioException catch (e) {
