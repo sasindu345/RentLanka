@@ -11,6 +11,9 @@ import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_shadows.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
+
 class HomeFeedScreen extends ConsumerStatefulWidget {
   const HomeFeedScreen({super.key});
 
@@ -23,6 +26,8 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   PaginatedListings? _listings;
   bool _loading = true;
   String? _selectedCategory;
+  bool _nearMeActive = false;
+  LatLng? _userLatLng;
 
   final List<Map<String, dynamic>> _categories = [
     {'name': 'Photography', 'icon': LucideIcons.camera},
@@ -50,10 +55,106 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     try {
       final data = await ref
           .read(listingsApiProvider)
-          .searchListings(pageSize: 12, category: _selectedCategory);
+          .searchListings(
+            pageSize: 12,
+            category: _selectedCategory,
+            lat: _nearMeActive ? _userLatLng?.latitude : null,
+            lon: _nearMeActive ? _userLatLng?.longitude : null,
+            distanceMeters: _nearMeActive ? 20000.0 : null,
+            sortBy: _nearMeActive ? 'nearest' : 'newest',
+          );
       setState(() => _listings = data);
+      
+      if (_nearMeActive && mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Found ${data.total} items within 20 km of your location'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _toggleNearMe(bool selected) async {
+    if (!selected) {
+      setState(() {
+        _nearMeActive = false;
+        _userLatLng = null;
+      });
+      _loadListings();
+      return;
+    }
+
+    setState(() => _loading = true);
+
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location services are disabled in system settings.')),
+          );
+        }
+        setState(() {
+          _nearMeActive = false;
+          _loading = false;
+        });
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Location permissions are denied.')),
+            );
+          }
+          setState(() {
+            _nearMeActive = false;
+            _loading = false;
+          });
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location permissions are permanently denied. Please enable them in settings.')),
+          );
+        }
+        setState(() {
+          _nearMeActive = false;
+          _loading = false;
+        });
+        return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      setState(() {
+        _nearMeActive = true;
+        _userLatLng = LatLng(position.latitude, position.longitude);
+      });
+      _loadListings();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not determine current position: $e')),
+        );
+      }
+      setState(() {
+        _nearMeActive = false;
+        _loading = false;
+      });
     }
   }
 
@@ -201,7 +302,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                     SliverPersistentHeader(
                       floating: true,
                       delegate: _CategoriesSliverDelegate(
-                        height: 130,
+                        height: 148,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -212,14 +313,41 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                                 AppSpacing.md,
                                 AppSpacing.xs,
                               ),
-                              child: Text(
-                                'Categories',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  color: theme.colorScheme.onBackground,
-                                ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Categories',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: 'Plus Jakarta Sans',
+                                      color: theme.colorScheme.onBackground,
+                                    ),
+                                  ),
+                                  FilterChip(
+                                    showCheckmark: false,
+                                    avatar: Icon(
+                                      _nearMeActive ? LucideIcons.locateFixed : LucideIcons.locate,
+                                      size: 14,
+                                      color: _nearMeActive
+                                          ? theme.colorScheme.onPrimary
+                                          : theme.colorScheme.primary,
+                                    ),
+                                    label: const Text('Near Me'),
+                                    selected: _nearMeActive,
+                                    selectedColor: theme.colorScheme.primary,
+                                    labelStyle: TextStyle(
+                                      color: _nearMeActive
+                                          ? theme.colorScheme.onPrimary
+                                          : theme.colorScheme.onSurface,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                                    onSelected: _toggleNearMe,
+                                  ),
+                                ],
                               ),
                             ),
                             SizedBox(
@@ -372,6 +500,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                                         width: cardWidth,
                                         child: ListingCard(
                                           listing: _listings!.items[index],
+                                          userLocation: _nearMeActive ? _userLatLng : null,
                                         ),
                                       );
                                     },
@@ -441,7 +570,10 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                               ),
                           delegate: SliverChildBuilderDelegate(
                             (context, index) =>
-                                ListingCard(listing: _listings!.items[index]),
+                                ListingCard(
+                                  listing: _listings!.items[index],
+                                  userLocation: _nearMeActive ? _userLatLng : null,
+                                ),
                             childCount: _listings!.items.length,
                           ),
                         ),

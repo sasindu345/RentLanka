@@ -73,70 +73,93 @@ public class BookingService : IBookingService
             return (false, null, "Requested dates overlap with an existing booking or block.");
         }
 
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        var strategy = _context.Database.CreateExecutionStrategy();
         try
         {
-            var totalPrice = listing.PricePerDay * days;
-            var securityDeposit = listing.SecurityDeposit;
-
-            var booking = new Booking
+            return await strategy.ExecuteAsync(async () =>
             {
-                Id = Guid.NewGuid(),
-                ListingId = listing.Id,
-                RenterId = renterId,
-                StartDate = start,
-                EndDate = end,
-                TotalPrice = totalPrice,
-                SecurityDeposit = securityDeposit,
-                Status = BookingStatus.Pending,
-                RenterAgreementSigned = true,
-                OwnerAgreementSigned = false,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.Bookings.Add(booking);
-
-            // Block these dates
-            var block = new AvailabilityBlock
-            {
-                Id = Guid.NewGuid(),
-                ListingId = listing.Id,
-                StartDate = start,
-                EndDate = end,
-                Type = AvailabilityBlockType.Booking,
-                BookingId = booking.Id,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.AvailabilityBlocks.Add(block);
-
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            // Notify owner of new booking request
-            _ = Task.Run(async () =>
-            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    await _notificationService.SendNotificationToUserAsync(
-                        listing.OwnerId,
-                        "New Booking Request",
-                        $"You have a new request for your {listing.Title}.",
-                        new Dictionary<string, string>
-                        {
-                            { "bookingId", booking.Id.ToString() },
-                            { "listingId", listing.Id.ToString() },
-                            { "type", "booking_request" }
-                        });
-                }
-                catch { }
-            });
+                    // Check if duplicate request was already processed
+                    var existingBooking = await _context.Bookings.FirstOrDefaultAsync(b =>
+                        b.RenterId == renterId &&
+                        b.ListingId == listing.Id &&
+                        b.StartDate == start &&
+                        b.EndDate == end);
 
-            return (true, MapToResponse(booking, listing, user), null);
+                    if (existingBooking != null)
+                    {
+                        return (true, MapToResponse(existingBooking, listing, user), (string)null);
+                    }
+
+                    var totalPrice = listing.PricePerDay * days;
+                    var securityDeposit = listing.SecurityDeposit;
+
+                    var booking = new Booking
+                    {
+                        Id = Guid.NewGuid(),
+                        ListingId = listing.Id,
+                        RenterId = renterId,
+                        StartDate = start,
+                        EndDate = end,
+                        TotalPrice = totalPrice,
+                        SecurityDeposit = securityDeposit,
+                        Status = BookingStatus.Pending,
+                        RenterAgreementSigned = true,
+                        OwnerAgreementSigned = false,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.Bookings.Add(booking);
+
+                    // Block these dates
+                    var block = new AvailabilityBlock
+                    {
+                        Id = Guid.NewGuid(),
+                        ListingId = listing.Id,
+                        StartDate = start,
+                        EndDate = end,
+                        Type = AvailabilityBlockType.Booking,
+                        BookingId = booking.Id,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.AvailabilityBlocks.Add(block);
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    // Notify owner of new booking request
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _notificationService.SendNotificationToUserAsync(
+                                listing.OwnerId,
+                                "New Booking Request",
+                                $"You have a new request for your {listing.Title}.",
+                                new Dictionary<string, string>
+                                {
+                                    { "bookingId", booking.Id.ToString() },
+                                    { "listingId", listing.Id.ToString() },
+                                    { "type", "booking_request" }
+                                });
+                        }
+                        catch { }
+                    });
+
+                    return (true, MapToResponse(booking, listing, user), (string)null);
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
             return (false, null, ex.Message);
         }
     }
@@ -227,53 +250,64 @@ public class BookingService : IBookingService
 
     public async Task<(bool Succeeded, string? Error)> RejectBookingAsync(Guid ownerId, Guid bookingId)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        var strategy = _context.Database.CreateExecutionStrategy();
         try
         {
-            var booking = await _context.Bookings
-                .Include(b => b.Listing)
-                .FirstOrDefaultAsync(b => b.Id == bookingId);
-
-            if (booking == null) return (false, "Booking not found.");
-            if (booking.Listing.OwnerId != ownerId) return (false, "Unauthorized.");
-            if (booking.Status != BookingStatus.Pending) return (false, "Only pending bookings can be rejected.");
-
-            booking.Status = BookingStatus.Rejected;
-            booking.UpdatedAt = DateTime.UtcNow;
-
-            // Remove availability block
-            var block = await _context.AvailabilityBlocks.FirstOrDefaultAsync(ab => ab.BookingId == bookingId);
-            if (block != null)
+            return await strategy.ExecuteAsync(async () =>
             {
-                _context.AvailabilityBlocks.Remove(block);
-            }
-
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            _ = Task.Run(async () =>
-            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    await _notificationService.SendNotificationToUserAsync(
-                        booking.RenterId,
-                        "Booking Rejected",
-                        $"Your booking request for {booking.Listing.Title} was rejected.",
-                        new Dictionary<string, string>
-                        {
-                            { "bookingId", booking.Id.ToString() },
-                            { "listingId", booking.ListingId.ToString() },
-                            { "type", "booking_rejected" }
-                        });
-                }
-                catch { }
-            });
+                    var booking = await _context.Bookings
+                        .Include(b => b.Listing)
+                        .FirstOrDefaultAsync(b => b.Id == bookingId);
 
-            return (true, null);
+                    if (booking == null) return (false, "Booking not found.");
+                    if (booking.Listing.OwnerId != ownerId) return (false, "Unauthorized.");
+                    if (booking.Status != BookingStatus.Pending) return (false, "Only pending bookings can be rejected.");
+
+                    booking.Status = BookingStatus.Rejected;
+                    booking.UpdatedAt = DateTime.UtcNow;
+
+                    // Remove availability block
+                    var block = await _context.AvailabilityBlocks.FirstOrDefaultAsync(ab => ab.BookingId == bookingId);
+                    if (block != null)
+                    {
+                        _context.AvailabilityBlocks.Remove(block);
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _notificationService.SendNotificationToUserAsync(
+                                booking.RenterId,
+                                "Booking Rejected",
+                                $"Your booking request for {booking.Listing.Title} was rejected.",
+                                new Dictionary<string, string>
+                                {
+                                    { "bookingId", booking.Id.ToString() },
+                                    { "listingId", booking.ListingId.ToString() },
+                                    { "type", "booking_rejected" }
+                                });
+                        }
+                        catch { }
+                    });
+
+                    return (true, (string?)null);
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
             return (false, ex.Message);
         }
     }

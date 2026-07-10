@@ -10,10 +10,18 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/theme/app_shadows.dart';
 import 'package:mobile/core/providers/wishlist_provider.dart';
 
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
+
 class ListingCard extends ConsumerWidget {
   final Listing listing;
+  final LatLng? userLocation;
 
-  const ListingCard({super.key, required this.listing});
+  const ListingCard({
+    super.key,
+    required this.listing,
+    this.userLocation,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,7 +32,18 @@ class ListingCard extends ConsumerWidget {
     final int hash = listing.title.hashCode;
     final double rating = 4.5 + (hash.abs() % 5) * 0.1;
     final int reviewsCount = 10 + (hash.abs() % 45);
-    final double distance = 1.0 + (hash.abs() % 40) * 0.1;
+    
+    final double distance;
+    if (userLocation != null) {
+      distance = Geolocator.distanceBetween(
+            userLocation!.latitude,
+            userLocation!.longitude,
+            listing.latitude,
+            listing.longitude,
+          ) / 1000.0;
+    } else {
+      distance = 1.0 + (hash.abs() % 40) * 0.1;
+    }
 
     final isSaved = ref
         .watch(wishlistProvider)

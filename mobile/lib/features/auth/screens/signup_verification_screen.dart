@@ -5,6 +5,7 @@ import 'package:mobile/core/api/verification_api.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/theme/app_theme.dart';
 
 class SignupVerificationScreen extends ConsumerStatefulWidget {
   final String? devToken;
@@ -102,7 +103,11 @@ class _SignupVerificationScreenState
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    return Theme(
+      data: AppTheme.light,
+      child: Builder(
+        builder: (context) {
+          final theme = Theme.of(context);
 
     // If verification succeeded, show the premium welcome success screen
     if (_isVerified) {
@@ -290,6 +295,9 @@ class _SignupVerificationScreenState
             ],
           ),
         ),
+      ),
+    );
+        },
       ),
     );
   }

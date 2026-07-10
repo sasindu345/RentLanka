@@ -47,10 +47,21 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
             category: widget.category,
             lat: _userLatLng?.latitude,
             lon: _userLatLng?.longitude,
+            distanceMeters: _nearMeActive ? 20000.0 : null,
             sortBy: _nearMeActive ? 'nearest' : 'newest',
             pageSize: 24,
           );
       setState(() => _results = data);
+      
+      if (_nearMeActive && mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Found ${data.total} items within 20 km of your location'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -172,6 +183,7 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                   ),
                 ),
                 FilterChip(
+                  showCheckmark: false,
                   avatar: Icon(
                     _nearMeActive ? LucideIcons.locateFixed : LucideIcons.locate,
                     size: 16,
@@ -182,7 +194,6 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                   label: const Text('Near Me'),
                   selected: _nearMeActive,
                   selectedColor: theme.colorScheme.primary,
-                  checkmarkColor: theme.colorScheme.onPrimary,
                   labelStyle: TextStyle(
                     color: _nearMeActive
                         ? theme.colorScheme.onPrimary
@@ -227,7 +238,10 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                         ),
                         itemCount: _results!.items.length,
                         itemBuilder: (context, index) =>
-                            ListingCard(listing: _results!.items[index]),
+                            ListingCard(
+                              listing: _results!.items[index],
+                              userLocation: _nearMeActive ? _userLatLng : null,
+                            ),
                       ),
           ),
         ],
