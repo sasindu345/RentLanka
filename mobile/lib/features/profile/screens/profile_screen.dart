@@ -38,7 +38,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     try {
       final api = ref.read(listingsApiProvider);
       final user = await api.getCurrentUser();
-      final listings = await api.getMyListings();
       setState(() {
         _user = user;
       });
@@ -61,67 +60,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     await ref.read(listingsApiProvider).logout();
     if (mounted) context.go('/welcome');
   }
-
-  Future<void> _togglePause(Listing listing) async {
-    try {
-      await ref.read(listingsApiProvider).togglePauseListing(listing.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              listing.isPaused ? 'Listing resumed' : 'Listing paused',
-            ),
-          ),
-        );
-        _load();
-      }
-    } on DioException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(extractError(e))));
-      }
-    }
-  }
-
-  Future<void> _confirmDelete(Listing listing) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete listing?'),
-        content: Text('Remove "${listing.title}"? This cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-
-    try {
-      await ref.read(listingsApiProvider).deleteListing(listing.id);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Listing deleted')));
-        _load();
-      }
-    } on DioException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(extractError(e))));
-      }
-    }
-  }
-
 
 
   void _showHelpCenterSheet(BuildContext context) {
