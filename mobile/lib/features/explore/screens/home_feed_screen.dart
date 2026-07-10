@@ -168,7 +168,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     final theme = Theme.of(context);
     final double cardWidth =
         (MediaQuery.of(context).size.width - AppSpacing.md * 3) / 2;
-    final double cardHeight = cardWidth / 0.82;
+    final double cardHeight = cardWidth / 0.78;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,

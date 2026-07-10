@@ -126,13 +126,13 @@ class _SignupVerificationScreenState
                   child: Container(
                     padding: const EdgeInsets.all(24.0),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0D9488).withOpacity(0.1),
+                      color: theme.colorScheme.primary.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       LucideIcons.partyPopper,
                       size: 80,
-                      color: Color(0xFF0D9488),
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ),
@@ -201,10 +201,10 @@ class _SignupVerificationScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(
+              Icon(
                 LucideIcons.mailCheck,
                 size: 80,
-                color: Color(0xFF0D9488),
+                color: theme.colorScheme.primary,
               ),
               const SizedBox(height: AppSpacing.xl),
               Text(
@@ -235,8 +235,8 @@ class _SignupVerificationScreenState
               if (_success != null) ...[
                 Text(
                   _success!,
-                  style: const TextStyle(
-                    color: Color(0xFF0D9488),
+                  style: TextStyle(
+                    color: theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,

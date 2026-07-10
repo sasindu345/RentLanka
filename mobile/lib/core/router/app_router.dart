@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/listings_api.dart';
+import 'package:mobile/features/activity/screens/activity_screen.dart';
 
 import 'package:mobile/features/auth/screens/login_screen.dart';
 import 'package:mobile/features/auth/screens/register_screen.dart';
@@ -163,7 +164,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/app/activity',
-                builder: (context, state) => const InboxScreen(),
+                builder: (context, state) => const ActivityScreen(),
                 routes: [
                   GoRoute(
                     path: 'messages/thread/:id',

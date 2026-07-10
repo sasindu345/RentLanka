@@ -170,7 +170,7 @@ class ListingCard extends ConsumerWidget {
 
             // Card details
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -192,24 +192,66 @@ class ListingCard extends ConsumerWidget {
 
                   // Location and Distance
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(
-                        LucideIcons.mapPin,
-                        size: 10,
-                        color: Color(0xFF9CA3AF),
-                      ),
-                      const SizedBox(width: 4),
                       Expanded(
-                        child: Text(
-                          '${listing.district} • ${distance.toStringAsFixed(1)} km',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontSize: 11,
-                          ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              LucideIcons.mapPin,
+                              size: 11,
+                              color: Color(0xFF9CA3AF),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                listing.district,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      if (userLocation != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF6366F1).withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: const Color(0xFF6366F1).withOpacity(0.25),
+                              width: 0.5,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                LucideIcons.locate,
+                                size: 10,
+                                color: Color(0xFF4F46E5),
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                '${distance.toStringAsFixed(1)} km',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF4F46E5),
+                                  fontFamily: 'Plus Jakarta Sans',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                   // Rating
@@ -231,7 +273,7 @@ class ListingCard extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 1),
 
                   // Price display
                   RichText(
