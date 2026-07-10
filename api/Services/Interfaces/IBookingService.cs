@@ -15,7 +15,7 @@ public interface IBookingService
     Task<(bool Succeeded, string? Error)> ApproveBookingAsync(Guid ownerId, Guid bookingId);
     Task<(bool Succeeded, string? Error)> RejectBookingAsync(Guid ownerId, Guid bookingId);
     Task<(bool Succeeded, string? Error)> PayBookingAsync(Guid renterId, Guid bookingId);
-    Task<(bool Succeeded, string? Error)> HandoverBookingAsync(Guid renterId, Guid bookingId);
+    Task<(bool Succeeded, string? Error)> HandoverBookingAsync(Guid callerId, Guid bookingId);
     Task<(bool Succeeded, string? Error)> ReturnBookingAsync(Guid ownerId, Guid bookingId);
     Task<IEnumerable<AvailabilityBlockResponse>> GetListingAvailabilityAsync(Guid listingId);
     Task<(bool Succeeded, string? Error)> CreateManualBlockAsync(Guid ownerId, Guid listingId, DateTime start, DateTime end);

@@ -108,6 +108,26 @@ public class VerificationController : ControllerBase
         return Ok(new { Message = "Face verification completed. User is now trusted." });
     }
 
+    [HttpPost("submit-kyc")]
+    public async Task<IActionResult> SubmitKyc([FromBody] SubmitKycRequest request)
+    {
+        var userId = GetUserId();
+        var success = await _verificationService.SubmitKycAsync(
+            userId,
+            request.NicNumber,
+            request.NicFrontUrl,
+            request.NicBackUrl,
+            request.FaceCaptureUrl
+        );
+
+        if (!success)
+        {
+            return BadRequest(new { Error = "Failed to submit KYC verification." });
+        }
+
+        return Ok(new { Message = "KYC documents submitted successfully for admin review." });
+    }
+
     private Guid GetUserId()
     {
         var claimValue = User.FindFirstValue(ClaimTypes.NameIdentifier);

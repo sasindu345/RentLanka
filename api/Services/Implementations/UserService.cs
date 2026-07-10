@@ -84,6 +84,11 @@ public class UserService : IUserService
             user.Role,
             user.IsBanned,
             user.NICNumber,
-            user.NicDocumentUrl);
+            user.NicDocumentUrl,
+            user.NicFrontUrl,
+            user.NicBackUrl,
+            user.FaceCaptureUrl,
+            user.KycStatus.ToString(),
+            user.KycRejectionReason);
     }
 }

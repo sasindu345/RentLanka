@@ -160,4 +160,23 @@ public class VerificationService : IVerificationService
         }
         return false;
     }
+
+    public async Task<bool> SubmitKycAsync(Guid userId, string nicNumber, string nicFrontUrl, string nicBackUrl, string faceCaptureUrl)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user != null)
+        {
+            user.NICNumber = nicNumber;
+            user.NicFrontUrl = nicFrontUrl;
+            user.NicBackUrl = nicBackUrl;
+            user.FaceCaptureUrl = faceCaptureUrl;
+            user.NicDocumentUrl = nicFrontUrl;
+            user.KycStatus = KycStatus.PendingApproval;
+            user.KycRejectionReason = null;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        return false;
+    }
 }

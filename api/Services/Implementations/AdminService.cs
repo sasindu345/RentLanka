@@ -229,7 +229,7 @@ public class AdminService : IAdminService
     {
         var users = await _context.Users
             .AsNoTracking()
-            .Where(u => u.VerificationLevel == VerificationLevel.Level2 && !u.IsBanned)
+            .Where(u => u.KycStatus == KycStatus.PendingApproval && !u.IsBanned)
             .OrderBy(u => u.UpdatedAt ?? u.CreatedAt)
             .ToListAsync();
 
@@ -239,12 +239,14 @@ public class AdminService : IAdminService
     public async Task<bool> ApproveKycAsync(Guid userId)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null || user.VerificationLevel != VerificationLevel.Level2)
+        if (user == null || user.KycStatus != KycStatus.PendingApproval)
         {
             return false;
         }
 
         user.VerificationLevel = VerificationLevel.Level3;
+        user.KycStatus = KycStatus.Approved;
+        user.KycRejectionReason = null;
         user.IsTrustedUser = true;
         user.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
@@ -269,17 +271,17 @@ public class AdminService : IAdminService
         return true;
     }
 
-    public async Task<bool> RejectKycAsync(Guid userId)
+    public async Task<bool> RejectKycAsync(Guid userId, string reason)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null || user.VerificationLevel != VerificationLevel.Level2)
+        if (user == null || user.KycStatus != KycStatus.PendingApproval)
         {
             return false;
         }
 
-        user.VerificationLevel = VerificationLevel.Level1;
-        user.NICNumber = null;
-        user.NicDocumentUrl = null;
+        user.VerificationLevel = VerificationLevel.Level0;
+        user.KycStatus = KycStatus.Rejected;
+        user.KycRejectionReason = reason;
         user.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
@@ -290,7 +292,7 @@ public class AdminService : IAdminService
                 await _notificationService.SendNotificationToUserAsync(
                     userId,
                     "KYC Rejected",
-                    "Your KYC verification was rejected. Please re-submit valid documents.",
+                    $"Your KYC verification was rejected. Reason: {reason}. Please re-submit valid documents.",
                     new Dictionary<string, string>
                     {
                         { "userId", userId.ToString() },
@@ -307,7 +309,7 @@ public class AdminService : IAdminService
     {
         var totalUsers = await _context.Users.CountAsync();
         var activeListings = await _context.Listings.CountAsync(l => !l.IsDeleted && !l.IsPaused);
-        var pendingKycCount = await _context.Users.CountAsync(u => u.VerificationLevel == VerificationLevel.Level2 && !u.IsBanned);
+        var pendingKycCount = await _context.Users.CountAsync(u => u.KycStatus == KycStatus.PendingApproval && !u.IsBanned);
         var totalBookings = await _context.Bookings.CountAsync();
 
         return new AdminDashboardStats(
@@ -334,7 +336,12 @@ public class AdminService : IAdminService
             user.Role,
             user.IsBanned,
             user.NICNumber,
-            user.NicDocumentUrl);
+            user.NicDocumentUrl,
+            user.NicFrontUrl,
+            user.NicBackUrl,
+            user.FaceCaptureUrl,
+            user.KycStatus.ToString(),
+            user.KycRejectionReason);
     }
 
     private static ListingResponse MapListingToResponse(Listing listing)

@@ -17,7 +17,6 @@ export default function AdminKycQueue() {
     getKycQueue()
       .then((res) => {
         setQueue(res);
-        // Default select the first item if queue has items and none selected or previous selection no longer in queue
         if (res.length > 0) {
           setSelectedUser((curr) => {
             const stillInQueue = res.find((u) => u.id === curr?.id);
@@ -36,7 +35,7 @@ export default function AdminKycQueue() {
   }, []);
 
   async function handleApprove(userId: string) {
-    if (!confirm("Are you sure you want to approve this KYC submission? This will elevate the user to Level 3 (Face Verification) and mark them as a Trusted User.")) {
+    if (!confirm("Are you sure you want to approve this KYC submission? This will elevate the user to Level 3 and mark them as verified.")) {
       return;
     }
 
@@ -53,13 +52,16 @@ export default function AdminKycQueue() {
   }
 
   async function handleReject(userId: string) {
-    const reason = prompt("Enter the reason for rejection (optional):");
-    if (reason === null) return; // user cancelled prompt
+    const reason = prompt("Enter the reason for rejection:");
+    if (!reason || reason.trim() === "") {
+      alert("Rejection reason is required.");
+      return;
+    }
 
     setActionLoading(true);
     try {
-      await rejectKyc(userId);
-      alert("KYC submission rejected. User has been downgraded and NIC details cleared.");
+      await rejectKyc(userId, reason);
+      alert("KYC submission rejected successfully.");
       loadQueue();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Rejection failed");
@@ -68,13 +70,52 @@ export default function AdminKycQueue() {
     }
   }
 
+  function renderDocumentCard(title: string, url: string | null) {
+    if (!url) {
+      return (
+        <div className="rounded-xl border border-dashed border-slate-800 p-6 text-center text-slate-500 text-xs bg-slate-950/20 flex items-center justify-center min-h-[140px]">
+          <div>
+            <span className="text-xl opacity-60">⚠️</span>
+            <p className="mt-1 font-semibold">{title}</p>
+            <p className="text-[10px] text-slate-600 mt-0.5">Not Uploaded</p>
+          </div>
+        </div>
+      );
+    }
+
+    const fullUrl = url.startsWith("http") ? url : `http://localhost:5000${url}`;
+
+    return (
+      <div className="rounded-xl border border-slate-850 bg-slate-950 p-4 space-y-3 flex flex-col justify-between">
+        <div className="flex items-center justify-between text-xs border-b border-slate-850 pb-2">
+          <span className="font-bold text-slate-300">{title}</span>
+          <a
+            href={fullUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-indigo-400 font-bold hover:underline flex items-center gap-1"
+          >
+            Open Link ↗
+          </a>
+        </div>
+        <div className="relative w-full aspect-[4/3] overflow-hidden rounded-lg border border-slate-900 flex justify-center items-center bg-slate-900 cursor-zoom-in">
+          <img
+            src={fullUrl}
+            alt={title}
+            className="max-h-[140px] w-full object-contain hover:scale-105 transition-transform duration-200"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Intro */}
       <div>
-        <h2 className="text-xl font-bold text-slate-100">NIC Document Review</h2>
+        <h2 className="text-xl font-bold text-slate-100">KYC Verification Approvals</h2>
         <p className="text-slate-400 text-sm mt-1">
-          Review National Identity Card details and documents submitted by users.
+          Review National Identity Card details and live biometric face scans submitted by users side-by-side.
         </p>
       </div>
 
@@ -92,12 +133,12 @@ export default function AdminKycQueue() {
         <div className="rounded-2xl border border-dashed border-slate-800 p-12 text-center bg-slate-900/10 backdrop-blur-md">
           <span className="text-4xl">🎉</span>
           <h3 className="text-lg font-bold text-slate-200 mt-4">KYC queue is empty</h3>
-          <p className="text-sm text-slate-500 mt-1">No users have pending NIC approvals.</p>
+          <p className="text-sm text-slate-500 mt-1">No users have pending KYC verification reviews.</p>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-3 min-h-[500px]">
+        <div className="grid gap-6 lg:grid-cols-3 min-h-[500px]">
           {/* Queue List (Left Side) */}
-          <div className="md:col-span-1 rounded-2xl border border-slate-800 bg-slate-900/10 overflow-hidden flex flex-col">
+          <div className="lg:col-span-1 rounded-2xl border border-slate-800 bg-slate-900/10 overflow-hidden flex flex-col">
             <div className="p-4 border-b border-slate-800 bg-slate-900/30">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Pending Submissions ({queue.length})
@@ -131,7 +172,7 @@ export default function AdminKycQueue() {
           </div>
 
           {/* Review Panel (Right Side) */}
-          <div className="md:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/10 p-6 flex flex-col justify-between">
+          <div className="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/10 p-6 flex flex-col justify-between">
             {selectedUser ? (
               <div className="flex flex-col h-full justify-between gap-8">
                 {/* Details Section */}
@@ -141,18 +182,18 @@ export default function AdminKycQueue() {
                       <h3 className="text-lg font-bold text-slate-200">
                         {selectedUser.firstName} {selectedUser.lastName}
                       </h3>
-                      <p className="text-xs text-slate-500 font-mono mt-0.5">ID: {selectedUser.id}</p>
+                      <p className="text-xs text-slate-500 font-mono mt-0.5">User ID: {selectedUser.id}</p>
                     </div>
                     <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-amber-950/40 text-amber-400 border border-amber-500/20">
-                      NIC Verification Level
+                      KYC Reviewing
                     </span>
                   </div>
 
                   <div className="grid gap-6 sm:grid-cols-2">
                     <div>
-                      <p className="text-xs text-slate-500 uppercase font-semibold">NIC Number</p>
-                      <p className="text-sm text-slate-200 font-semibold mt-1">
-                        {selectedUser.nicNumber || "Not found"}
+                      <p className="text-xs text-slate-500 uppercase font-semibold">Submitted NIC Number</p>
+                      <p className="text-sm text-slate-200 font-mono font-semibold mt-1">
+                        {selectedUser.nicNumber || "Not Provided"}
                       </p>
                     </div>
                     <div>
@@ -161,51 +202,15 @@ export default function AdminKycQueue() {
                     </div>
                   </div>
 
-                  {/* Document Attachment Visualizer */}
-                  {selectedUser.nicDocumentUrl ? (
-                    <div className="space-y-3">
-                      <p className="text-xs text-slate-500 uppercase font-semibold">NIC Document Attachment</p>
-                      <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 flex flex-col items-center gap-4">
-                        <div className="w-full flex items-center justify-between">
-                          <span className="text-xs text-slate-400 font-medium truncate max-w-[300px]">
-                            {selectedUser.nicDocumentUrl.split("/").pop()}
-                          </span>
-                          <a
-                            href={selectedUser.nicDocumentUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-indigo-400 font-bold hover:underline"
-                          >
-                            Open Link ↗
-                          </a>
-                        </div>
-                        
-                        {/* If it's a mock local or image URL, we can try rendering a thumbnail preview */}
-                        {selectedUser.nicDocumentUrl.match(/\.(jpeg|jpg|gif|png|webp)/i) ? (
-                          <div className="relative w-full max-h-[250px] overflow-hidden rounded-lg border border-slate-850 flex justify-center bg-slate-900">
-                            <img
-                              src={selectedUser.nicDocumentUrl}
-                              alt="NIC Preview"
-                              className="max-h-[250px] object-contain"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-full py-8 border border-dashed border-slate-800/80 rounded-lg flex flex-col items-center justify-center text-slate-600 bg-slate-900/30">
-                            <svg className="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <span className="text-xs text-slate-500 mt-2">
-                              No image preview available. Open link in a new tab.
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                  {/* Documents Side-by-Side Review Gallery */}
+                  <div className="space-y-3">
+                    <p className="text-xs text-slate-500 uppercase font-semibold">Verification Documents Gallery</p>
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      {renderDocumentCard("NIC Front Card", selectedUser.nicFrontUrl)}
+                      {renderDocumentCard("NIC Back Card", selectedUser.nicBackUrl)}
+                      {renderDocumentCard("Captured Face Scan", selectedUser.faceCaptureUrl)}
                     </div>
-                  ) : (
-                    <div className="p-4 rounded-xl border border-dashed border-slate-800/80 text-center text-slate-500 text-sm">
-                      No document upload link was found.
-                    </div>
-                  )}
+                  </div>
                 </div>
 
                 {/* Actions Section */}

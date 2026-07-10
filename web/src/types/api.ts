@@ -49,6 +49,11 @@ export interface UserProfile {
   isBanned: boolean;
   nicNumber: string | null;
   nicDocumentUrl: string | null;
+  nicFrontUrl: string | null;
+  nicBackUrl: string | null;
+  faceCaptureUrl: string | null;
+  kycStatus: string;
+  kycRejectionReason: string | null;
 }
 
 export interface AuthResponse {

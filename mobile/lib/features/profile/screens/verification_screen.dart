@@ -1,14 +1,18 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile/core/api/api_client.dart';
+import 'package:mobile/core/api/file_api.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/api/verification_api.dart';
 import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/features/profile/screens/face_camera_screen.dart';
 
 class VerificationScreen extends ConsumerStatefulWidget {
   const VerificationScreen({super.key});
@@ -23,6 +27,12 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
 
   final _emailTokenController = TextEditingController();
   final _nicController = TextEditingController();
+
+  final _picker = ImagePicker();
+  File? _nicFrontImage;
+  File? _nicBackImage;
+  File? _faceCaptureImage;
+  bool _submittingKyc = false;
 
   String? _activeStep;
   String? _error;
@@ -48,10 +58,93 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
       if (mounted) {
         setState(() {
           _user = user;
+          if (user.nicNumber != null) {
+            _nicController.text = user.nicNumber!;
+          }
         });
       }
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _pickNicImage(bool isFront) async {
+    try {
+      final picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1000,
+        imageQuality: 85,
+      );
+      if (picked != null) {
+        setState(() {
+          if (isFront) {
+            _nicFrontImage = File(picked.path);
+          } else {
+            _nicBackImage = File(picked.path);
+          }
+        });
+      }
+    } catch (e) {
+      setState(() => _error = 'Failed to pick image: $e');
+    }
+  }
+
+  Future<void> _launchFaceCamera() async {
+    final resultPath = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (context) => const FaceCameraScreen()),
+    );
+    if (resultPath != null) {
+      setState(() {
+        _faceCaptureImage = File(resultPath);
+      });
+    }
+  }
+
+  Future<void> _submitKycData() async {
+    final nic = _nicController.text.trim();
+    if (nic.isEmpty) {
+      setState(() => _error = 'Please enter your NIC number');
+      return;
+    }
+    if (_nicFrontImage == null || _nicBackImage == null) {
+      setState(() => _error = 'Please upload both front and back photos of your NIC');
+      return;
+    }
+    if (_faceCaptureImage == null) {
+      setState(() => _error = 'Please perform the face scan step');
+      return;
+    }
+
+    setState(() {
+      _submittingKyc = true;
+      _error = null;
+      _success = null;
+    });
+
+    try {
+      final fileApi = ref.read(fileApiProvider);
+      final verificationApi = ref.read(verificationApiProvider);
+
+      final frontUrl = await fileApi.uploadKycDocument(_nicFrontImage!.path);
+      final backUrl = await fileApi.uploadKycDocument(_nicBackImage!.path);
+      final faceUrl = await fileApi.uploadKycDocument(_faceCaptureImage!.path);
+
+      await verificationApi.submitKyc(
+        nicNumber: nic,
+        nicFrontUrl: frontUrl,
+        nicBackUrl: backUrl,
+        faceCaptureUrl: faceUrl,
+      );
+
+      await _loadUser();
+      setState(() {
+        _success = 'KYC Verification submitted successfully. Pending Admin review.';
+      });
+    } on DioException catch (e) {
+      setState(() => _error = extractError(e));
+    } finally {
+      setState(() => _submittingKyc = false);
     }
   }
 
@@ -73,7 +166,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
           controller.text = code;
           setState(() => _success = '$codeLabel: $code (auto-filled below)');
         } else {
-          setState(() => _success = 'Sent. Restart the API if no code appears, then try again.');
+          setState(() => _success = 'Sent. Check your inbox.');
         }
       }
     } on DioException catch (e) {
@@ -123,7 +216,10 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
       );
     }
 
-    final level = user.verificationLevel;
+    final emailVerified = user.verificationLevel >= 0;
+    final isPendingReview = user.kycStatus == 'PendingApproval';
+    final isApproved = user.kycStatus == 'Approved' || user.verificationLevel >= 3;
+    final isRejected = user.kycStatus == 'Rejected';
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -139,7 +235,6 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            // Verification Steps
             if (_error != null) ...[
               const SizedBox(height: AppSpacing.md),
               Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
@@ -149,12 +244,13 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
               Text(_success!, style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
             ],
             const SizedBox(height: AppSpacing.lg),
-            
+
+            // 1. Email step
             _StepCard(
               title: '1. Email verification',
               subtitle: 'Confirm your email address',
-              done: level >= 0,
-              child: level >= 0
+              done: emailVerified,
+              child: emailVerified
                   ? null
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -191,84 +287,178 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                       ],
                     ),
             ),
-            
-            _StepCard(
-              title: '2. NIC verification',
-              subtitle: 'Submit your National Identity Card number',
-              done: level >= 2,
-              locked: level < 0,
-              child: level >= 2
-                  ? null
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+
+            // KYC Status Boxes
+            if (isPendingReview) ...[
+              Card(
+                color: theme.colorScheme.primary.withOpacity(0.1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.card),
+                  side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.3)),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Column(
+                    children: [
+                      Icon(LucideIcons.hourglass, color: theme.colorScheme.primary, size: 36),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Verification Pending Approval',
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Your documents and face capture have been submitted for admin verification. You will be updated once reviewed.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ] else if (isApproved) ...[
+              Card(
+                color: Colors.green.withOpacity(0.1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.card),
+                  side: BorderSide(color: Colors.green.withOpacity(0.3)),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Column(
+                    children: [
+                      const Icon(LucideIcons.shieldCheck, color: Colors.green, size: 36),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'You are a Trusted Member',
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.green),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Your identity has been fully verified. You can now rent items or list equipment on RentLanka.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ] else ...[
+              if (isRejected) ...[
+                Card(
+                  color: theme.colorScheme.error.withOpacity(0.1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.card),
+                    side: BorderSide(color: theme.colorScheme.error.withOpacity(0.3)),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Column(
                       children: [
-                        Text('NIC number', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: _nicController,
-                          decoration: const InputDecoration(hintText: '199012345678'),
-                        ),
-                        const SizedBox(height: 6),
+                        Icon(LucideIcons.xCircle, color: theme.colorScheme.error, size: 36),
+                        const SizedBox(height: AppSpacing.sm),
                         Text(
-                          'Document photo upload comes in a later step. A placeholder URL is sent for now.',
-                          style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                          'KYC Verification Rejected',
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.error),
                         ),
-                        const SizedBox(height: AppSpacing.md),
-                        FilledButton(
-                          onPressed: _activeStep == 'nic'
-                              ? null
-                              : () {
-                                  final nic = _nicController.text.trim();
-                                  if (nic.isEmpty) {
-                                    setState(() {
-                                      _error = 'Enter your NIC number';
-                                      _success = null;
-                                    });
-                                    return;
-                                  }
-                                  _runStep('nic', () async {
-                                    await ref.read(verificationApiProvider).submitNic(
-                                          nicNumber: nic,
-                                          documentUrl: 'mock://nic-pending',
-                                        );
-                                  });
-                                },
-                          child: Text(_activeStep == 'nic' ? 'Submitting...' : 'Submit NIC'),
+                        const SizedBox(height: 4),
+                        Text(
+                          user.kycRejectionReason ?? 'Submitted documents do not match.',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ),
-            ),
-            
-            _StepCard(
-              title: '3. Face verification',
-              subtitle: 'Complete trusted-member face check (mock)',
-              done: level >= 3,
-              locked: level < 2,
-              child: level >= 3
-                  ? null
-                  : FilledButton(
-                      onPressed: _activeStep == 'face'
-                          ? null
-                          : () => _runStep('face', () async {
-                                await ref.read(verificationApiProvider).verifyFace(
-                                      'mock-biometric-${DateTime.now().millisecondsSinceEpoch}',
-                                    );
-                              }),
-                      child: Text(_activeStep == 'face' ? 'Scanning...' : 'Simulate face scan'),
-                    ),
-            ),
-            
-            if (user.isTrustedUser) ...[
-              const SizedBox(height: AppSpacing.lg),
-              Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
+
+              // 2. Identity submission (NIC + Face Capture combined)
+              _StepCard(
+                title: '2. Identity & Biometric Verification',
+                subtitle: 'Submit NIC and Face biometric capture for Admin review',
+                done: false,
+                locked: !emailVerified,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(LucideIcons.shieldCheck, color: theme.colorScheme.primary),
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      'You are a trusted member',
-                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                    Text('NIC Number', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _nicController,
+                      decoration: const InputDecoration(hintText: 'e.g. 199012345678'),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+
+                    // NIC Front Image Button
+                    Text('NIC Front Side', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    OutlinedButton.icon(
+                      onPressed: () => _pickNicImage(true),
+                      icon: const Icon(LucideIcons.image),
+                      label: Text(_nicFrontImage != null ? 'NIC Front Selected (Change)' : 'Upload NIC Front Image'),
+                    ),
+                    if (_nicFrontImage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          'File: ${_nicFrontImage!.path.split('/').last}',
+                          style: theme.textTheme.labelMedium?.copyWith(color: Colors.green),
+                        ),
+                      ),
+                    const SizedBox(height: AppSpacing.md),
+
+                    // NIC Back Image Button
+                    Text('NIC Back Side', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    OutlinedButton.icon(
+                      onPressed: () => _pickNicImage(false),
+                      icon: const Icon(LucideIcons.image),
+                      label: Text(_nicBackImage != null ? 'NIC Back Selected (Change)' : 'Upload NIC Back Image'),
+                    ),
+                    if (_nicBackImage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          'File: ${_nicBackImage!.path.split('/').last}',
+                          style: theme.textTheme.labelMedium?.copyWith(color: Colors.green),
+                        ),
+                      ),
+                    const SizedBox(height: AppSpacing.md),
+
+                    // Biometric Face Capture Button
+                    Text('Biometric Face Scan', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    OutlinedButton.icon(
+                      onPressed: _launchFaceCamera,
+                      icon: const Icon(LucideIcons.scanFace),
+                      label: Text(_faceCaptureImage != null ? 'Face Capture Completed (Retake)' : 'Capture Live Face'),
+                    ),
+                    if (_faceCaptureImage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          'Captured Face Image Saved',
+                          style: theme.textTheme.labelMedium?.copyWith(color: Colors.green),
+                        ),
+                      ),
+                    const SizedBox(height: AppSpacing.xl),
+
+                    // Final Submission Button
+                    FilledButton.icon(
+                      onPressed: _submittingKyc ? null : _submitKycData,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                      ),
+                      icon: _submittingKyc
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Icon(LucideIcons.uploadCloud),
+                      label: Text(_submittingKyc ? 'Uploading Documents...' : 'Submit Verification'),
                     ),
                   ],
                 ),

@@ -18,6 +18,6 @@ public interface IAdminService
     Task<bool> RejectListingAsync(Guid listingId);
     Task<IEnumerable<UserResponse>> GetKycQueueAsync();
     Task<bool> ApproveKycAsync(Guid userId);
-    Task<bool> RejectKycAsync(Guid userId);
+    Task<bool> RejectKycAsync(Guid userId, string reason);
     Task<AdminDashboardStats> GetDashboardStatsAsync();
 }

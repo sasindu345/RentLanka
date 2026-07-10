@@ -18,6 +18,7 @@ import 'package:mobile/core/theme/app_radius.dart';
 import 'package:mobile/shared/widgets/empty_state.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/models/listing.dart';
+import 'package:mobile/core/services/agreement_service.dart';
 
 class ActivityScreen extends ConsumerStatefulWidget {
   const ActivityScreen({super.key});
@@ -725,6 +726,19 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
             ),
 
             // Action Buttons
+            if (booking.status.toLowerCase() != 'pending' && booking.status.toLowerCase() != 'rejected') ...[
+              const SizedBox(height: AppSpacing.md),
+              OutlinedButton.icon(
+                onPressed: () => AgreementService.generateAndShareAgreement(booking),
+                icon: const Icon(LucideIcons.fileText, size: 16),
+                label: const Text('Download Rental Agreement'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 38),
+                  side: BorderSide(color: theme.colorScheme.outlineVariant),
+                ),
+              ),
+            ],
+
             if (isOwnerView) ...[
               if (booking.status.toLowerCase() == 'pending') ...[
                 const SizedBox(height: AppSpacing.md),
@@ -748,6 +762,15 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                       ),
                     ),
                   ],
+                ),
+              ],
+              if (booking.status.toLowerCase() == 'approved') ...[
+                const SizedBox(height: AppSpacing.md),
+                FilledButton.icon(
+                  onPressed: () => _handleHandover(booking.id),
+                  icon: const Icon(LucideIcons.check, size: 18),
+                  label: const Text('Confirm Handover & Payment Received'),
+                  style: FilledButton.styleFrom(backgroundColor: Colors.teal),
                 ),
               ],
               if (booking.status.toLowerCase() == 'active') ...[
@@ -796,19 +819,40 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
             ] else ...[
               if (booking.status.toLowerCase() == 'approved') ...[
                 const SizedBox(height: AppSpacing.md),
-                FilledButton.icon(
-                  onPressed: () => _showPaymentSheet(booking),
-                  icon: const Icon(LucideIcons.creditCard, size: 18),
-                  label: const Text('Pay Now'),
-                ),
-              ],
-              if (booking.status.toLowerCase() == 'paid') ...[
-                const SizedBox(height: AppSpacing.md),
-                FilledButton.icon(
-                  onPressed: () => _handleHandover(booking.id),
-                  icon: const Icon(LucideIcons.check, size: 18),
-                  label: const Text('Confirm Handover Received'),
-                  style: FilledButton.styleFrom(backgroundColor: Colors.teal),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(AppRadius.card),
+                    border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(LucideIcons.info, color: theme.colorScheme.primary, size: 20),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Awaiting Handover & Cash Payment',
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Meet the owner to pay in cash and collect the item. The owner will confirm handover in the app.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
               if (booking.status.toLowerCase() == 'completed') ...[

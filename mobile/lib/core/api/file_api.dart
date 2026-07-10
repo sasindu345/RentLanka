@@ -38,4 +38,18 @@ class FileApi {
     final data = response.data as Map<String, dynamic>;
     return data['avatarUrl'] as String;
   }
+
+  Future<String> uploadKycDocument(String filePath) async {
+    final fileName = filePath.split('/').last;
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath, filename: fileName),
+    });
+    final response = await _dio.post(
+      '/api/file/listing-image',
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+    final data = response.data as Map<String, dynamic>;
+    return data['imageUrl'] as String;
+  }
 }

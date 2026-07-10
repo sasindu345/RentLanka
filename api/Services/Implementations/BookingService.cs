@@ -359,24 +359,43 @@ public class BookingService : IBookingService
         return (true, null);
     }
 
-    public async Task<(bool Succeeded, string? Error)> HandoverBookingAsync(Guid renterId, Guid bookingId)
+    public async Task<(bool Succeeded, string? Error)> HandoverBookingAsync(Guid callerId, Guid bookingId)
     {
         var booking = await _context.Bookings
             .Include(b => b.Listing)
             .FirstOrDefaultAsync(b => b.Id == bookingId);
 
         if (booking == null) return (false, "Booking not found.");
-        if (booking.RenterId != renterId) return (false, "Unauthorized.");
-        if (booking.Status != BookingStatus.Paid) return (false, "Booking must be paid before confirming handover.");
+        if (booking.Listing.OwnerId != callerId && booking.RenterId != callerId) return (false, "Unauthorized.");
+        if (booking.Status != BookingStatus.Approved && booking.Status != BookingStatus.Paid)
+            return (false, "Booking must be approved or paid before confirming handover.");
 
+        var oldStatus = booking.Status;
         booking.Status = BookingStatus.Active;
         booking.UpdatedAt = DateTime.UtcNow;
 
-        // Capture payment
-        var payment = await _context.Payments.FirstOrDefaultAsync(p => p.BookingId == bookingId);
-        if (payment != null)
+        if (oldStatus == BookingStatus.Approved)
         {
-            payment.Status = PaymentStatus.Captured;
+            // Cash payment flow - create captured payment directly
+            var payment = new Payment
+            {
+                Id = Guid.NewGuid(),
+                BookingId = bookingId,
+                Amount = booking.TotalPrice + booking.SecurityDeposit,
+                Status = PaymentStatus.Captured,
+                TransactionReference = $"CASH_ON_MEETUP_{Guid.NewGuid():N}",
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.Payments.Add(payment);
+        }
+        else
+        {
+            // Card payment flow - capture existing authorized payment
+            var payment = await _context.Payments.FirstOrDefaultAsync(p => p.BookingId == bookingId);
+            if (payment != null)
+            {
+                payment.Status = PaymentStatus.Captured;
+            }
         }
 
         await _context.SaveChangesAsync();
@@ -552,6 +571,8 @@ public class BookingService : IBookingService
             booking.Status.ToString(),
             booking.RenterAgreementSigned,
             booking.OwnerAgreementSigned,
+            renter.NICNumber,
+            listing.Owner?.NICNumber,
             booking.CreatedAt,
             booking.UpdatedAt);
     }

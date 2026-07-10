@@ -152,7 +152,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen>
   void _showListingActions(Listing listing) {
     showModalBottomSheet<void>(
       context: context,
-      builder: (context) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

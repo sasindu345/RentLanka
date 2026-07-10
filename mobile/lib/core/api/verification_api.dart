@@ -40,6 +40,20 @@ class VerificationApi {
     await _dio.post('/api/verification/face', data: {'biometricDataHash': biometricDataHash});
   }
 
+  Future<void> submitKyc({
+    required String nicNumber,
+    required String nicFrontUrl,
+    required String nicBackUrl,
+    required String faceCaptureUrl,
+  }) async {
+    await _dio.post('/api/verification/submit-kyc', data: {
+      'nicNumber': nicNumber,
+      'nicFrontUrl': nicFrontUrl,
+      'nicBackUrl': nicBackUrl,
+      'faceCaptureUrl': faceCaptureUrl,
+    });
+  }
+
   String? _readDevCode(dynamic data, String key) {
     if (data is! Map) return null;
     final value = data[key];

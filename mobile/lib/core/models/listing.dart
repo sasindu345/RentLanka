@@ -124,6 +124,13 @@ class UserProfile {
   final bool isTrustedUser;
   final String? avatarUrl;
   final String role;
+  final String? nicNumber;
+  final String? nicDocumentUrl;
+  final String? nicFrontUrl;
+  final String? nicBackUrl;
+  final String? faceCaptureUrl;
+  final String kycStatus;
+  final String? kycRejectionReason;
 
   UserProfile({
     required this.id,
@@ -135,6 +142,13 @@ class UserProfile {
     required this.isTrustedUser,
     this.avatarUrl,
     required this.role,
+    this.nicNumber,
+    this.nicFrontUrl,
+    this.nicBackUrl,
+    this.faceCaptureUrl,
+    this.nicDocumentUrl,
+    this.kycStatus = 'None',
+    this.kycRejectionReason,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -148,6 +162,13 @@ class UserProfile {
       isTrustedUser: json['isTrustedUser'] as bool? ?? false,
       avatarUrl: json['avatarUrl'] as String?,
       role: json['role'] as String? ?? 'Renter',
+      nicNumber: json['nicNumber'] as String?,
+      nicDocumentUrl: json['nicDocumentUrl'] as String?,
+      nicFrontUrl: json['nicFrontUrl'] as String?,
+      nicBackUrl: json['nicBackUrl'] as String?,
+      faceCaptureUrl: json['faceCaptureUrl'] as String?,
+      kycStatus: json['kycStatus'] as String? ?? 'None',
+      kycRejectionReason: json['kycRejectionReason'] as String?,
     );
   }
 }

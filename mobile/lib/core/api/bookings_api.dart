@@ -119,6 +119,10 @@ class BookingResponse {
   final double totalPrice;
   final double securityDeposit;
   final String status;
+  final bool renterAgreementSigned;
+  final bool ownerAgreementSigned;
+  final String? renterNic;
+  final String? ownerNic;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -136,6 +140,10 @@ class BookingResponse {
     required this.totalPrice,
     required this.securityDeposit,
     required this.status,
+    required this.renterAgreementSigned,
+    required this.ownerAgreementSigned,
+    this.renterNic,
+    this.ownerNic,
     required this.createdAt,
     this.updatedAt,
   });
@@ -155,6 +163,10 @@ class BookingResponse {
       totalPrice: (json['totalPrice'] as num).toDouble(),
       securityDeposit: (json['securityDeposit'] as num).toDouble(),
       status: json['status'] as String,
+      renterAgreementSigned: json['renterAgreementSigned'] as bool? ?? false,
+      ownerAgreementSigned: json['ownerAgreementSigned'] as bool? ?? false,
+      renterNic: json['renterNic'] as String?,
+      ownerNic: json['ownerNic'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
     );

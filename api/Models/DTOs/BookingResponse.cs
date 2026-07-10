@@ -18,5 +18,7 @@ public record BookingResponse(
     string Status,
     bool RenterAgreementSigned,
     bool OwnerAgreementSigned,
+    string? RenterNic,
+    string? OwnerNic,
     DateTime CreatedAt,
     DateTime? UpdatedAt);

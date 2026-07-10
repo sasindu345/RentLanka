@@ -15,6 +15,11 @@ public class User
     public bool IsTrustedUser { get; set; } = false;
     public string? NICNumber { get; set; }
     public string? NicDocumentUrl { get; set; }
+    public string? NicFrontUrl { get; set; }
+    public string? NicBackUrl { get; set; }
+    public string? FaceCaptureUrl { get; set; }
+    public KycStatus KycStatus { get; set; } = KycStatus.None;
+    public string? KycRejectionReason { get; set; }
     public string? AvatarUrl { get; set; }
     public string Role { get; set; } = "Renter";
     public bool IsBanned { get; set; } = false;

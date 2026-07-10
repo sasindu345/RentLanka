@@ -145,6 +145,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -186,9 +187,21 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 Positioned(
                   bottom: 0,
                   right: 0,
-                  child: IconButton.filled(
-                    onPressed: _uploadingAvatar ? null : _showAvatarPicker,
-                    icon: const Icon(Icons.camera_alt, size: 18),
+                  child: GestureDetector(
+                    onTap: _uploadingAvatar ? null : _showAvatarPicker,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: theme.colorScheme.surface, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ],

@@ -194,10 +194,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.input),
           borderSide: const BorderSide(color: AppColors.error, width: 1.2),
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: 14,
-        ),
+        contentPadding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
         hintStyle: const TextStyle(
           color: AppColors.textDisabledLight,
           fontSize: 14,
@@ -453,10 +450,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.input),
           borderSide: const BorderSide(color: AppColors.error, width: 1.2),
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: 14,
-        ),
+        contentPadding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
         hintStyle: const TextStyle(
           color: AppColors.textDisabledDark,
           fontSize: 14,

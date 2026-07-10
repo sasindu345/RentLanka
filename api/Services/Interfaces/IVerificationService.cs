@@ -13,6 +13,7 @@ public interface IVerificationService
 
     Task<bool> SubmitNicVerificationAsync(Guid userId, string nicNumber, string documentUrl);
     Task<bool> CompleteFaceVerificationAsync(Guid userId, string biometricDataHash);
+    Task<bool> SubmitKycAsync(Guid userId, string nicNumber, string nicFrontUrl, string nicBackUrl, string faceCaptureUrl);
 }
 
 public record VerificationStatusDto(

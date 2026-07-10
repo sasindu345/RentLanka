@@ -82,9 +82,10 @@ export function approveKyc(userId: string) {
   });
 }
 
-export function rejectKyc(userId: string) {
+export function rejectKyc(userId: string, reason: string) {
   return apiRequest<{ message: string }>(`/api/admin/kyc/${userId}/reject`, {
     method: "PATCH",
+    body: { reason },
     auth: true,
   });
 }

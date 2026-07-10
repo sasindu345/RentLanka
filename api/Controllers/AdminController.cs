@@ -149,18 +149,18 @@ public class AdminController : ControllerBase
         var success = await _adminService.ApproveKycAsync(id);
         if (!success)
         {
-            return BadRequest(new { Error = "Failed to approve KYC. Check if user is in Level 2 (NIC Submitted)." });
+            return BadRequest(new { Error = "Failed to approve KYC. Check if user has pending KYC." });
         }
         return Ok(new { Message = "KYC approved successfully." });
     }
 
     [HttpPatch("kyc/{id:guid}/reject")]
-    public async Task<IActionResult> RejectKyc(Guid id)
+    public async Task<IActionResult> RejectKyc(Guid id, [FromBody] RejectKycRequest request)
     {
-        var success = await _adminService.RejectKycAsync(id);
+        var success = await _adminService.RejectKycAsync(id, request.Reason);
         if (!success)
         {
-            return BadRequest(new { Error = "Failed to reject KYC. Check if user is in Level 2 (NIC Submitted)." });
+            return BadRequest(new { Error = "Failed to reject KYC. Check if user has pending KYC." });
         }
         return Ok(new { Message = "KYC rejected successfully." });
     }

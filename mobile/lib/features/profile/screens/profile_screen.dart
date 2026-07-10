@@ -612,17 +612,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                     title: const Text('Verification'),
                     subtitle: Text(
-                      user.verificationLevel >= 3
-                          ? 'Fully Verified (Face)'
-                          : (user.verificationLevel >= 2
-                              ? 'NIC Submitted'
-                              : 'Basic (Email Only)'),
+                      user.kycStatus == 'Approved' || user.verificationLevel >= 3
+                          ? 'Fully Verified'
+                          : (user.kycStatus == 'PendingApproval'
+                              ? 'Pending Review'
+                              : (user.kycStatus == 'Rejected'
+                                  ? 'Verification Rejected'
+                                  : 'Basic (Email Only)')),
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (user.verificationLevel >= 3)
+                        if (user.kycStatus == 'Approved' || user.verificationLevel >= 3)
                           Icon(Icons.verified, color: theme.colorScheme.primary, size: 20)
+                        else if (user.kycStatus == 'PendingApproval')
+                          Icon(LucideIcons.hourglass, color: theme.colorScheme.primary, size: 18)
+                        else if (user.kycStatus == 'Rejected')
+                          Icon(LucideIcons.xCircle, color: theme.colorScheme.error, size: 18)
                         else
                           const Icon(Icons.chevron_right),
                       ],

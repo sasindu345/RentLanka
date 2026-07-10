@@ -15,4 +15,9 @@ public record UserResponse(
     string Role,
     bool IsBanned,
     string? NicNumber,
-    string? NicDocumentUrl);
+    string? NicDocumentUrl,
+    string? NicFrontUrl,
+    string? NicBackUrl,
+    string? FaceCaptureUrl,
+    string KycStatus,
+    string? KycRejectionReason);
