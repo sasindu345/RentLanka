@@ -9,6 +9,7 @@ import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:mobile/shared/widgets/empty_state.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/shared/widgets/notification_bell_button.dart';
 
 class InboxScreen extends ConsumerStatefulWidget {
   const InboxScreen({super.key});
@@ -64,6 +65,13 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
     if (_loading) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          title: const Text('Messages'),
+          actions: const [
+            NotificationBellButton(),
+            SizedBox(width: AppSpacing.md),
+          ],
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -71,6 +79,13 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
     if (_chats.isEmpty) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          title: const Text('Messages'),
+          actions: const [
+            NotificationBellButton(),
+            SizedBox(width: AppSpacing.md),
+          ],
+        ),
         body: EmptyState(
           icon: LucideIcons.messageSquare,
           title: 'No messages yet',
@@ -85,6 +100,13 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text('Messages'),
+        actions: const [
+          NotificationBellButton(),
+          SizedBox(width: AppSpacing.md),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: _load,
         child: ListView.separated(
@@ -97,7 +119,7 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
             final timeStr = '${chat.lastMessageAt.hour.toString().padLeft(2, '0')}:${chat.lastMessageAt.minute.toString().padLeft(2, '0')}';
 
             return ListTile(
-              onTap: () => context.push('/app/activity/messages/thread/${chat.id}').then((_) => _load()),
+              onTap: () => context.push('/app/messages/thread/${chat.id}').then((_) => _load()),
               leading: CircleAvatar(
                 radius: 20,
                 backgroundColor: theme.colorScheme.primary.withOpacity(0.08),

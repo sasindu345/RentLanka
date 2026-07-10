@@ -881,12 +881,14 @@ class _EarningsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Light: solid primary card with white text
-    // Dark: surface card with neutral text (no blue)
-    final cardBg = isDark ? theme.colorScheme.surface : primary;
-    final labelColor = isDark ? theme.colorScheme.onSurfaceVariant : Colors.white60;
-    final valueColor = isDark ? theme.colorScheme.onSurface : Colors.white;
-    final iconColor = isDark ? theme.colorScheme.onSurfaceVariant : Colors.white70;
+    
+    // Light: Soft professional highlighted background with branding color accents
+    // Dark: Surface card matching the theme
+    final cardBg = isDark ? theme.colorScheme.surface : theme.colorScheme.primary.withOpacity(0.06);
+    final labelColor = (theme.colorScheme.onSurfaceVariant ?? theme.colorScheme.onSurface).withOpacity(0.8);
+    final valueColor = theme.colorScheme.onSurface;
+    final iconColor = theme.colorScheme.primary;
+    final dividerColor = (theme.colorScheme.outlineVariant ?? theme.dividerColor).withOpacity(0.6);
 
     return GestureDetector(
       onTap: onTap,
@@ -898,15 +900,20 @@ class _EarningsCard extends StatelessWidget {
             color: cardBg,
             borderRadius: BorderRadius.circular(AppRadius.card),
             border: isDark
-                ? Border.all(color: theme.colorScheme.outline.withOpacity(0.25))
-                : null,
+                ? Border.all(color: (theme.colorScheme.outline ?? theme.dividerColor).withOpacity(0.25))
+                : Border(
+                    left: BorderSide(color: theme.colorScheme.primary, width: 4.5),
+                    top: BorderSide(color: (theme.colorScheme.outlineVariant ?? theme.dividerColor).withOpacity(0.3)),
+                    right: BorderSide(color: (theme.colorScheme.outlineVariant ?? theme.dividerColor).withOpacity(0.3)),
+                    bottom: BorderSide(color: (theme.colorScheme.outlineVariant ?? theme.dividerColor).withOpacity(0.3)),
+                  ),
             boxShadow: isDark
                 ? AppShadows.none
                 : [
                     BoxShadow(
-                      color: primary.withOpacity(0.30),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
                   ],
           ),
@@ -958,9 +965,7 @@ class _EarningsCard extends StatelessWidget {
                       ),
                     ),
                     VerticalDivider(
-                      color: isDark
-                          ? theme.colorScheme.outline.withOpacity(0.3)
-                          : Colors.white.withOpacity(0.2),
+                      color: dividerColor,
                       thickness: 1,
                       width: 32,
                     ),

@@ -92,7 +92,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
     try {
       final chat = await ref.read(chatsApiProvider).getOrCreateConversation(widget.id);
       if (mounted) {
-        context.push('/app/activity/messages/thread/${chat.id}');
+        context.push('/app/messages/thread/${chat.id}');
       }
     } catch (_) {
       if (mounted) {

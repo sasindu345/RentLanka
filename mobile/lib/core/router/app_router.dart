@@ -168,15 +168,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/app/activity',
                 builder: (context, state) => const ActivityScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'messages/thread/:id',
-                    parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) {
-                      return ChatThreadScreen(conversationId: state.pathParameters['id']!);
-                    },
-                  ),
-                ],
               ),
             ],
           ),
@@ -218,6 +209,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/app/owner',
                 builder: (context, state) => const OwnerDashboardScreen(),
+              ),
+            ],
+          ),
+          // Branch 6: Messages
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/app/messages',
+                builder: (context, state) => const InboxScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'thread/:id',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) {
+                      return ChatThreadScreen(conversationId: state.pathParameters['id']!);
+                    },
+                  ),
+                ],
               ),
             ],
           ),

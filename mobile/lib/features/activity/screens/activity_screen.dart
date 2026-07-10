@@ -480,23 +480,23 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
     final reasonController = TextEditingController();
     bool submittingDispute = false;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) {
         final dialogTheme = Theme.of(context);
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text(
-                'File a Dispute',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.card),
               ),
+              title: const Text('File a Dispute'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Provide details on why you are filing a dispute. An administrator will review your claim and make a final resolution.',
+                    'Explain the damage or issue clearly. Our administrators will review the dispute details.',
                     style: dialogTheme.textTheme.bodyMedium?.copyWith(
                       color: dialogTheme.colorScheme.onSurfaceVariant,
                     ),
@@ -506,7 +506,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                     controller: reasonController,
                     maxLines: 4,
                     decoration: const InputDecoration(
-                      hintText: 'Describe the issue in detail...',
+                      hintText: 'Describe the issue...',
                     ),
                   ),
                 ],
@@ -514,63 +514,35 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(color: Colors.grey),
-                  ),
+                  child: const Text('Cancel'),
                 ),
                 FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: dialogTheme.colorScheme.error,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(120, 40),
-                  ),
                   onPressed: submittingDispute
                       ? null
                       : () async {
                           final text = reasonController.text.trim();
                           if (text.isEmpty) return;
-
                           setDialogState(() => submittingDispute = true);
                           try {
-                            await ref
-                                .read(disputesApiProvider)
-                                .fileDispute(booking.id, text);
+                            await ref.read(disputesApiProvider).fileDispute(booking.id, text);
                             if (context.mounted) {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text(
-                                    'Dispute filed successfully. Booking is now frozen.',
-                                  ),
+                                  content: Text('Dispute filed successfully.'),
                                   backgroundColor: Colors.orange,
                                 ),
                               );
                               _loadAll();
                             }
                           } catch (_) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Failed to file dispute.'),
-                                  backgroundColor: Colors.redAccent,
-                                ),
-                              );
-                            }
                           } finally {
                             setDialogState(() => submittingDispute = false);
                           }
                         },
                   child: submittingDispute
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text('Submit Dispute'),
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('Submit'),
                 ),
               ],
             );
@@ -582,799 +554,240 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
 
   Widget _buildBookingCard(BookingResponse booking, bool isOwnerView) {
     final theme = Theme.of(context);
-    final startStr =
-        '${booking.startDate.day}/${booking.startDate.month}/${booking.startDate.year}';
-    final endStr =
-        '${booking.endDate.day}/${booking.endDate.month}/${booking.endDate.year}';
+    final startStr = '${booking.startDate.day}/${booking.startDate.month}/${booking.startDate.year}';
+    final endStr = '${booking.endDate.day}/${booking.endDate.month}/${booking.endDate.year}';
     final total = booking.totalPrice + booking.securityDeposit;
     final statusColor = _getStatusColor(booking.status, theme);
-
-    return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withOpacity(0.4),
-          width: 1.0,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top Row (Image, Title, Status)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(AppRadius.button),
-                  child: SizedBox(
-                    width: 60,
-                    height: 60,
-                    child: ListingImage(
-                      url: booking.listingImage,
-                      width: 60,
-                      height: 60,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        booking.listingTitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        isOwnerView
-                            ? 'Renter: ${booking.renterName}'
-                            : 'Owner: ${booking.ownerName}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '$startStr - $endStr',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xs,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(AppRadius.button),
-                  ),
-                  child: Text(
-                    booking.status.toUpperCase(),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: statusColor,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
-              child: Divider(),
-            ),
-
-            // Middle Row (Price Summary)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Total (inc. deposit)',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      ListingsApi.formatPrice(total),
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Sec. Deposit',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      ListingsApi.formatPrice(booking.securityDeposit),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-
-            // Action Buttons
-            if (booking.status.toLowerCase() != 'pending' && booking.status.toLowerCase() != 'rejected') ...[
-              const SizedBox(height: AppSpacing.md),
-              OutlinedButton.icon(
-                onPressed: () => AgreementService.generateAndShareAgreement(booking),
-                icon: const Icon(LucideIcons.fileText, size: 16),
-                label: const Text('Download Rental Agreement'),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 38),
-                  side: BorderSide(color: theme.colorScheme.outlineVariant),
-                ),
-              ),
-            ],
-
-            if (isOwnerView) ...[
-              if (booking.status.toLowerCase() == 'pending') ...[
-                const SizedBox(height: AppSpacing.md),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => _handleReject(booking.id),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: theme.colorScheme.error,
-                          side: BorderSide(color: theme.colorScheme.error),
-                        ),
-                        child: const Text('Reject'),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () => _handleApprove(booking.id),
-                        child: const Text('Approve'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              if (booking.status.toLowerCase() == 'approved') ...[
-                const SizedBox(height: AppSpacing.md),
-                FilledButton.icon(
-                  onPressed: () => _handleHandover(booking.id),
-                  icon: const Icon(LucideIcons.check, size: 18),
-                  label: const Text('Confirm Handover & Payment Received'),
-                  style: FilledButton.styleFrom(backgroundColor: Colors.teal),
-                ),
-              ],
-              if (booking.status.toLowerCase() == 'active') ...[
-                const SizedBox(height: AppSpacing.md),
-                FilledButton.icon(
-                  onPressed: () => _handleReturn(booking.id),
-                  icon: const Icon(LucideIcons.cornerDownLeft, size: 18),
-                  label: const Text('Confirm Safe Return'),
-                ),
-              ],
-              if (booking.status.toLowerCase() == 'completed') ...[
-                const SizedBox(height: AppSpacing.md),
-                (() {
-                  final reviews = _bookingReviews[booking.id] ?? [];
-                  final hasReviewed = reviews.any((r) => !r.isRenterReview);
-                  if (hasReviewed) {
-                    final rating = reviews
-                        .firstWhere((r) => !r.isRenterReview)
-                        .rating;
-                    return Row(
-                      children: [
-                        const Icon(
-                          LucideIcons.checkCircle,
-                          color: Colors.green,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Review Submitted: $rating ⭐',
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                  return FilledButton.icon(
-                    onPressed: () => _showLeaveReviewDialog(booking, true),
-                    icon: const Icon(LucideIcons.star, size: 18),
-                    label: const Text('Leave Renter Review'),
-                  );
-                }()),
-              ],
-            ] else ...[
-              if (booking.status.toLowerCase() == 'approved') ...[
-                const SizedBox(height: AppSpacing.md),
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(AppRadius.card),
-                    border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(LucideIcons.info, color: theme.colorScheme.primary, size: 20),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Awaiting Handover & Cash Payment',
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Meet the owner to pay in cash and collect the item. The owner will confirm handover in the app.',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              if (booking.status.toLowerCase() == 'completed') ...[
-                const SizedBox(height: AppSpacing.md),
-                (() {
-                  final reviews = _bookingReviews[booking.id] ?? [];
-                  final hasReviewed = reviews.any((r) => r.isRenterReview);
-                  if (hasReviewed) {
-                    final rating = reviews
-                        .firstWhere((r) => r.isRenterReview)
-                        .rating;
-                    return Row(
-                      children: [
-                        const Icon(
-                          LucideIcons.checkCircle,
-                          color: Colors.green,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Review Submitted: $rating ⭐',
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                  return FilledButton.icon(
-                    onPressed: () => _showLeaveReviewDialog(booking, false),
-                    icon: const Icon(LucideIcons.star, size: 18),
-                    label: const Text('Leave Equipment Review'),
-                  );
-                }()),
-              ],
-            ],
-            if (booking.status.toLowerCase() == 'disputed') ...[
-              const SizedBox(height: AppSpacing.md),
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.error.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(AppRadius.input),
-                  border: Border.all(
-                    color: theme.colorScheme.error.withOpacity(0.2),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      LucideIcons.alertTriangle,
-                      color: theme.colorScheme.error,
-                      size: 18,
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Expanded(
-                      child: Text(
-                        'Booking under dispute review by RentLanka Admin.',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.error,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ] else if (booking.status.toLowerCase() == 'paid' ||
-                booking.status.toLowerCase() == 'active' ||
-                booking.status.toLowerCase() == 'completed') ...[
-              const SizedBox(height: AppSpacing.xs),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  onPressed: () => _showDisputeDialog(booking),
-                  icon: Icon(
-                    LucideIcons.alertTriangle,
-                    size: 14,
-                    color: theme.colorScheme.error,
-                  ),
-                  label: Text(
-                    'File a Dispute',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.error,
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGearStatusCard(Listing listing, ThemeData theme) {
-    Color statusColor;
-    String statusText;
-    IconData statusIcon;
-
-    if (listing.isPaused) {
-      statusColor = Colors.orange;
-      statusText = 'Paused';
-      statusIcon = LucideIcons.pauseCircle;
-    } else {
-      switch (listing.status) {
-        case 'PendingApproval':
-          statusColor = Colors.blue;
-          statusText = 'Pending Approval';
-          statusIcon = LucideIcons.clock;
-          break;
-        case 'Rejected':
-          statusColor = Colors.red;
-          statusText = 'Rejected';
-          statusIcon = LucideIcons.alertTriangle;
-          break;
-        case 'Approved':
-        default:
-          statusColor = Colors.green;
-          statusText = 'Approved & Live';
-          statusIcon = LucideIcons.checkCircle2;
-          break;
-      }
-    }
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withOpacity(0.4),
-          width: 1.0,
-        ),
+        border: Border.all(color: (theme.colorScheme.outlineVariant ?? theme.dividerColor).withOpacity(0.4)),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadius.button),
-              child: SizedBox(
-                width: 50,
-                height: 50,
-                child: ListingImage(url: listing.images.isNotEmpty ? listing.images.first : '', width: 50, height: 50),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.button),
+                child: SizedBox(
+                  width: 60,
+                  height: 60,
+                  child: ListingImage(url: booking.listingImage, width: 60, height: 60),
+                ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      booking.listingTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      isOwnerView ? 'Renter: ${booking.renterName}' : 'Owner: ${booking.ownerName}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$startStr - $endStr',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(AppRadius.button),
+                  border: Border.all(color: statusColor.withOpacity(0.2), width: 1.0),
+                ),
+                child: Text(
+                  booking.status.toUpperCase(),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: statusColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          const Divider(),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    listing.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-                  ),
+                  Text('Total Cash Due', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                   const SizedBox(height: 2),
-                  Text(
-                    '${listing.category} · ${ListingsApi.formatPrice(listing.pricePerDay)}/day',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                  Text(ListingsApi.formatPrice(total), style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
                 ],
               ),
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 6),
-              decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(AppRadius.button),
-                border: Border.all(color: statusColor.withOpacity(0.2), width: 1),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+            ],
+          ),
+          if (isOwnerView) ...[
+            if (booking.status.toLowerCase() == 'pending') ...[
+              const SizedBox(height: AppSpacing.md),
+              Row(
                 children: [
-                  Icon(statusIcon, color: statusColor, size: 12),
-                  const SizedBox(width: 4),
-                  Text(
-                    statusText.toUpperCase(),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: statusColor,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.3,
-                      fontSize: 10,
-                    ),
-                  ),
+                  Expanded(child: OutlinedButton(onPressed: () => _handleReject(booking.id), child: const Text('Reject'))),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(child: FilledButton(onPressed: () => _handleApprove(booking.id), child: const Text('Approve'))),
                 ],
+              ),
+            ],
+            if (booking.status.toLowerCase() == 'approved') ...[
+              const SizedBox(height: AppSpacing.md),
+              FilledButton.icon(
+                onPressed: () => _handleHandover(booking.id),
+                icon: const Icon(LucideIcons.check),
+                label: const Text('Confirm Handover'),
+              ),
+            ],
+            if (booking.status.toLowerCase() == 'active') ...[
+              const SizedBox(height: AppSpacing.md),
+              FilledButton.icon(
+                onPressed: () => _handleReturn(booking.id),
+                icon: const Icon(LucideIcons.cornerDownLeft),
+                label: const Text('Confirm Return'),
+              ),
+            ],
+            if (booking.status.toLowerCase() == 'completed') ...[
+              const SizedBox(height: AppSpacing.md),
+              (() {
+                final reviews = _bookingReviews[booking.id] ?? [];
+                final hasReviewed = reviews.any((r) => !r.isRenterReview);
+                if (hasReviewed) {
+                  return const Text('Review Submitted', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold));
+                }
+                return FilledButton.icon(
+                  onPressed: () => _showLeaveReviewDialog(booking, true),
+                  icon: const Icon(LucideIcons.star),
+                  label: const Text('Leave Gear Review'),
+                );
+              }()),
+            ],
+          ] else ...[
+            if (booking.status.toLowerCase() == 'completed') ...[
+              const SizedBox(height: AppSpacing.md),
+              (() {
+                final reviews = _bookingReviews[booking.id] ?? [];
+                final hasReviewed = reviews.any((r) => r.isRenterReview);
+                if (hasReviewed) {
+                  return const Text('Review Submitted', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold));
+                }
+                return FilledButton.icon(
+                  onPressed: () => _showLeaveReviewDialog(booking, false),
+                  icon: const Icon(LucideIcons.star),
+                  label: const Text('Leave Renter Review'),
+                );
+              }()),
+            ],
+          ],
+          if (booking.status.toLowerCase() == 'active') ...[
+            const SizedBox(height: AppSpacing.sm),
+            OutlinedButton.icon(
+              onPressed: () => _showDisputeDialog(booking),
+              icon: const Icon(LucideIcons.alertTriangle, size: 16),
+              label: const Text('File Dispute / Report Issue'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: theme.colorScheme.error,
+                side: BorderSide(color: theme.colorScheme.error.withOpacity(0.5)),
+                minimumSize: const Size(double.infinity, 36),
               ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final appMode = ref.watch(appModeProvider);
-    final activeSegment = appMode == UserAppMode.owner ? 1 : 0;
+    final isOwner = appMode == UserAppMode.owner;
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        backgroundColor: theme.colorScheme.background,
-        body: SafeArea(
-          bottom: false,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xs),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Activity',
-                      style: theme.textTheme.headlineLarge?.copyWith(
-                        color: theme.colorScheme.onBackground,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 28,
-                        fontFamily: 'Plus Jakarta Sans',
-                      ),
+    return Scaffold(
+      backgroundColor: theme.colorScheme.background,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xs),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Bookings',
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      color: theme.colorScheme.onBackground,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 28,
+                      fontFamily: 'Plus Jakarta Sans',
                     ),
-                    const NotificationBellButton(),
-                  ],
-                ),
+                  ),
+                  const NotificationBellButton(),
+                ],
               ),
-
-              // 2. Premium Sliding Segmented Control Tabs Selector
-              AnimatedBuilder(
-                animation: _tabController.animation!,
-                builder: (context, child) {
-                  final value = _tabController.animation!.value;
-                  return Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.xs,
-                    ),
-                    padding: const EdgeInsets.all(4),
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: theme.brightness == Brightness.dark
-                          ? const Color(0xFF1E293B)
-                          : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final width = constraints.maxWidth;
-                        final pillWidth = width / 2;
-                        return Stack(
-                          children: [
-                            // Sliding background pill card
-                            Positioned(
-                              left: value * pillWidth,
-                              width: pillWidth,
-                              height: constraints.maxHeight,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: theme.brightness == Brightness.dark
-                                      ? const Color(0xFF0F172A)
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            // Interactive Tab Texts
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () {
-                                      _tabController.animateTo(0);
-                                    },
-                                    child: Center(
-                                      child: Text(
-                                        'Bookings',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: value < 0.5 ? FontWeight.w700 : FontWeight.w500,
-                                          color: value < 0.5
-                                              ? (theme.brightness == Brightness.dark
-                                                  ? Colors.white
-                                                  : theme.colorScheme.primary)
-                                              : (theme.brightness == Brightness.dark
-                                                  ? const Color(0xFF94A3B8)
-                                                  : const Color(0xFF64748B)),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () {
-                                      _tabController.animateTo(1);
-                                    },
-                                    child: Center(
-                                      child: Text(
-                                        'Messages',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: value >= 0.5 ? FontWeight.w700 : FontWeight.w500,
-                                          color: value >= 0.5
-                                              ? (theme.brightness == Brightness.dark
-                                                  ? Colors.white
-                                                  : theme.colorScheme.primary)
-                                              : (theme.brightness == Brightness.dark
-                                                  ? const Color(0xFF94A3B8)
-                                                  : const Color(0xFF64748B)),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  );
-                },
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _loadAll,
+                child: _loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : isOwner
+                        ? (_ownerBookings.isEmpty
+                            ? EmptyState(
+                                icon: LucideIcons.calendarClock,
+                                title: 'No active requests',
+                                subtitle: 'Once a renter requests to book your gear, it will show up here.',
+                              )
+                            : ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                itemCount: _ownerBookings.length,
+                                itemBuilder: (context, index) => _buildBookingCard(_ownerBookings[index], true),
+                              ))
+                        : (_renterBookings.isEmpty
+                            ? EmptyState(
+                                icon: LucideIcons.calendar,
+                                title: 'No Rentals yet',
+                                subtitle: 'Find awesome gear and submit booking requests.',
+                                actionLabel: 'Explore gear',
+                                onActionPressed: () => context.go('/app/explore'),
+                              )
+                            : ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                itemCount: _renterBookings.length,
+                                itemBuilder: (context, index) => _buildBookingCard(_renterBookings[index], false),
+                              )),
               ),
-              const SizedBox(height: AppSpacing.xs),
-
-              // 3. TabBarView Content
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    // Bookings tab content
-                    Column(
-                      children: [
-                        Expanded(
-                          child: RefreshIndicator(
-                            onRefresh: _loadAll,
-                            child: _loading
-                                ? const Center(child: CircularProgressIndicator())
-                                : activeSegment == 0
-                                    ? (_renterBookings.isEmpty
-                                        ? EmptyState(
-                                            icon: LucideIcons.calendar,
-                                            title: 'No Rentals yet',
-                                            subtitle: 'Find awesome gear and submit booking requests.',
-                                            actionLabel: 'Explore gear',
-                                            onActionPressed: () => context.go('/app/explore'),
-                                          )
-                                        : ListView.builder(
-                                            itemCount: _renterBookings.length,
-                                            itemBuilder: (context, index) {
-                                              return _buildBookingCard(
-                                                _renterBookings[index],
-                                                false,
-                                              );
-                                            },
-                                          ))
-                                    : ListView(
-                                        physics: const AlwaysScrollableScrollPhysics(),
-                                        children: [
-                                          // --- SECTION 1: BOOKING REQUESTS ---
-                                          Padding(
-                                            padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xs),
-                                            child: Row(
-                                              children: [
-                                                Icon(LucideIcons.calendar, size: 18, color: theme.colorScheme.primary),
-                                                const SizedBox(width: AppSpacing.xs),
-                                                Text(
-                                                  'Booking Requests',
-                                                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                                ),
-                                                const SizedBox(width: AppSpacing.xs),
-                                                if (_ownerBookings.isNotEmpty)
-                                                  Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                    decoration: BoxDecoration(
-                                                      color: theme.colorScheme.primary.withOpacity(0.08),
-                                                      borderRadius: BorderRadius.circular(AppRadius.button),
-                                                    ),
-                                                    child: Text(
-                                                      '${_ownerBookings.length}',
-                                                      style: theme.textTheme.labelSmall?.copyWith(
-                                                        color: theme.colorScheme.primary,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                          if (_ownerBookings.isEmpty)
-                                            Container(
-                                              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-                                              decoration: BoxDecoration(
-                                                color: theme.colorScheme.surface,
-                                                borderRadius: BorderRadius.circular(AppRadius.card),
-                                                border: Border.all(
-                                                  color: theme.colorScheme.outlineVariant.withOpacity(0.4),
-                                                  width: 1.0,
-                                                ),
-                                              ),
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(AppSpacing.lg),
-                                                child: Column(
-                                                  children: [
-                                                    Icon(LucideIcons.calendarClock, size: 36, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5)),
-                                                    const SizedBox(height: AppSpacing.xs),
-                                                    Text(
-                                                      'No active requests',
-                                                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-                                                    ),
-                                                    const SizedBox(height: 4),
-                                                    Text(
-                                                      'Once a renter requests to book your gear, it will show up here.',
-                                                      textAlign: TextAlign.center,
-                                                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            )
-                                          else
-                                            ..._ownerBookings.map((b) => _buildBookingCard(b, true)),
-
-                                          const SizedBox(height: AppSpacing.lg),
-
-                                          // --- SECTION 2: YOUR LISTED EQUIPMENT ---
-                                          Padding(
-                                            padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.xs),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    Icon(LucideIcons.store, size: 18, color: theme.colorScheme.primary),
-                                                    const SizedBox(width: AppSpacing.xs),
-                                                    Text(
-                                                      'Your Gear & Approval Status',
-                                                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                                    ),
-                                                  ],
-                                                ),
-                                                Text(
-                                                  '${_myListings.length} items',
-                                                  style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          if (_myListings.isEmpty)
-                                            Container(
-                                              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-                                              decoration: BoxDecoration(
-                                                color: theme.colorScheme.surface,
-                                                borderRadius: BorderRadius.circular(AppRadius.card),
-                                                border: Border.all(
-                                                  color: theme.colorScheme.outlineVariant.withOpacity(0.4),
-                                                  width: 1.0,
-                                                ),
-                                              ),
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(AppSpacing.lg),
-                                                child: Column(
-                                                  children: [
-                                                    Icon(LucideIcons.packagePlus, size: 36, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5)),
-                                                    const SizedBox(height: AppSpacing.xs),
-                                                    Text(
-                                                      'No listings published',
-                                                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-                                                    ),
-                                                    const SizedBox(height: 4),
-                                                    Text(
-                                                      'List your equipment to start earning on RentLanka.',
-                                                      textAlign: TextAlign.center,
-                                                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                                                    ),
-                                                    const SizedBox(height: AppSpacing.md),
-                                                    FilledButton.icon(
-                                                      onPressed: () => context.go('/app/list'),
-                                                      icon: const Icon(LucideIcons.plus, size: 16),
-                                                      label: const Text('Publish Gear'),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            )
-                                          else
-                                            ..._myListings.map((l) => _buildGearStatusCard(l, theme)),
-                                        ],
-                                      ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Messages tab content
-                    const InboxScreen(),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

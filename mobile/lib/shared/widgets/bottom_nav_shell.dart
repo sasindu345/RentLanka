@@ -38,15 +38,21 @@ class BottomNavShell extends ConsumerWidget {
             ),
             _NavItem(
               branchIndex: 2,
-              icon: LucideIcons.plusCircle,
-              selectedIcon: LucideIcons.plusCircle,
-              label: 'List',
+              icon: LucideIcons.list,
+              selectedIcon: LucideIcons.list,
+              label: 'Listings',
             ),
             _NavItem(
               branchIndex: 3,
               icon: LucideIcons.calendar,
               selectedIcon: LucideIcons.calendar,
-              label: 'Activity',
+              label: 'Bookings',
+            ),
+            _NavItem(
+              branchIndex: 6,
+              icon: LucideIcons.messageSquare,
+              selectedIcon: LucideIcons.messageSquare,
+              label: 'Messages',
             ),
             _NavItem(
               branchIndex: 4,
@@ -72,7 +78,13 @@ class BottomNavShell extends ConsumerWidget {
               branchIndex: 3,
               icon: LucideIcons.calendar,
               selectedIcon: LucideIcons.calendar,
-              label: 'Activity',
+              label: 'Bookings',
+            ),
+            _NavItem(
+              branchIndex: 6,
+              icon: LucideIcons.messageSquare,
+              selectedIcon: LucideIcons.messageSquare,
+              label: 'Messages',
             ),
             _NavItem(
               branchIndex: 4,
