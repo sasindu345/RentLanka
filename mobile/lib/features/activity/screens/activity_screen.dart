@@ -3,21 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/bookings_api.dart';
-import 'package:mobile/features/profile/screens/notifications_screen.dart';
 import 'package:mobile/shared/widgets/notification_bell_button.dart';
 
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/shared/widgets/listing_image.dart';
 import 'package:mobile/core/providers/app_mode_provider.dart';
 import 'package:mobile/core/api/reviews_api.dart';
-import 'package:mobile/features/chat/screens/inbox_screen.dart';
 import 'package:mobile/core/api/disputes_api.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:mobile/shared/widgets/empty_state.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:mobile/core/models/listing.dart';
 import 'package:mobile/core/services/agreement_service.dart';
 
 class ActivityScreen extends ConsumerStatefulWidget {
@@ -27,12 +24,12 @@ class ActivityScreen extends ConsumerStatefulWidget {
   ConsumerState<ActivityScreen> createState() => _ActivityScreenState();
 }
 
+
 class _ActivityScreenState extends ConsumerState<ActivityScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<BookingResponse> _renterBookings = [];
   List<BookingResponse> _ownerBookings = [];
-  List<Listing> _myListings = [];
   bool _loading = true;
   final Map<String, List<ReviewResponse>> _bookingReviews = {};
 
@@ -57,11 +54,6 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
       final renter = await api.getRenterBookings();
       final owner = await api.getOwnerBookings();
 
-      List<Listing> myListings = [];
-      try {
-        myListings = await ref.read(listingsApiProvider).getMyListings();
-      } catch (_) {}
-
       final allCompletedBookings = [
         ...renter,
         ...owner,
@@ -80,7 +72,6 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
       setState(() {
         _renterBookings = renter;
         _ownerBookings = owner;
-        _myListings = myListings;
       });
     } catch (_) {
       // Ignore load errors silently or show snackbar
@@ -184,161 +175,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
     }
   }
 
-  void _showPaymentSheet(BookingResponse booking) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(AppRadius.sheet),
-          topRight: Radius.circular(AppRadius.sheet),
-        ),
-      ),
-      builder: (context) {
-        final theme = Theme.of(context);
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      LucideIcons.shieldCheck,
-                      color: theme.colorScheme.primary,
-                      size: 24,
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      'Secure Escrow Payment',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'Pay for booking request #${booking.id.substring(0, 8)}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                const Divider(),
-                const SizedBox(height: AppSpacing.xs),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Rental Cost'),
-                    Text(
-                      ListingsApi.formatPrice(booking.totalPrice),
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Refundable Security Deposit'),
-                    Text(
-                      ListingsApi.formatPrice(booking.securityDeposit),
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                  child: Divider(),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total to Authorize',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      ListingsApi.formatPrice(
-                        booking.totalPrice + booking.securityDeposit,
-                      ),
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(AppRadius.input),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        LucideIcons.info,
-                        color: theme.colorScheme.primary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Expanded(
-                        child: Text(
-                          'Your card is authorized now. The rental fee is captured at handover, and the security deposit is released after the host confirms the return.',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: theme.colorScheme.primary,
-                            height: 1.4,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                FilledButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    try {
-                      await ref
-                          .read(bookingsApiProvider)
-                          .payBooking(booking.id);
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Payment authorized successfully!'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                        _loadAll();
-                      }
-                    } on DioException catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(extractError(e)),
-                            backgroundColor: Colors.redAccent,
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text('Mock Pay & Authorize'),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+
 
   Color _getStatusColor(String status, ThemeData theme) {
     switch (status.toLowerCase()) {
@@ -564,7 +401,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: (theme.colorScheme.outlineVariant ?? theme.dividerColor).withOpacity(0.4)),
+        border: Border.all(color: ((theme.colorScheme.outlineVariant as Color?) ?? theme.dividerColor).withOpacity(0.4)),
       ),
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
@@ -645,6 +482,34 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
               ),
             ],
           ),
+          if (booking.status.toLowerCase() == 'approved' ||
+              booking.status.toLowerCase() == 'active' ||
+              booking.status.toLowerCase() == 'completed') ...[
+            const SizedBox(height: AppSpacing.md),
+            OutlinedButton.icon(
+              onPressed: () async {
+                try {
+                  await AgreementService.generateAndShareAgreement(booking);
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to generate agreement: $e'),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                  }
+                }
+              },
+              icon: const Icon(LucideIcons.fileText, size: 16),
+              label: const Text('View / Download Rental Agreement'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: theme.colorScheme.primary,
+                side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.5)),
+                minimumSize: const Size(double.infinity, 38),
+              ),
+            ),
+          ],
           if (isOwnerView) ...[
             if (booking.status.toLowerCase() == 'pending') ...[
               const SizedBox(height: AppSpacing.md),

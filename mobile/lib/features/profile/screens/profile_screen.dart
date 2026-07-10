@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/api_client.dart';
-import 'package:mobile/features/profile/screens/notifications_screen.dart';
 import 'package:mobile/shared/widgets/notification_bell_button.dart';
 
 import 'package:mobile/core/api/listings_api.dart';
@@ -26,7 +25,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   UserProfile? _user;
-  List<Listing> _myListings = [];
   bool _loading = true;
 
   @override
@@ -43,7 +41,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final listings = await api.getMyListings();
       setState(() {
         _user = user;
-        _myListings = listings;
       });
 
       if (mounted) {
@@ -125,54 +122,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  void _showListingActions(Listing listing) {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit_outlined),
-              title: const Text('Edit listing'),
-              onTap: () async {
-                Navigator.pop(context);
-                final updated = await context.push<bool>(
-                  '/app/profile/listing/${listing.id}/edit',
-                );
-                if (updated == true && mounted) _load();
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                listing.isPaused
-                    ? Icons.play_arrow_outlined
-                    : Icons.pause_outlined,
-              ),
-              title: Text(
-                listing.isPaused ? 'Resume listing' : 'Pause listing',
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _togglePause(listing);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: const Text(
-                'Delete listing',
-                style: TextStyle(color: Colors.red),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _confirmDelete(listing);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   void _showHelpCenterSheet(BuildContext context) {
     final theme = Theme.of(context);
@@ -816,36 +766,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 }
 
-class _VerificationStep extends StatelessWidget {
-  final String label;
-  final bool done;
 
-  const _VerificationStep({required this.label, required this.done});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(
-            done ? LucideIcons.checkCircle2 : LucideIcons.circle,
-            size: 20,
-            color: done ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: done ? theme.colorScheme.onBackground : theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _ThemeOptionTile extends StatelessWidget {
   final String label;

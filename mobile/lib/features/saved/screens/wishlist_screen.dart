@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/providers/wishlist_provider.dart';
 import 'package:mobile/shared/widgets/listing_card.dart';
-import 'package:mobile/features/profile/screens/notifications_screen.dart';
 import 'package:mobile/shared/widgets/notification_bell_button.dart';
 
 import 'package:mobile/shared/widgets/shimmer_skeleton.dart';

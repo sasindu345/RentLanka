@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/api/bookings_api.dart';
-import 'package:mobile/features/profile/screens/notifications_screen.dart';
 import 'package:mobile/shared/widgets/notification_bell_button.dart';
 
 import 'package:mobile/core/api/listings_api.dart';
@@ -885,10 +884,10 @@ class _EarningsCard extends StatelessWidget {
     // Light: Soft professional highlighted background with branding color accents
     // Dark: Surface card matching the theme
     final cardBg = isDark ? theme.colorScheme.surface : theme.colorScheme.primary.withOpacity(0.06);
-    final labelColor = (theme.colorScheme.onSurfaceVariant ?? theme.colorScheme.onSurface).withOpacity(0.8);
+    final labelColor = ((theme.colorScheme.onSurfaceVariant as Color?) ?? theme.colorScheme.onSurface).withOpacity(0.8);
     final valueColor = theme.colorScheme.onSurface;
     final iconColor = theme.colorScheme.primary;
-    final dividerColor = (theme.colorScheme.outlineVariant ?? theme.dividerColor).withOpacity(0.6);
+    final dividerColor = ((theme.colorScheme.outlineVariant as Color?) ?? theme.dividerColor).withOpacity(0.6);
 
     return GestureDetector(
       onTap: onTap,
@@ -901,7 +900,7 @@ class _EarningsCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.card),
             border: Border.all(
               color: isDark
-                  ? (theme.colorScheme.outline ?? theme.dividerColor).withOpacity(0.25)
+                  ? ((theme.colorScheme.outline as Color?) ?? theme.dividerColor).withOpacity(0.25)
                   : theme.colorScheme.primary.withOpacity(0.2),
               width: isDark ? 1.0 : 1.2,
             ),

@@ -1,9 +1,9 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 import 'package:mobile/core/constants.dart';
 import 'package:mobile/core/api/api_client.dart';
-
 import 'package:mobile/core/providers/notification_provider.dart';
 
 final signalRServiceProvider = Provider<SignalRService>((ref) {
@@ -33,7 +33,7 @@ class SignalRService {
       final storage = _ref.read(tokenStorageProvider);
       final token = await storage.getToken();
       if (token == null || token.isEmpty) {
-        print("SignalR: Cannot connect because token is missing or empty.");
+        developer.log("SignalR: Cannot connect because token is missing or empty.");
         return;
       }
 
@@ -51,15 +51,15 @@ class SignalRService {
           .build();
 
       _hubConnection!.onclose(({error}) {
-        print("SignalR: Connection closed. $error");
+        developer.log("SignalR: Connection closed. $error");
       });
 
       _hubConnection!.on("ReceiveMessage", _onReceiveMessage);
 
       await _hubConnection!.start();
-      print("SignalR: Connection started successfully.");
+      developer.log("SignalR: Connection started successfully.");
     } catch (e) {
-      print("SignalR: Failed to connect: $e");
+      developer.log("SignalR: Failed to connect", error: e);
     }
   }
 
@@ -80,7 +80,7 @@ class SignalRService {
           );
         }
       } catch (e) {
-        print("SignalR: Error parsing received message arguments: $e");
+        developer.log("SignalR: Error parsing received message arguments", error: e);
       }
     }
   }
@@ -91,9 +91,9 @@ class SignalRService {
     if (_hubConnection != null && _hubConnection!.state == HubConnectionState.Connected) {
       try {
         await _hubConnection!.invoke("JoinConversation", args: [conversationId]);
-        print("SignalR: Joined conversation group: $conversationId");
+        developer.log("SignalR: Joined conversation group: $conversationId");
       } catch (e) {
-        print("SignalR: Failed to join conversation group: $e");
+        developer.log("SignalR: Failed to join conversation group", error: e);
       }
     }
   }
@@ -105,9 +105,9 @@ class SignalRService {
     if (_hubConnection != null && _hubConnection!.state == HubConnectionState.Connected) {
       try {
         await _hubConnection!.invoke("LeaveConversation", args: [conversationId]);
-        print("SignalR: Left conversation group: $conversationId");
+        developer.log("SignalR: Left conversation group: $conversationId");
       } catch (e) {
-        print("SignalR: Failed to leave conversation group: $e");
+        developer.log("SignalR: Failed to leave conversation group", error: e);
       }
     }
   }
@@ -116,7 +116,7 @@ class SignalRService {
     if (_hubConnection != null) {
       await _hubConnection!.stop();
       _hubConnection = null;
-      print("SignalR: Disconnected.");
+      developer.log("SignalR: Disconnected.");
     }
   }
 }

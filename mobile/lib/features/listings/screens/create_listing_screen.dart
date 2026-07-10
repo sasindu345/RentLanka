@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:mobile/features/profile/screens/notifications_screen.dart';
 import 'package:mobile/shared/widgets/notification_bell_button.dart';
 import 'package:go_router/go_router.dart';
 
