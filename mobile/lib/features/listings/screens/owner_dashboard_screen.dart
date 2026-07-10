@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/api/bookings_api.dart';
 import 'package:mobile/features/profile/screens/notifications_screen.dart';
+import 'package:mobile/shared/widgets/notification_bell_button.dart';
 
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/constants.dart';
@@ -115,19 +116,7 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
                         ),
                     ],
                   ),
-                  IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const NotificationsScreen(),
-                        ),
-                      );
-
-                    },
-                    icon: Icon(LucideIcons.bell,
-                        color: theme.colorScheme.onBackground, size: 24),
-                  ),
+                  const NotificationBellButton(),
                 ],
               ),
             ),

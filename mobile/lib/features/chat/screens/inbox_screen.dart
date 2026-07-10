@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/api/chats_api.dart';
+import 'package:mobile/core/providers/app_mode_provider.dart';
 import 'package:mobile/shared/widgets/listing_image.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
@@ -57,6 +58,8 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final appMode = ref.watch(appModeProvider);
+    final isOwner = appMode == UserAppMode.owner;
 
     if (_loading) {
       return Scaffold(
@@ -71,9 +74,11 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
         body: EmptyState(
           icon: LucideIcons.messageSquare,
           title: 'No messages yet',
-          subtitle: 'Start a conversation by clicking "Message Host" on any equipment listing.',
-          actionLabel: 'Explore equipment',
-          onActionPressed: () => context.go('/app/explore'),
+          subtitle: isOwner
+              ? 'Your host messages will appear here when guests contact you.'
+              : 'Start a conversation by clicking "Message Host" on any equipment listing.',
+          actionLabel: isOwner ? null : 'Explore equipment',
+          onActionPressed: isOwner ? null : () => context.go('/app/explore'),
         ),
       );
     }

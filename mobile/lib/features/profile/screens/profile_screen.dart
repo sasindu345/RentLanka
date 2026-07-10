@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/features/profile/screens/notifications_screen.dart';
+import 'package:mobile/shared/widgets/notification_bell_button.dart';
 
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/core/constants.dart';
@@ -426,22 +427,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       fontFamily: 'Plus Jakarta Sans',
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const NotificationsScreen(),
-                        ),
-                      );
-
-                    },
-                    icon: Icon(
-                      LucideIcons.bell,
-                      color: theme.colorScheme.onBackground,
-                      size: 24,
-                    ),
-                  ),
+                  const NotificationBellButton(),
                 ],
               ),
             ),
@@ -624,7 +610,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       color: theme.colorScheme.primary,
                       size: 20,
                     ),
-                    title: const Text('Identity Verification'),
+                    title: const Text('Verification'),
                     subtitle: Text(
                       user.verificationLevel >= 3
                           ? 'Fully Verified (Face)'
@@ -747,39 +733,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
-            const Text(
-              'Verification',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            _VerificationStep(
-              label: 'Email verified',
-              done: user.verificationLevel >= 0,
-            ),
-            _VerificationStep(
-              label: 'NIC submitted',
-              done: user.verificationLevel >= 2,
-            ),
-            _VerificationStep(
-              label: 'Face verified',
-              done: user.verificationLevel >= 3,
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: () async {
-                final refreshed = await context.push<bool>(
-                  '/app/profile/verification',
-                );
-                if (refreshed == true && mounted) _load();
-              },
-              icon: const Icon(Icons.verified_user_outlined, size: 18),
-              label: Text(
-                user.verificationLevel >= 3
-                    ? 'View verification'
-                    : 'Complete verification',
-              ),
-            ),
+
             if (appMode == UserAppMode.owner) ...[
               const SizedBox(height: 24),
               const Text(

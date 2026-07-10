@@ -5,6 +5,10 @@ final notificationListProvider = StateNotifierProvider<NotificationListNotifier,
   return NotificationListNotifier();
 });
 
+final hasUnreadNotificationsProvider = Provider<bool>((ref) {
+  return ref.watch(notificationListProvider).any((item) => !item.isRead);
+});
+
 class NotificationListNotifier extends StateNotifier<List<NotificationItem>> {
   NotificationListNotifier() : super(_initialMockNotifications);
 

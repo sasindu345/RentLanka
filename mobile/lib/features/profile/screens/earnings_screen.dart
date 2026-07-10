@@ -17,15 +17,8 @@ class EarningsScreen extends ConsumerStatefulWidget {
 
 class _EarningsScreenState extends ConsumerState<EarningsScreen> {
   EarningsResponse? _earnings;
+  List<BookingResponse> _ownerBookings = [];
   bool _loading = true;
-  bool _submittingPayout = false;
-
-  // Controller fields for Payout form
-  final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController();
-  final _bankNameController = TextEditingController();
-  final _accountNumberController = TextEditingController();
-  final _accountNameController = TextEditingController();
 
   @override
   void initState() {
@@ -33,21 +26,15 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
     _loadEarnings();
   }
 
-  @override
-  void dispose() {
-    _amountController.dispose();
-    _bankNameController.dispose();
-    _accountNumberController.dispose();
-    _accountNameController.dispose();
-    super.dispose();
-  }
-
   Future<void> _loadEarnings() async {
     setState(() => _loading = true);
     try {
-      final data = await ref.read(bookingsApiProvider).getMyEarnings();
+      final bookingsApi = ref.read(bookingsApiProvider);
+      final data = await bookingsApi.getMyEarnings();
+      final bookings = await bookingsApi.getOwnerBookings();
       setState(() {
         _earnings = data;
+        _ownerBookings = bookings;
       });
     } catch (e) {
       if (mounted) {
@@ -60,182 +47,41 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
     }
   }
 
-  void _showWithdrawModal() {
-    final available = _earnings?.availableBalance ?? 0.0;
-    _amountController.text = available.toStringAsFixed(0);
-    final theme = Theme.of(context);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: theme.colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(AppRadius.sheet),
-          topRight: Radius.circular(AppRadius.sheet),
-        ),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            top: AppSpacing.lg,
-            left: AppSpacing.lg,
-            right: AppSpacing.lg,
-          ),
-          child: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Withdraw Earnings',
-                    style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Available Balance: ${ListingsApi.formatPrice(available)}',
-                    style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  
-                  // Amount
-                  Text('Withdrawal Amount (LKR)', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: _amountController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(
-                      hintText: 'e.g. 5000',
-                      prefixIcon: Icon(LucideIcons.creditCard, size: 18),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return 'Please enter an amount';
-                      final amount = double.tryParse(value);
-                      if (amount == null || amount <= 0) return 'Please enter a valid amount';
-                      if (amount > available) return 'Insufficient available balance';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  
-                  // Bank Name
-                  Text('Bank Name', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: _bankNameController,
-                    decoration: const InputDecoration(
-                      hintText: 'e.g. Hatton National Bank',
-                      prefixIcon: Icon(LucideIcons.landmark, size: 18),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) return 'Please enter bank name';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  
-                  // Account Number
-                  Text('Account Number', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: _accountNumberController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      hintText: 'e.g. 1020304050',
-                      prefixIcon: Icon(LucideIcons.hash, size: 18),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) return 'Please enter account number';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  
-                  // Account Name
-                  Text('Account Name', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: _accountNameController,
-                    decoration: const InputDecoration(
-                      hintText: 'e.g. A.B.C. Perera',
-                      prefixIcon: Icon(LucideIcons.user, size: 18),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) return 'Please enter account name';
-                      return null;
-                    },
-                  ),
-                  
-                  const SizedBox(height: AppSpacing.xl),
-                  FilledButton(
-                    onPressed: _submittingPayout ? null : _submitPayout,
-                    child: _submittingPayout
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Text('Submit Payout Request'),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _submitPayout() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _submittingPayout = true);
-    Navigator.pop(context); // Close bottom sheet first
-
-    try {
-      final amount = double.parse(_amountController.text);
-      await ref.read(bookingsApiProvider).requestPayout(
-            amount: amount,
-            bankName: _bankNameController.text,
-            accountNumber: _accountNumberController.text,
-            accountName: _accountNameController.text,
-          );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Payout request submitted successfully! Wait for admin approval.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        _loadEarnings();
+  Map<String, double> _getMonthlyEarnings() {
+    final Map<String, double> monthlyData = {};
+    
+    final now = DateTime.now();
+    final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    final List<DateTime> months = [];
+    for (int i = 5; i >= 0; i--) {
+      int targetMonth = now.month - i;
+      int targetYear = now.year;
+      while (targetMonth <= 0) {
+        targetMonth += 12;
+        targetYear -= 1;
       }
-    } on DioException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(extractError(e)), backgroundColor: Colors.redAccent),
-        );
+      months.add(DateTime(targetYear, targetMonth, 1));
+    }
+    
+    for (var m in months) {
+      final key = '${monthNames[m.month - 1]} ${m.year.toString().substring(2)}';
+      monthlyData[key] = 0.0;
+    }
+    
+    const commissionRate = 0.10;
+    
+    for (var booking in _ownerBookings) {
+      if (booking.status.toLowerCase() == 'completed') {
+        final date = booking.updatedAt ?? booking.createdAt;
+        final monthKey = '${monthNames[date.month - 1]} ${date.year.toString().substring(2)}';
+        if (monthlyData.containsKey(monthKey)) {
+          monthlyData[monthKey] = monthlyData[monthKey]! + (booking.totalPrice * (1 - commissionRate));
+        }
       }
-    } finally {
-      if (mounted) setState(() => _submittingPayout = false);
     }
-  }
-
-  Color _getPayoutStatusColor(String status, ThemeData theme) {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return Colors.orange;
-      case 'paid':
-        return Colors.green;
-      case 'rejected':
-        return theme.colorScheme.error;
-      default:
-        return theme.colorScheme.onSurface;
-    }
+    
+    return monthlyData;
   }
 
   @override
@@ -345,86 +191,106 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
-
-            // Withdraw Button
-            FilledButton.icon(
-              onPressed: earnings.availableBalance > 0 ? _showWithdrawModal : null,
-              icon: const Icon(LucideIcons.arrowDown, size: 18),
-              label: const Text('Withdraw Funds'),
-            ),
+            const SizedBox(height: AppSpacing.lg),
+            _EarningsChart(data: _getMonthlyEarnings()),
             const SizedBox(height: AppSpacing.xl),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-            // Payout History Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Withdrawal History',
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                Icon(LucideIcons.history, color: theme.colorScheme.onSurfaceVariant, size: 20),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
+class _EarningsChart extends StatelessWidget {
+  final Map<String, double> data;
 
-            // Payout History List
-            if (earnings.payouts.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-                child: Center(
-                  child: Text(
-                    'No withdrawal requests yet.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              )
-            else
-              ...earnings.payouts.map((p) {
-                final dateStr = '${p.createdAt.day}/${p.createdAt.month}/${p.createdAt.year}';
-                final statusColor = _getPayoutStatusColor(p.status, theme);
-                return Card(
-                  margin: const EdgeInsets.only(bottom: AppSpacing.xs),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: statusColor.withOpacity(0.08),
-                      child: Icon(
-                        p.status.toLowerCase() == 'paid'
-                            ? LucideIcons.check
-                            : p.status.toLowerCase() == 'pending'
-                                ? LucideIcons.clock
-                                : LucideIcons.x,
-                        color: statusColor,
-                        size: 20,
-                      ),
-                    ),
-                    title: Text(
-                      ListingsApi.formatPrice(p.amount),
-                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text('${p.bankName} · $dateStr'),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(AppRadius.button),
-                      ),
-                      child: Text(
-                        p.status.toUpperCase(),
+  const _EarningsChart({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final values = data.values.toList();
+    final keys = data.keys.toList();
+    
+    final maxVal = values.isEmpty ? 0.0 : values.reduce((a, b) => a > b ? a : b);
+    final displayMax = maxVal == 0.0 ? 1000.0 : maxVal * 1.2;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Earnings History (Last 6 Months)',
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          SizedBox(
+            height: 200,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: List.generate(data.length, (index) {
+                final amount = values[index];
+                final month = keys[index];
+                final ratio = displayMax == 0.0 ? 0.0 : amount / displayMax;
+                final isHighest = amount > 0 && amount == maxVal;
+
+                return Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        amount == 0.0 ? '' : 'LKR ${(amount / 1000).toStringAsFixed(0)}K',
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: statusColor,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.3,
+                          fontSize: 9,
+                          fontWeight: isHighest ? FontWeight.bold : FontWeight.normal,
+                          color: isHighest ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 6),
+                      Expanded(
+                        child: FractionallySizedBox(
+                          heightFactor: ratio.clamp(0.02, 1.0),
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 6),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: isHighest
+                                    ? [theme.colorScheme.primary, theme.colorScheme.primary.withOpacity(0.7)]
+                                    : [theme.colorScheme.primary.withOpacity(0.4), theme.colorScheme.primary.withOpacity(0.2)],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(4),
+                                topRight: Radius.circular(4),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        month,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontSize: 10,
+                          fontWeight: isHighest ? FontWeight.bold : FontWeight.normal,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 );
               }),
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

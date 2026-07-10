@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/bookings_api.dart';
 import 'package:mobile/features/profile/screens/notifications_screen.dart';
+import 'package:mobile/shared/widgets/notification_bell_button.dart';
 
 import 'package:mobile/core/api/listings_api.dart';
 import 'package:mobile/shared/widgets/listing_image.dart';
@@ -1042,22 +1043,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                         fontFamily: 'Plus Jakarta Sans',
                       ),
                     ),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const NotificationsScreen(),
-                          ),
-                        );
-
-                      },
-                      icon: Icon(
-                        LucideIcons.bell,
-                        color: theme.colorScheme.onBackground,
-                        size: 24,
-                      ),
-                    ),
+                    const NotificationBellButton(),
                   ],
                 ),
               ),

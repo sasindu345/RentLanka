@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/features/profile/screens/notifications_screen.dart';
+import 'package:mobile/shared/widgets/notification_bell_button.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:mobile/core/api/api_client.dart';
@@ -423,22 +424,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen>
                       fontFamily: 'Plus Jakarta Sans',
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const NotificationsScreen(),
-                        ),
-                      );
-
-                    },
-                    icon: Icon(
-                      LucideIcons.bell,
-                      color: theme.colorScheme.onBackground,
-                      size: 24,
-                    ),
-                  ),
+                  const NotificationBellButton(),
                 ],
               ),
             ),
