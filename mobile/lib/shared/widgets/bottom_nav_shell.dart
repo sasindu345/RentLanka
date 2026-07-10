@@ -107,21 +107,30 @@ class BottomNavShell extends ConsumerWidget {
       body: navigationShell,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
           border: Border(
             top: BorderSide(color: theme.dividerColor, width: 1.0),
           ),
         ),
-        child: NavigationBar(
-          selectedIndex: selectedIndex,
-          onDestinationSelected: (index) {
-            final targetBranch = items[index].branchIndex;
-            navigationShell.goBranch(targetBranch);
-          },
-          destinations: items.map((item) => NavigationDestination(
-            icon: Icon(item.icon),
-            selectedIcon: Icon(item.selectedIcon),
-            label: item.label,
-          )).toList(),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: NavigationBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (index) {
+                final targetBranch = items[index].branchIndex;
+                navigationShell.goBranch(targetBranch);
+              },
+              destinations: items.map((item) => NavigationDestination(
+                icon: Icon(item.icon),
+                selectedIcon: Icon(item.selectedIcon),
+                label: item.label,
+              )).toList(),
+            ),
+          ),
         ),
       ),
     );
