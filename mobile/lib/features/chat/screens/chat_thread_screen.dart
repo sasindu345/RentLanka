@@ -8,6 +8,8 @@ import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:mobile/core/services/signalr_service.dart';
+
 class ChatThreadScreen extends ConsumerStatefulWidget {
   final String conversationId;
 
@@ -23,7 +25,7 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
   bool _loading = true;
   bool _sending = false;
   String _currentUserId = '';
-  Timer? _pollingTimer;
+  StreamSubscription? _signalRSubscription;
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -31,12 +33,12 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
   void initState() {
     super.initState();
     _loadInitial();
-    _startPolling();
   }
 
   @override
   void dispose() {
-    _pollingTimer?.cancel();
+    _signalRSubscription?.cancel();
+    ref.read(signalRServiceProvider).leaveConversation(widget.conversationId);
     _inputController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -61,33 +63,26 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
       });
 
       _scrollToBottom();
+
+      // Listen to real-time incoming messages via SignalR
+      _signalRSubscription = ref.read(signalRServiceProvider).messageStream.listen((msgMap) {
+        if (!mounted) return;
+        if (msgMap['conversationId'] == widget.conversationId) {
+          final msg = MessageResponse.fromJson(msgMap);
+          if (!_messages.any((m) => m.id == msg.id)) {
+            setState(() {
+              _messages.add(msg);
+            });
+            _scrollToBottom();
+          }
+        }
+      });
+
+      // Establish websocket connection and join conversation group
+      await ref.read(signalRServiceProvider).joinConversation(widget.conversationId);
     } catch (_) {
       setState(() => _loading = false);
     }
-  }
-
-  void _startPolling() {
-    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
-      if (!mounted) return;
-
-      try {
-        final chatsApi = ref.read(chatsApiProvider);
-        DateTime? since;
-        if (_messages.isNotEmpty) {
-          since = _messages.last.createdAt;
-        }
-
-        final newMessages = await chatsApi.getMessages(widget.conversationId, since: since);
-        if (newMessages.isNotEmpty) {
-          setState(() {
-            _messages.addAll(newMessages);
-          });
-          _scrollToBottom();
-        }
-      } catch (_) {
-        // Suppress polling errors silently
-      }
-    });
   }
 
   void _scrollToBottom() {
@@ -114,7 +109,9 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
       final msg = await chatsApi.sendMessage(widget.conversationId, text);
       
       setState(() {
-        _messages.add(msg);
+        if (!_messages.any((m) => m.id == msg.id)) {
+          _messages.add(msg);
+        }
       });
       
       _scrollToBottom();

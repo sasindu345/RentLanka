@@ -11,6 +11,9 @@ import 'package:mobile/shared/widgets/empty_state.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/shared/widgets/notification_bell_button.dart';
 
+import 'dart:async';
+import 'package:mobile/core/services/signalr_service.dart';
+
 class InboxScreen extends ConsumerStatefulWidget {
   const InboxScreen({super.key});
 
@@ -22,11 +25,27 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
   List<ConversationResponse> _chats = [];
   bool _loading = true;
   String _currentUserId = '';
+  StreamSubscription? _signalRSubscription;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _setupSignalR();
+  }
+
+  @override
+  void dispose() {
+    _signalRSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _setupSignalR() {
+    _signalRSubscription = ref.read(signalRServiceProvider).messageStream.listen((_) {
+      _loadSilently();
+    });
+    // Trigger connect to start receiving live message streams
+    ref.read(signalRServiceProvider).connect();
   }
 
   Future<void> _load() async {
@@ -47,6 +66,18 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _loadSilently() async {
+    try {
+      final chatsApi = ref.read(chatsApiProvider);
+      final chats = await chatsApi.getConversations();
+      if (mounted) {
+        setState(() {
+          _chats = chats;
+        });
+      }
+    } catch (_) {}
   }
 
   String _getChatPartnerName(ConversationResponse chat) {

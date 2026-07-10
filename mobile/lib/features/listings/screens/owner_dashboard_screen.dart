@@ -899,14 +899,12 @@ class _EarningsCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: cardBg,
             borderRadius: BorderRadius.circular(AppRadius.card),
-            border: isDark
-                ? Border.all(color: (theme.colorScheme.outline ?? theme.dividerColor).withOpacity(0.25))
-                : Border(
-                    left: BorderSide(color: theme.colorScheme.primary, width: 4.5),
-                    top: BorderSide(color: (theme.colorScheme.outlineVariant ?? theme.dividerColor).withOpacity(0.3)),
-                    right: BorderSide(color: (theme.colorScheme.outlineVariant ?? theme.dividerColor).withOpacity(0.3)),
-                    bottom: BorderSide(color: (theme.colorScheme.outlineVariant ?? theme.dividerColor).withOpacity(0.3)),
-                  ),
+            border: Border.all(
+              color: isDark
+                  ? (theme.colorScheme.outline ?? theme.dividerColor).withOpacity(0.25)
+                  : theme.colorScheme.primary.withOpacity(0.2),
+              width: isDark ? 1.0 : 1.2,
+            ),
             boxShadow: isDark
                 ? AppShadows.none
                 : [

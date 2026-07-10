@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/providers/app_mode_provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/services/signalr_service.dart';
 
 class _NavItem {
   final int branchIndex;
@@ -25,6 +26,11 @@ class BottomNavShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Auto-connect to real-time WebSocket messaging and notification stream on mount
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(signalRServiceProvider).connect();
+    });
+
     final theme = Theme.of(context);
     final appMode = ref.watch(appModeProvider);
 
