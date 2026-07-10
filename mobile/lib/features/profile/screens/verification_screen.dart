@@ -22,8 +22,6 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
   bool _loading = true;
 
   final _emailTokenController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _otpController = TextEditingController();
   final _nicController = TextEditingController();
 
   String? _activeStep;
@@ -39,8 +37,6 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
   @override
   void dispose() {
     _emailTokenController.dispose();
-    _phoneController.dispose();
-    _otpController.dispose();
     _nicController.dispose();
     super.dispose();
   }
@@ -52,7 +48,6 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
       if (mounted) {
         setState(() {
           _user = user;
-          _phoneController.text = user.phoneNumber;
         });
       }
     } finally {
@@ -144,30 +139,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.06),
-                borderRadius: BorderRadius.circular(AppRadius.card),
-                border: Border.all(color: theme.colorScheme.primary.withOpacity(0.15)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(LucideIcons.info, size: 20, color: theme.colorScheme.primary),
-                  const SizedBox(width: AppSpacing.xs),
-                  Expanded(
-                    child: Text(
-                      'Dev mode: tap Send — the code appears here and auto-fills the field below.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Verification Steps
             if (_error != null) ...[
               const SizedBox(height: AppSpacing.md),
               Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
@@ -221,64 +193,10 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
             ),
             
             _StepCard(
-              title: '2. Phone verification',
-              subtitle: 'Verify your mobile number with OTP',
-              done: level >= 1,
-              locked: level < 0,
-              child: level >= 1
-                  ? null
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text('Phone number', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: _phoneController,
-                          decoration: const InputDecoration(hintText: '+94771234567'),
-                          keyboardType: TextInputType.phone,
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        FilledButton(
-                          onPressed: _activeStep == 'sms-send'
-                              ? null
-                              : () => _runSendStep(
-                                    step: 'sms-send',
-                                    controller: _otpController,
-                                    codeLabel: 'SMS OTP',
-                                    send: () => ref.read(verificationApiProvider).sendSmsOtp(
-                                          _phoneController.text.trim(),
-                                        ),
-                                  ),
-                          child: Text(_activeStep == 'sms-send' ? 'Sending...' : 'Send SMS OTP'),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        Text('SMS OTP', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: _otpController,
-                          decoration: const InputDecoration(hintText: 'e.g. 123456'),
-                          keyboardType: TextInputType.number,
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        OutlinedButton(
-                          onPressed: _activeStep == 'sms-verify'
-                              ? null
-                              : () => _runStep('sms-verify', () async {
-                                    await ref.read(verificationApiProvider).verifySmsOtp(
-                                          _otpController.text.trim(),
-                                        );
-                                  }),
-                          child: Text(_activeStep == 'sms-verify' ? 'Verifying...' : 'Verify phone'),
-                        ),
-                      ],
-                    ),
-            ),
-            
-            _StepCard(
-              title: '3. NIC verification',
+              title: '2. NIC verification',
               subtitle: 'Submit your National Identity Card number',
               done: level >= 2,
-              locked: level < 1,
+              locked: level < 0,
               child: level >= 2
                   ? null
                   : Column(
@@ -322,7 +240,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
             ),
             
             _StepCard(
-              title: '4. Face verification',
+              title: '3. Face verification',
               subtitle: 'Complete trusted-member face check (mock)',
               done: level >= 3,
               locked: level < 2,

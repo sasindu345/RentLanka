@@ -156,7 +156,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/app/list',
-                builder: (context, state) => const CreateListingScreen(),
+                builder: (context, state) {
+                  final initialTab = state.uri.queryParameters['tab'];
+                  return CreateListingScreen(initialTab: initialTab);
+                },
               ),
             ],
           ),

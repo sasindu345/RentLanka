@@ -630,9 +630,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ? 'Fully Verified (Face)'
                           : (user.verificationLevel >= 2
                               ? 'NIC Submitted'
-                              : (user.verificationLevel >= 1
-                                  ? 'Phone Verified'
-                                  : 'Basic (Email Only)')),
+                              : 'Basic (Email Only)'),
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -749,45 +747,39 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ],
               ),
             ),
-            if (appMode == UserAppMode.owner) ...[
-              const SizedBox(height: 24),
-              const Text(
-                'Verification',
-                style: TextStyle(fontWeight: FontWeight.bold),
+            const SizedBox(height: 24),
+            const Text(
+              'Verification',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            _VerificationStep(
+              label: 'Email verified',
+              done: user.verificationLevel >= 0,
+            ),
+            _VerificationStep(
+              label: 'NIC submitted',
+              done: user.verificationLevel >= 2,
+            ),
+            _VerificationStep(
+              label: 'Face verified',
+              done: user.verificationLevel >= 3,
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () async {
+                final refreshed = await context.push<bool>(
+                  '/app/profile/verification',
+                );
+                if (refreshed == true && mounted) _load();
+              },
+              icon: const Icon(Icons.verified_user_outlined, size: 18),
+              label: Text(
+                user.verificationLevel >= 3
+                    ? 'View verification'
+                    : 'Complete verification',
               ),
-              const SizedBox(height: 8),
-              _VerificationStep(
-                label: 'Email verified',
-                done: user.verificationLevel >= 0,
-              ),
-              _VerificationStep(
-                label: 'Phone verified',
-                done: user.verificationLevel >= 1,
-              ),
-              _VerificationStep(
-                label: 'NIC submitted',
-                done: user.verificationLevel >= 2,
-              ),
-              _VerificationStep(
-                label: 'Face verified',
-                done: user.verificationLevel >= 3,
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () async {
-                  final refreshed = await context.push<bool>(
-                    '/app/profile/verification',
-                  );
-                  if (refreshed == true && mounted) _load();
-                },
-                icon: const Icon(Icons.verified_user_outlined, size: 18),
-                label: Text(
-                  user.verificationLevel >= 3
-                      ? 'View verification'
-                      : 'Complete verification',
-                ),
-              ),
-            ],
+            ),
             if (appMode == UserAppMode.owner) ...[
               const SizedBox(height: 24),
               const Text(
@@ -820,84 +812,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'My listings',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    '${_myListings.length} items',
-                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              if (_myListings.isEmpty)
-                Text(
-                  'No listings yet. Tap List tab to publish.',
-                  style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-                )
-              else
-                ..._myListings.map(
-                  (l) => Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(AppRadius.card),
-                      border: Border.all(
-                        color: theme.colorScheme.outline.withOpacity(0.4),
-                        width: 1.0,
-                      ),
-                      boxShadow: theme.brightness == Brightness.dark ? AppShadows.none : AppShadows.sm,
-                    ),
-                    child: ListTile(
-                      title: Text(l.title),
-                      subtitle: Text(
-                        '${l.category} · ${ListingsApi.formatPrice(l.pricePerDay)}/day',
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Chip(
-                            label: Text(
-                              l.isPaused
-                                  ? 'Paused'
-                                  : (l.status == 'PendingApproval'
-                                      ? 'Under Review'
-                                      : (l.status == 'Rejected' ? 'Rejected' : 'Active')),
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                            backgroundColor: l.isPaused
-                                ? Colors.orange.withOpacity(0.08)
-                                : (l.status == 'PendingApproval'
-                                    ? Colors.blue.withOpacity(0.08)
-                                    : (l.status == 'Rejected'
-                                        ? theme.colorScheme.error.withOpacity(0.08)
-                                        : Colors.green.withOpacity(0.08))),
-                            side: BorderSide(
-                              color: l.isPaused
-                                  ? Colors.orange.withOpacity(0.2)
-                                  : (l.status == 'PendingApproval'
-                                      ? Colors.blue.withOpacity(0.2)
-                                      : (l.status == 'Rejected'
-                                          ? theme.colorScheme.error.withOpacity(0.2)
-                                          : Colors.green.withOpacity(0.2))),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.more_vert),
-                            onPressed: () => _showListingActions(l),
-                          ),
-                        ],
-                      ),
-                      onTap: () => _showListingActions(l),
-                    ),
-                  ),
-                ),
             ],
+            const SizedBox(height: 16),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,

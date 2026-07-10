@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/features/profile/screens/notifications_screen.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/file_api.dart';
@@ -14,15 +15,20 @@ import 'package:mobile/core/theme/app_radius.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/shared/widgets/location_picker_screen.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:mobile/core/models/listing.dart';
+import 'package:mobile/core/theme/app_shadows.dart';
 
 class CreateListingScreen extends ConsumerStatefulWidget {
-  const CreateListingScreen({super.key});
+  final String? initialTab;
+  const CreateListingScreen({super.key, this.initialTab});
 
   @override
   ConsumerState<CreateListingScreen> createState() => _CreateListingScreenState();
 }
 
-class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
+class _CreateListingScreenState extends ConsumerState<CreateListingScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
@@ -44,11 +50,151 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
 
   static const _maxImages = 5;
 
+  List<Listing> _myListings = [];
+  bool _myListingsLoading = false;
+  UserProfile? _user;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTab == 'my_listings' || widget.initialTab == 'listings' ? 1 : 0,
+    );
     _category = _dynamicCategories.first;
     _loadCategories();
+    _loadMyListings();
+  }
+
+  Future<void> _loadMyListings() async {
+    if (!mounted) return;
+    setState(() => _myListingsLoading = true);
+    try {
+      final api = ref.read(listingsApiProvider);
+      final user = await api.getCurrentUser();
+      final listings = await api.getMyListings();
+      if (mounted) {
+        setState(() {
+          _user = user;
+          _myListings = listings;
+        });
+      }
+    } catch (_) {
+    } finally {
+      if (mounted) {
+        setState(() => _myListingsLoading = false);
+      }
+    }
+  }
+
+  Future<void> _togglePause(Listing listing) async {
+    try {
+      await ref.read(listingsApiProvider).togglePauseListing(listing.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              listing.isPaused ? 'Listing resumed' : 'Listing paused',
+            ),
+          ),
+        );
+        _loadMyListings();
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(extractError(e))),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmDelete(Listing listing) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete listing?'),
+        content: Text('Remove "${listing.title}"? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await ref.read(listingsApiProvider).deleteListing(listing.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Listing deleted')),
+        );
+        _loadMyListings();
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(extractError(e))),
+        );
+      }
+    }
+  }
+
+  void _showListingActions(Listing listing) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: const Text('Edit listing'),
+              onTap: () async {
+                Navigator.pop(context);
+                final updated = await context.push<bool>(
+                  '/app/profile/listing/${listing.id}/edit',
+                );
+                if (updated == true && mounted) _loadMyListings();
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                listing.isPaused
+                    ? Icons.play_arrow_outlined
+                    : Icons.pause_outlined,
+              ),
+              title: Text(
+                listing.isPaused ? 'Resume listing' : 'Pause listing',
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _togglePause(listing);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline, color: Colors.red),
+              title: const Text(
+                'Delete listing',
+                style: TextStyle(color: Colors.red),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _confirmDelete(listing);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _loadCategories() async {
@@ -67,6 +213,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     _titleController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
@@ -144,6 +291,11 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   }
 
   Future<void> _submit() async {
+    final isVerified = _user == null || _user!.verificationLevel >= 3;
+    if (!isVerified) {
+      setState(() => _error = 'Identity (NIC) and face verification are required to publish.');
+      return;
+    }
     if (_imageUrls.isEmpty) {
       setState(() => _error = 'Add at least one photo.');
       return;
@@ -186,6 +338,8 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
           _latitude = 6.9271;
           _longitude = 79.8612;
         });
+        _loadMyListings();
+        _tabController.animateTo(1);
       }
     } on DioException catch (e) {
       setState(() => _error = extractError(e));
@@ -288,37 +442,167 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                 ],
               ),
             ),
+            // 2. Sliding Segmented Control Tabs
+            AnimatedBuilder(
+              animation: _tabController.animation!,
+              builder: (context, child) {
+                final value = _tabController.animation!.value;
+                return Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.xs,
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: theme.brightness == Brightness.dark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      final pillWidth = width / 2;
+                      return Stack(
+                        children: [
+                          Positioned(
+                            left: value * pillWidth,
+                            width: pillWidth,
+                            height: constraints.maxHeight,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: theme.brightness == Brightness.dark
+                                    ? const Color(0xFF0F172A)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () => _tabController.animateTo(0),
+                                  child: Center(
+                                    child: Text(
+                                      'List Item',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: value < 0.5 ? FontWeight.w700 : FontWeight.w500,
+                                        color: value < 0.5
+                                            ? (theme.brightness == Brightness.dark
+                                                ? Colors.white
+                                                : theme.colorScheme.primary)
+                                            : (theme.brightness == Brightness.dark
+                                                ? const Color(0xFF94A3B8)
+                                                : const Color(0xFF64748B)),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () => _tabController.animateTo(1),
+                                  child: Center(
+                                    child: Text(
+                                      'My Listings',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: value >= 0.5 ? FontWeight.w700 : FontWeight.w500,
+                                        color: value >= 0.5
+                                            ? (theme.brightness == Brightness.dark
+                                                ? Colors.white
+                                                : theme.colorScheme.primary)
+                                            : (theme.brightness == Brightness.dark
+                                                ? const Color(0xFF94A3B8)
+                                                : const Color(0xFF64748B)),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: AppSpacing.xs),
+
+            // Tab View Content
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.lg),
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+            if (_user != null && _user!.verificationLevel < 3) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.error.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
+                  border: Border.all(color: theme.colorScheme.error.withOpacity(0.2)),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.06),
-                borderRadius: BorderRadius.circular(AppRadius.card),
-                border: Border.all(color: theme.colorScheme.primary.withOpacity(0.15)),
-              ),
-              child: Row(
-                children: [
-                  Icon(LucideIcons.info, color: theme.colorScheme.primary, size: 20),
-                  const SizedBox(width: AppSpacing.xs),
-                  Expanded(
-                    child: Text(
-                      'Phone verification (Level 1) is required to publish listings.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600,
+                    Row(
+                      children: [
+                        Icon(LucideIcons.alertTriangle, color: theme.colorScheme.error, size: 20),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          'Verification Required',
+                          style: TextStyle(
+                            color: theme.colorScheme.error,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Identity (NIC) and face verification are required to publish listings on RentLanka.',
+                      style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          context.push('/app/profile/verification').then((_) => _loadMyListings());
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: theme.colorScheme.error,
+                          foregroundColor: Colors.white,
+                        ),
+                        icon: const Icon(LucideIcons.shieldCheck, size: 16),
+                        label: const Text('Complete Verification Now'),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
+            ],
             
             Text(
               'Photos',
@@ -580,19 +864,193 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
             
             const SizedBox(height: AppSpacing.xl),
             
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: (_loading || _uploadingImage) ? null : _submit,
-                child: Text(_loading ? 'Publishing...' : 'Publish Listing'),
-              ),
+            Builder(
+              builder: (context) {
+                final isVerified = _user == null || _user!.verificationLevel >= 3;
+                return SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: (_loading || _uploadingImage || !isVerified) ? null : _submit,
+                    child: Text(_loading ? 'Publishing...' : (isVerified ? 'Publish Listing' : 'Verification Required')),
+                  ),
+                );
+              }
             ),
                   ],
                 ),
               ),
-            ),
-          ],
+              _buildMyListingsTab(theme),
+            ],
+          ),
         ),
+      ],
+    ),
+  ),
+);
+  }
+
+  Widget _buildMyListingsTab(ThemeData theme) {
+    if (_myListingsLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_myListings.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: _loadMyListings,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(vertical: 40, horizontal: AppSpacing.lg),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                LucideIcons.packageOpen,
+                size: 64,
+                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No listings published yet',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Create your first listing to start renting out your equipment on RentLanka.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: () => _tabController.animateTo(0),
+                icon: const Icon(LucideIcons.plus, size: 16),
+                label: const Text('Publish Gear'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadMyListings,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        itemCount: _myListings.length,
+        itemBuilder: (context, index) {
+          final l = _myListings[index];
+          final hasImage = l.images.isNotEmpty;
+          final statusColor = l.isPaused
+              ? Colors.orange
+              : (l.status == 'PendingApproval'
+                  ? Colors.blue
+                  : (l.status == 'Rejected' ? theme.colorScheme.error : Colors.green));
+
+          final statusText = l.isPaused
+              ? 'Paused'
+              : (l.status == 'PendingApproval'
+                  ? 'Under Review'
+                  : (l.status == 'Rejected' ? 'Rejected' : 'Active'));
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: AppSpacing.md),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              border: Border.all(
+                color: theme.colorScheme.outline.withOpacity(0.4),
+                width: 1.0,
+              ),
+              boxShadow: theme.brightness == Brightness.dark ? AppShadows.none : AppShadows.sm,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: hasImage
+                          ? CachedNetworkImage(
+                              imageUrl: l.images.first,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                color: theme.colorScheme.surfaceVariant,
+                                child: const Center(
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                color: theme.colorScheme.surfaceVariant,
+                                child: const Icon(LucideIcons.imageOff, size: 24),
+                              ),
+                            )
+                          : Container(
+                              color: theme.colorScheme.surfaceVariant,
+                              child: const Icon(LucideIcons.image, size: 24),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${l.category} · ${ListingsApi.formatPrice(l.pricePerDay)}/day',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: statusColor.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: statusColor.withOpacity(0.2),
+                              width: 0.5,
+                            ),
+                          ),
+                          child: Text(
+                            statusText.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: statusColor,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.more_vert),
+                    onPressed: () => _showListingActions(l),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

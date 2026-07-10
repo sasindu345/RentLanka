@@ -140,7 +140,7 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
                         slivers: [
 
                     // ── Verification Banner ──────────────────────────
-                    if (_user != null && _user!.verificationLevel < 1)
+                    if (_user != null && _user!.verificationLevel < 3)
                       SliverToBoxAdapter(
                         child: _VerificationBanner(
                           level: _user!.verificationLevel,
@@ -233,13 +233,12 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
 
                     const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-                    // ── My Listings ─────────────────────────────────
                     SliverToBoxAdapter(
                       child: _SectionHeader(
                         title: 'My Listings',
                         count: _listings.length,
-                        actionLabel: '+ New',
-                        onAction: () => context.go('/app/list'),
+                        actionLabel: 'See more',
+                        onAction: () => context.go('/app/list?tab=my_listings'),
                         badge: pendingApprovalCount > 0
                             ? '$pendingApprovalCount under review'
                             : null,
@@ -1077,9 +1076,9 @@ class _VerificationBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final nextStep = level == 0
-        ? 'Verify your phone number to publish listings'
-        : 'Complete NIC verification to unlock full hosting';
+    final nextStep = level < 2
+        ? 'Complete NIC verification to publish listings'
+        : 'Complete Face verification to unlock full hosting';
 
     return GestureDetector(
       onTap: onTap,

@@ -251,7 +251,7 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
     final rentalFee = days * listing.pricePerDay;
     final totalAmount = rentalFee + listing.securityDeposit;
     final imageUrl = listing.images.isNotEmpty ? listing.images.first : null;
-    final isVerified = true; // Bypassed: renters do not require KYC.
+    final isVerified = _user != null && _user!.verificationLevel >= 3;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -318,7 +318,55 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
               child: Divider(),
             ),
 
-
+            if (!isVerified) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.error.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
+                  border: Border.all(color: theme.colorScheme.error.withOpacity(0.2)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(LucideIcons.alertTriangle, color: theme.colorScheme.error, size: 20),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          'Verification Required',
+                          style: TextStyle(
+                            color: theme.colorScheme.error,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Renter identity (NIC) and face verification are required to request equipment bookings on RentLanka.',
+                      style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          context.push('/app/profile/verification').then((_) => _loadData());
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: theme.colorScheme.error,
+                          foregroundColor: Colors.white,
+                        ),
+                        icon: const Icon(LucideIcons.shieldCheck, size: 16),
+                        label: const Text('Complete Verification Now'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             // Dates Selection
             Text(
@@ -506,7 +554,7 @@ class _BookingRequestScreenState extends ConsumerState<BookingRequestScreen> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                     )
-                  : const Text('Submit Booking Request'),
+                  : Text(isVerified ? 'Submit Booking Request' : 'Verification Required'),
             ),
           ),
         ),
