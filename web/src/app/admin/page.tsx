@@ -16,7 +16,7 @@ export default function AdminDashboardOverview() {
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  
+
   // Chart interaction states
   const [activeTab, setActiveTab] = useState<"7d" | "30d">("30d");
   const [metricType, setMetricType] = useState<"bookings" | "revenue">("revenue");
@@ -163,7 +163,7 @@ export default function AdminDashboardOverview() {
 
       {/* Graphs Section Row 1 */}
       <div className="grid gap-6 lg:grid-cols-3">
-        
+
         {/* Growth Trend Area Chart */}
         <div className="lg:col-span-2 rounded-xl border border-slate-800/60 bg-slate-950/30 backdrop-blur-md p-6 flex flex-col justify-between relative overflow-hidden shadow-lg hover:border-slate-700/80 hover:bg-slate-900/40 transition-all duration-300">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -171,7 +171,7 @@ export default function AdminDashboardOverview() {
               <h3 className="text-base font-bold text-slate-200">Platform Activity Trends</h3>
               <p className="text-slate-500 text-xs mt-0.5">RentLanka transactions metrics timeline</p>
             </div>
-            
+
             <div className="flex items-center gap-4">
               {/* Metric Selector */}
               <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800/80 text-xs">
@@ -269,7 +269,7 @@ export default function AdminDashboardOverview() {
 
             {/* Custom Tooltip */}
             {hoveredPoint && (
-              <div 
+              <div
                 className="absolute z-10 p-3 bg-slate-950 border border-slate-800 rounded-xl shadow-xl text-left pointer-events-none transition-all duration-200"
                 style={{
                   left: `${((hoveredIndex ?? 0) / (chartData.length - 1)) * 75 + 10}%`,
@@ -278,7 +278,7 @@ export default function AdminDashboardOverview() {
               >
                 <p className="text-[10px] font-semibold text-slate-500 tracking-wider uppercase">{hoveredPoint.date}</p>
                 <p className="text-sm font-extrabold text-slate-100 mt-1">
-                  {metricType === "revenue" 
+                  {metricType === "revenue"
                     ? `LKR ${hoveredPoint.revenue.toLocaleString()}`
                     : `${hoveredPoint.bookings} booking${hoveredPoint.bookings !== 1 ? "s" : ""}`
                   }
