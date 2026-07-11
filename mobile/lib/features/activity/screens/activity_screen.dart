@@ -24,7 +24,6 @@ class ActivityScreen extends ConsumerStatefulWidget {
   ConsumerState<ActivityScreen> createState() => _ActivityScreenState();
 }
 
-
 class _ActivityScreenState extends ConsumerState<ActivityScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
@@ -174,8 +173,6 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
       }
     }
   }
-
-
 
   Color _getStatusColor(String status, ThemeData theme) {
     switch (status.toLowerCase()) {
@@ -361,7 +358,9 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                           if (text.isEmpty) return;
                           setDialogState(() => submittingDispute = true);
                           try {
-                            await ref.read(disputesApiProvider).fileDispute(booking.id, text);
+                            await ref
+                                .read(disputesApiProvider)
+                                .fileDispute(booking.id, text);
                             if (context.mounted) {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -391,17 +390,27 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
 
   Widget _buildBookingCard(BookingResponse booking, bool isOwnerView) {
     final theme = Theme.of(context);
-    final startStr = '${booking.startDate.day}/${booking.startDate.month}/${booking.startDate.year}';
-    final endStr = '${booking.endDate.day}/${booking.endDate.month}/${booking.endDate.year}';
+    final startStr =
+        '${booking.startDate.day}/${booking.startDate.month}/${booking.startDate.year}';
+    final endStr =
+        '${booking.endDate.day}/${booking.endDate.month}/${booking.endDate.year}';
     final total = booking.totalPrice + booking.securityDeposit;
     final statusColor = _getStatusColor(booking.status, theme);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: ((theme.colorScheme.outlineVariant as Color?) ?? theme.dividerColor).withOpacity(0.4)),
+        border: Border.all(
+          color:
+              ((theme.colorScheme.outlineVariant as Color?) ??
+                      theme.dividerColor)
+                  .withOpacity(0.4),
+        ),
       ),
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
@@ -415,7 +424,11 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                 child: SizedBox(
                   width: 60,
                   height: 60,
-                  child: ListingImage(url: booking.listingImage, width: 60, height: 60),
+                  child: ListingImage(
+                    url: booking.listingImage,
+                    width: 60,
+                    height: 60,
+                  ),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -427,11 +440,15 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                       booking.listingTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      isOwnerView ? 'Renter: ${booking.renterName}' : 'Owner: ${booking.ownerName}',
+                      isOwnerView
+                          ? 'Renter: ${booking.renterName}'
+                          : 'Owner: ${booking.ownerName}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -452,7 +469,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                 decoration: BoxDecoration(
                   color: statusColor.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(AppRadius.button),
-                  border: Border.all(color: statusColor.withOpacity(0.2), width: 1.0),
+                  border: Border.all(
+                    color: statusColor.withOpacity(0.2),
+                    width: 1.0,
+                  ),
                 ),
                 child: Text(
                   booking.status.toUpperCase(),
@@ -475,9 +495,19 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Total Cash Due', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  Text(
+                    'Total Cash Due',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(ListingsApi.formatPrice(total), style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    ListingsApi.formatPrice(total),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -489,7 +519,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
             OutlinedButton.icon(
               onPressed: () async {
                 try {
-                  await AgreementService.generateAndShareAgreement(booking);
+                  await AgreementService.openAgreementPreview(context, booking);
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -502,10 +532,12 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                 }
               },
               icon: const Icon(LucideIcons.fileText, size: 16),
-              label: const Text('View / Download Rental Agreement'),
+              label: const Text('View Rental Agreement'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: theme.colorScheme.primary,
-                side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.5)),
+                side: BorderSide(
+                  color: theme.colorScheme.primary.withOpacity(0.5),
+                ),
                 minimumSize: const Size(double.infinity, 38),
               ),
             ),
@@ -515,9 +547,19 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
               const SizedBox(height: AppSpacing.md),
               Row(
                 children: [
-                  Expanded(child: OutlinedButton(onPressed: () => _handleReject(booking.id), child: const Text('Reject'))),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _handleReject(booking.id),
+                      child: const Text('Reject'),
+                    ),
+                  ),
                   const SizedBox(width: AppSpacing.md),
-                  Expanded(child: FilledButton(onPressed: () => _handleApprove(booking.id), child: const Text('Approve'))),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () => _handleApprove(booking.id),
+                      child: const Text('Approve'),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -543,7 +585,13 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                 final reviews = _bookingReviews[booking.id] ?? [];
                 final hasReviewed = reviews.any((r) => !r.isRenterReview);
                 if (hasReviewed) {
-                  return const Text('Review Submitted', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold));
+                  return const Text(
+                    'Review Submitted',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
                 }
                 return FilledButton.icon(
                   onPressed: () => _showLeaveReviewDialog(booking, true),
@@ -559,7 +607,13 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                 final reviews = _bookingReviews[booking.id] ?? [];
                 final hasReviewed = reviews.any((r) => r.isRenterReview);
                 if (hasReviewed) {
-                  return const Text('Review Submitted', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold));
+                  return const Text(
+                    'Review Submitted',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
                 }
                 return FilledButton.icon(
                   onPressed: () => _showLeaveReviewDialog(booking, false),
@@ -577,7 +631,9 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
               label: const Text('File Dispute / Report Issue'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: theme.colorScheme.error,
-                side: BorderSide(color: theme.colorScheme.error.withOpacity(0.5)),
+                side: BorderSide(
+                  color: theme.colorScheme.error.withOpacity(0.5),
+                ),
                 minimumSize: const Size(double.infinity, 36),
               ),
             ),
@@ -586,7 +642,6 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -602,7 +657,12 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xs),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.lg,
+                AppSpacing.md,
+                AppSpacing.xs,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -626,30 +686,40 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                 child: _loading
                     ? const Center(child: CircularProgressIndicator())
                     : isOwner
-                        ? (_ownerBookings.isEmpty
-                            ? EmptyState(
-                                icon: LucideIcons.calendarClock,
-                                title: 'No active requests',
-                                subtitle: 'Once a renter requests to book your gear, it will show up here.',
-                              )
-                            : ListView.builder(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                itemCount: _ownerBookings.length,
-                                itemBuilder: (context, index) => _buildBookingCard(_ownerBookings[index], true),
-                              ))
-                        : (_renterBookings.isEmpty
-                            ? EmptyState(
-                                icon: LucideIcons.calendar,
-                                title: 'No Rentals yet',
-                                subtitle: 'Find awesome gear and submit booking requests.',
-                                actionLabel: 'Explore gear',
-                                onActionPressed: () => context.go('/app/explore'),
-                              )
-                            : ListView.builder(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                itemCount: _renterBookings.length,
-                                itemBuilder: (context, index) => _buildBookingCard(_renterBookings[index], false),
-                              )),
+                    ? (_ownerBookings.isEmpty
+                          ? EmptyState(
+                              icon: LucideIcons.calendarClock,
+                              title: 'No active requests',
+                              subtitle:
+                                  'Once a renter requests to book your gear, it will show up here.',
+                            )
+                          : ListView.builder(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: _ownerBookings.length,
+                              itemBuilder: (context, index) =>
+                                  _buildBookingCard(
+                                    _ownerBookings[index],
+                                    true,
+                                  ),
+                            ))
+                    : (_renterBookings.isEmpty
+                          ? EmptyState(
+                              icon: LucideIcons.calendar,
+                              title: 'No Rentals yet',
+                              subtitle:
+                                  'Find awesome gear and submit booking requests.',
+                              actionLabel: 'Explore gear',
+                              onActionPressed: () => context.go('/app/explore'),
+                            )
+                          : ListView.builder(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: _renterBookings.length,
+                              itemBuilder: (context, index) =>
+                                  _buildBookingCard(
+                                    _renterBookings[index],
+                                    false,
+                                  ),
+                            )),
               ),
             ),
           ],
