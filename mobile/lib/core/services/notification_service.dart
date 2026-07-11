@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,8 +36,8 @@ class NotificationService {
       _initialized = true;
       developer.log('🔔 Firebase Messaging successfully initialized.');
 
-      // Try registering token if user is already logged in
-      await registerToken();
+      // Bootstrap notification cache and device token for the current user, if any.
+      await _bootstrapAuthenticatedUser(loadDeviceToken: true);
     } catch (e) {
       developer.log(
         '⚠️ Firebase initialization skipped or failed (config files likely missing). Running in Console/Mock mode.',
@@ -69,24 +70,43 @@ class NotificationService {
     if (!_initialized) return;
 
     try {
-      // Check if user is logged in
-      final isLoggedIn = await _ref.read(listingsApiProvider).isLoggedIn();
-      if (!isLoggedIn) {
-        developer.log('🔔 Notification token registration skipped: User not logged in.');
-        return;
-      }
-
-      final token = await FirebaseMessaging.instance.getToken();
-      if (token != null) {
-        developer.log('🔔 Found FCM Device Token: $token');
-        await _ref.read(notificationsApiProvider).registerDeviceToken(token);
-        developer.log('🔔 Device token successfully registered with RentLanka API.');
-      } else {
-        developer.log('⚠️ FCM Device Token was null.');
-      }
+      await _bootstrapAuthenticatedUser(loadDeviceToken: true);
     } catch (e) {
       developer.log('⚠️ Failed to fetch/register FCM Device Token: $e');
     }
+  }
+
+  Future<void> resetForLogout() async {
+    _ref.read(notificationListProvider.notifier).reset();
+  }
+
+  Future<String?> _bootstrapAuthenticatedUser({required bool loadDeviceToken}) async {
+    final listingsApi = _ref.read(listingsApiProvider);
+    final isLoggedIn = await listingsApi.isLoggedIn();
+
+    if (!isLoggedIn) {
+      developer.log('🔔 Notification bootstrap skipped: User not logged in.');
+      _ref.read(notificationListProvider.notifier).reset();
+      return null;
+    }
+
+    final user = await listingsApi.getCurrentUser();
+    await _ref.read(notificationListProvider.notifier).loadForUser(user.id);
+
+    if (!loadDeviceToken) {
+      return user.id;
+    }
+
+    final token = await FirebaseMessaging.instance.getToken();
+    if (token != null) {
+      developer.log('🔔 Found FCM Device Token for user ${user.id}: $token');
+      await _ref.read(notificationsApiProvider).registerDeviceToken(token);
+      developer.log('🔔 Device token successfully registered with RentLanka API.');
+    } else {
+      developer.log('⚠️ FCM Device Token was null.');
+    }
+
+    return user.id;
   }
 
   /// Subscribes to foreground/background notification event streams
@@ -103,7 +123,7 @@ class NotificationService {
       
       final title = message.notification?.title ?? 'Notification Alert';
       final body = message.notification?.body ?? '';
-      _ref.read(notificationListProvider.notifier).addNotification(title, body);
+      unawaited(_ref.read(notificationListProvider.notifier).addNotification(title, body));
     });
   }
 
@@ -113,7 +133,7 @@ class NotificationService {
     final body = message.notification?.body ?? '';
 
     // Add to history
-    _ref.read(notificationListProvider.notifier).addNotification(title, body);
+    unawaited(_ref.read(notificationListProvider.notifier).addNotification(title, body));
 
     developer.log('🔔 SHOW ALERT: [$title] - $body');
   }

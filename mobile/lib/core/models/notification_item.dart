@@ -32,6 +32,31 @@ class NotificationItem {
       type: type ?? this.type,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'body': body,
+      'timestamp': timestamp.toIso8601String(),
+      'isRead': isRead,
+      'type': type.name,
+    };
+  }
+
+  factory NotificationItem.fromJson(Map<String, dynamic> json) {
+    return NotificationItem(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      body: json['body'] as String,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      isRead: json['isRead'] as bool? ?? false,
+      type: NotificationType.values.firstWhere(
+        (value) => value.name == json['type'],
+        orElse: () => NotificationType.system,
+      ),
+    );
+  }
 }
 
 enum NotificationType {

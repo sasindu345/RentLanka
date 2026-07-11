@@ -78,7 +78,10 @@ class ListingsApi {
     return response.data as Map<String, dynamic>;
   }
 
-  Future<void> logout() => _storage.clearToken();
+  Future<void> logout() async {
+    await _ref.read(notificationServiceProvider).resetForLogout();
+    await _storage.clearToken();
+  }
 
   Future<bool> isLoggedIn() async {
     final token = await _storage.getToken();

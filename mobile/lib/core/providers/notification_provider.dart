@@ -1,8 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/models/notification_item.dart';
+import 'package:mobile/core/storage/notification_storage.dart';
+
+final notificationStorageProvider = Provider((ref) => NotificationStorage());
 
 final notificationListProvider = StateNotifierProvider<NotificationListNotifier, List<NotificationItem>>((ref) {
-  return NotificationListNotifier();
+  return NotificationListNotifier(ref.watch(notificationStorageProvider));
 });
 
 final hasUnreadNotificationsProvider = Provider<bool>((ref) {
@@ -10,45 +13,35 @@ final hasUnreadNotificationsProvider = Provider<bool>((ref) {
 });
 
 class NotificationListNotifier extends StateNotifier<List<NotificationItem>> {
-  NotificationListNotifier() : super(_initialMockNotifications);
+  final NotificationStorage _storage;
+  String? _activeUserId;
 
-  static final List<NotificationItem> _initialMockNotifications = [
-    NotificationItem(
-      id: 'mock-1',
-      title: 'Booking Request Accepted',
-      body: 'Your request to rent the "Sony Alpha 7 IV Camera" has been approved by the host.',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 45)),
-      isRead: false,
-      type: NotificationType.booking,
-    ),
-    NotificationItem(
-      id: 'mock-2',
-      title: 'New Message from Priyantha',
-      body: '"Hello! Sure, the camera is fully charged and ready for pick-up. Let me know..."',
-      timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      isRead: false,
-      type: NotificationType.message,
-    ),
-    NotificationItem(
-      id: 'mock-3',
-      title: 'Identity Verification Success',
-      body: 'Congratulations! Your profile has been upgraded to Verified (Email & NIC Verification completed).',
-      timestamp: DateTime.now().subtract(const Duration(days: 1)),
-      isRead: true,
-      type: NotificationType.verification,
-    ),
-    NotificationItem(
-      id: 'mock-4',
-      title: 'Welcome to RentLanka!',
-      body: 'Start listing your idle gear to earn passive income, or explore items to rent from peers nearby.',
-      timestamp: DateTime.now().subtract(const Duration(days: 3)),
-      isRead: true,
-      type: NotificationType.system,
-    ),
-  ];
+  NotificationListNotifier(this._storage) : super(const []);
+
+  Future<void> loadForUser(String userId) async {
+    _activeUserId = userId;
+    state = await _storage.loadNotifications(userId);
+  }
+
+  void reset() {
+    _activeUserId = null;
+    state = const [];
+  }
+
+  Future<void> _persist() async {
+    final userId = _activeUserId;
+    if (userId == null || userId.isEmpty) {
+      return;
+    }
+    await _storage.saveNotifications(userId, state);
+  }
 
   /// Dynamically add a new notification item
-  void addNotification(String title, String body) {
+  Future<void> addNotification(String title, String body) async {
+    if (_activeUserId == null || _activeUserId!.isEmpty) {
+      return;
+    }
+
     // Determine the type dynamically based on content matching
     NotificationType type = NotificationType.system;
     final lowerTitle = title.toLowerCase();
@@ -72,25 +65,32 @@ class NotificationListNotifier extends StateNotifier<List<NotificationItem>> {
     );
 
     state = [newNotification, ...state];
+    await _persist();
   }
 
   /// Mark specific notification as read
-  void markAsRead(String id) {
+  Future<void> markAsRead(String id) async {
     state = state.map((item) {
       if (item.id == id) {
         return item.copyWith(isRead: true);
       }
       return item;
     }).toList();
+    await _persist();
   }
 
   /// Mark all as read
-  void markAllAsRead() {
+  Future<void> markAllAsRead() async {
     state = state.map((item) => item.copyWith(isRead: true)).toList();
+    await _persist();
   }
 
   /// Clear all notifications
-  void clearAll() {
+  Future<void> clearAll() async {
     state = [];
+    final userId = _activeUserId;
+    if (userId != null && userId.isNotEmpty) {
+      await _storage.clearNotifications(userId);
+    }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/models/notification_item.dart';
 import 'package:mobile/core/providers/notification_provider.dart';
@@ -34,9 +35,9 @@ class NotificationsScreen extends ConsumerWidget {
               icon: const Icon(LucideIcons.moreVertical),
               onSelected: (value) {
                 if (value == 'read_all') {
-                  ref.read(notificationListProvider.notifier).markAllAsRead();
+                  unawaited(ref.read(notificationListProvider.notifier).markAllAsRead());
                 } else if (value == 'clear_all') {
-                  ref.read(notificationListProvider.notifier).clearAll();
+                  unawaited(ref.read(notificationListProvider.notifier).clearAll());
                 }
               },
               itemBuilder: (context) => [
@@ -117,7 +118,7 @@ class NotificationsScreen extends ConsumerWidget {
     return InkWell(
       onTap: () {
         if (!item.isRead) {
-          ref.read(notificationListProvider.notifier).markAsRead(item.id);
+          unawaited(ref.read(notificationListProvider.notifier).markAsRead(item.id));
         }
       },
       borderRadius: BorderRadius.circular(AppRadius.card),

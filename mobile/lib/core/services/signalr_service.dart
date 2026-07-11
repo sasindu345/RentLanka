@@ -74,9 +74,11 @@ class SignalRService {
         if (conversationId != _activeConversationId) {
           final senderName = message['senderName'] as String;
           final content = message['content'] as String;
-          _ref.read(notificationListProvider.notifier).addNotification(
-            'New Message from $senderName',
-            content,
+          unawaited(
+            _ref.read(notificationListProvider.notifier).addNotification(
+              'New Message from $senderName',
+              content,
+            ),
           );
         }
       } catch (e) {
