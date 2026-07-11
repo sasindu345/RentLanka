@@ -25,7 +25,8 @@ class SignalRService {
   Stream<Map<String, dynamic>> get messageStream => _messageController.stream;
 
   Future<void> connect() async {
-    if (_hubConnection != null && _hubConnection!.state == HubConnectionState.Connected) {
+    if (_hubConnection != null &&
+        _hubConnection!.state == HubConnectionState.Connected) {
       return;
     }
 
@@ -33,7 +34,9 @@ class SignalRService {
       final storage = _ref.read(tokenStorageProvider);
       final token = await storage.getToken();
       if (token == null || token.isEmpty) {
-        developer.log("SignalR: Cannot connect because token is missing or empty.");
+        developer.log(
+          "SignalR: Cannot connect because token is missing or empty.",
+        );
         return;
       }
 
@@ -75,14 +78,16 @@ class SignalRService {
           final senderName = message['senderName'] as String;
           final content = message['content'] as String;
           unawaited(
-            _ref.read(notificationListProvider.notifier).addNotification(
-              'New Message from $senderName',
-              content,
-            ),
+            _ref
+                .read(notificationListProvider.notifier)
+                .addNotification('New Message from $senderName', content),
           );
         }
       } catch (e) {
-        developer.log("SignalR: Error parsing received message arguments", error: e);
+        developer.log(
+          "SignalR: Error parsing received message arguments",
+          error: e,
+        );
       }
     }
   }
@@ -90,9 +95,13 @@ class SignalRService {
   Future<void> joinConversation(String conversationId) async {
     _activeConversationId = conversationId;
     await connect();
-    if (_hubConnection != null && _hubConnection!.state == HubConnectionState.Connected) {
+    if (_hubConnection != null &&
+        _hubConnection!.state == HubConnectionState.Connected) {
       try {
-        await _hubConnection!.invoke("JoinConversation", args: [conversationId]);
+        await _hubConnection!.invoke(
+          "JoinConversation",
+          args: [conversationId],
+        );
         developer.log("SignalR: Joined conversation group: $conversationId");
       } catch (e) {
         developer.log("SignalR: Failed to join conversation group", error: e);
@@ -104,9 +113,13 @@ class SignalRService {
     if (_activeConversationId == conversationId) {
       _activeConversationId = null;
     }
-    if (_hubConnection != null && _hubConnection!.state == HubConnectionState.Connected) {
+    if (_hubConnection != null &&
+        _hubConnection!.state == HubConnectionState.Connected) {
       try {
-        await _hubConnection!.invoke("LeaveConversation", args: [conversationId]);
+        await _hubConnection!.invoke(
+          "LeaveConversation",
+          args: [conversationId],
+        );
         developer.log("SignalR: Left conversation group: $conversationId");
       } catch (e) {
         developer.log("SignalR: Failed to leave conversation group", error: e);

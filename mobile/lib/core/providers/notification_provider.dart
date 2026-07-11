@@ -4,9 +4,12 @@ import 'package:mobile/core/storage/notification_storage.dart';
 
 final notificationStorageProvider = Provider((ref) => NotificationStorage());
 
-final notificationListProvider = StateNotifierProvider<NotificationListNotifier, List<NotificationItem>>((ref) {
-  return NotificationListNotifier(ref.watch(notificationStorageProvider));
-});
+final notificationListProvider =
+    StateNotifierProvider<NotificationListNotifier, List<NotificationItem>>((
+      ref,
+    ) {
+      return NotificationListNotifier(ref.watch(notificationStorageProvider));
+    });
 
 final hasUnreadNotificationsProvider = Provider<bool>((ref) {
   return ref.watch(notificationListProvider).any((item) => !item.isRead);
@@ -46,12 +49,18 @@ class NotificationListNotifier extends StateNotifier<List<NotificationItem>> {
     NotificationType type = NotificationType.system;
     final lowerTitle = title.toLowerCase();
     final lowerBody = body.toLowerCase();
-    
-    if (lowerTitle.contains('booking') || lowerBody.contains('booking') || lowerTitle.contains('rent')) {
+
+    if (lowerTitle.contains('booking') ||
+        lowerBody.contains('booking') ||
+        lowerTitle.contains('rent')) {
       type = NotificationType.booking;
-    } else if (lowerTitle.contains('message') || lowerBody.contains('message') || lowerTitle.contains('chat')) {
+    } else if (lowerTitle.contains('message') ||
+        lowerBody.contains('message') ||
+        lowerTitle.contains('chat')) {
       type = NotificationType.message;
-    } else if (lowerTitle.contains('verify') || lowerBody.contains('verify') || lowerTitle.contains('nic')) {
+    } else if (lowerTitle.contains('verify') ||
+        lowerBody.contains('verify') ||
+        lowerTitle.contains('nic')) {
       type = NotificationType.verification;
     }
 

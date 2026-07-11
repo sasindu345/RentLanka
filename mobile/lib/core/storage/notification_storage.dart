@@ -24,14 +24,20 @@ class NotificationStorage {
 
       return decoded
           .whereType<Map>()
-          .map((item) => NotificationItem.fromJson(Map<String, dynamic>.from(item)))
+          .map(
+            (item) =>
+                NotificationItem.fromJson(Map<String, dynamic>.from(item)),
+          )
           .toList();
     } catch (_) {
       return [];
     }
   }
 
-  Future<void> saveNotifications(String userId, List<NotificationItem> notifications) async {
+  Future<void> saveNotifications(
+    String userId,
+    List<NotificationItem> notifications,
+  ) async {
     final raw = jsonEncode(notifications.map((item) => item.toJson()).toList());
     await _storage.write(key: _keyForUser(userId), value: raw);
   }

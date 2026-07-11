@@ -21,14 +21,14 @@ class ListingsApi {
   ListingsApi(this._dio, this._storage, this._ref);
 
   Future<void> login(String email, String password) async {
-    final response = await _dio.post('/api/auth/login', data: {
-      'email': email,
-      'password': password,
-    });
+    final response = await _dio.post(
+      '/api/auth/login',
+      data: {'email': email, 'password': password},
+    );
     final token = response.data['token'] as String;
     final refreshToken = response.data['refreshToken'] as String;
     await _storage.saveTokens(token, refreshToken);
-    
+
     // Register FCM Device Token for the newly logged-in user
     await _ref.read(notificationServiceProvider).registerToken();
   }
@@ -40,18 +40,21 @@ class ListingsApi {
     String? lastName,
     String? role,
   }) async {
-    final response = await _dio.post('/api/auth/google', data: {
-      'idToken': idToken,
-      'email': email,
-      'firstName': firstName,
-      'lastName': lastName,
-      'role': role,
-    });
+    final response = await _dio.post(
+      '/api/auth/google',
+      data: {
+        'idToken': idToken,
+        'email': email,
+        'firstName': firstName,
+        'lastName': lastName,
+        'role': role,
+      },
+    );
     final token = response.data['token'] as String;
     final refreshToken = response.data['refreshToken'] as String;
     final returnedRole = response.data['role'] as String;
     await _storage.saveTokens(token, refreshToken);
-    
+
     // Register FCM Device Token for the newly logged-in user
     await _ref.read(notificationServiceProvider).registerToken();
 
@@ -66,14 +69,17 @@ class ListingsApi {
     required String phoneNumber,
     required String role,
   }) async {
-    final response = await _dio.post('/api/auth/register', data: {
-      'email': email,
-      'password': password,
-      'firstName': firstName,
-      'lastName': lastName,
-      'phoneNumber': phoneNumber,
-      'role': role,
-    });
+    final response = await _dio.post(
+      '/api/auth/register',
+      data: {
+        'email': email,
+        'password': password,
+        'firstName': firstName,
+        'lastName': lastName,
+        'phoneNumber': phoneNumber,
+        'role': role,
+      },
+    );
     await login(email, password);
     return response.data as Map<String, dynamic>;
   }
@@ -99,12 +105,15 @@ class ListingsApi {
     required String phoneNumber,
     String? role,
   }) async {
-    final response = await _dio.patch('/api/users/me', data: {
-      'firstName': firstName,
-      'lastName': lastName,
-      'phoneNumber': phoneNumber,
-      'role': role,
-    });
+    final response = await _dio.patch(
+      '/api/users/me',
+      data: {
+        'firstName': firstName,
+        'lastName': lastName,
+        'phoneNumber': phoneNumber,
+        'role': role,
+      },
+    );
     return UserProfile.fromJson(response.data as Map<String, dynamic>);
   }
 
@@ -121,9 +130,10 @@ class ListingsApi {
   }) async {
     // If text query is provided and no coordinates are given, use the AI Semantic Search endpoint
     if (query != null && query.isNotEmpty && lat == null && lon == null) {
-      final response = await _dio.get('/api/ai/search', queryParameters: {
-        'query': query,
-      });
+      final response = await _dio.get(
+        '/api/ai/search',
+        queryParameters: {'query': query},
+      );
       final items = (response.data as List<dynamic>)
           .map((e) => Listing.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -136,17 +146,20 @@ class ListingsApi {
     }
 
     // Default category/feed filter and spatial proximity search
-    final response = await _dio.get('/api/listings/search', queryParameters: {
-      if (query != null && query.isNotEmpty) 'query': query,
-      if (category != null && category.isNotEmpty) 'category': category,
-      if (district != null && district.isNotEmpty) 'district': district,
-      'lat': ?lat,
-      'lon': ?lon,
-      'distanceMeters': ?distanceMeters,
-      'page': page,
-      'pageSize': pageSize,
-      'sortBy': sortBy,
-    });
+    final response = await _dio.get(
+      '/api/listings/search',
+      queryParameters: {
+        if (query != null && query.isNotEmpty) 'query': query,
+        if (category != null && category.isNotEmpty) 'category': category,
+        if (district != null && district.isNotEmpty) 'district': district,
+        'lat': ?lat,
+        'lon': ?lon,
+        'distanceMeters': ?distanceMeters,
+        'page': page,
+        'pageSize': pageSize,
+        'sortBy': sortBy,
+      },
+    );
     return PaginatedListings.fromJson(response.data as Map<String, dynamic>);
   }
 
@@ -182,7 +195,10 @@ class ListingsApi {
   }
 
   Future<PaginatedListings> getWishlist({int page = 1}) async {
-    final response = await _dio.get('/api/wishlist', queryParameters: {'page': page});
+    final response = await _dio.get(
+      '/api/wishlist',
+      queryParameters: {'page': page},
+    );
     return PaginatedListings.fromJson(response.data as Map<String, dynamic>);
   }
 
@@ -204,10 +220,14 @@ class ListingsApi {
     required String imageUrl,
     String? categoryHint,
   }) async {
-    final response = await _dio.post('/api/ai/generate-listing', data: {
-      'imageUrl': imageUrl,
-      if (categoryHint != null && categoryHint.isNotEmpty) 'categoryHint': categoryHint,
-    });
+    final response = await _dio.post(
+      '/api/ai/generate-listing',
+      data: {
+        'imageUrl': imageUrl,
+        if (categoryHint != null && categoryHint.isNotEmpty)
+          'categoryHint': categoryHint,
+      },
+    );
     return AiListingSuggestion.fromJson(response.data as Map<String, dynamic>);
   }
 
@@ -236,8 +256,10 @@ class AiListingSuggestion {
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
       category: json['category'] as String? ?? '',
-      suggestedPricePerDay: (json['suggestedPricePerDay'] as num?)?.toDouble() ?? 0.0,
-      suggestedSecurityDeposit: (json['suggestedSecurityDeposit'] as num?)?.toDouble() ?? 0.0,
+      suggestedPricePerDay:
+          (json['suggestedPricePerDay'] as num?)?.toDouble() ?? 0.0,
+      suggestedSecurityDeposit:
+          (json['suggestedSecurityDeposit'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

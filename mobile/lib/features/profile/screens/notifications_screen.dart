@@ -35,9 +35,13 @@ class NotificationsScreen extends ConsumerWidget {
               icon: const Icon(LucideIcons.moreVertical),
               onSelected: (value) {
                 if (value == 'read_all') {
-                  unawaited(ref.read(notificationListProvider.notifier).markAllAsRead());
+                  unawaited(
+                    ref.read(notificationListProvider.notifier).markAllAsRead(),
+                  );
                 } else if (value == 'clear_all') {
-                  unawaited(ref.read(notificationListProvider.notifier).clearAll());
+                  unawaited(
+                    ref.read(notificationListProvider.notifier).clearAll(),
+                  );
                 }
               },
               itemBuilder: (context) => [
@@ -55,9 +59,16 @@ class NotificationsScreen extends ConsumerWidget {
                   value: 'clear_all',
                   child: Row(
                     children: [
-                      Icon(LucideIcons.trash2, size: 18, color: Colors.redAccent),
+                      Icon(
+                        LucideIcons.trash2,
+                        size: 18,
+                        color: Colors.redAccent,
+                      ),
                       SizedBox(width: 8),
-                      Text('Clear all', style: TextStyle(color: Colors.redAccent)),
+                      Text(
+                        'Clear all',
+                        style: TextStyle(color: Colors.redAccent),
+                      ),
                     ],
                   ),
                 ),
@@ -70,7 +81,8 @@ class NotificationsScreen extends ConsumerWidget {
           : ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.md),
               itemCount: notifications.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.sm),
               itemBuilder: (context, index) {
                 final item = notifications[index];
                 return _buildNotificationCard(context, ref, theme, item);
@@ -118,7 +130,9 @@ class NotificationsScreen extends ConsumerWidget {
     return InkWell(
       onTap: () {
         if (!item.isRead) {
-          unawaited(ref.read(notificationListProvider.notifier).markAsRead(item.id));
+          unawaited(
+            ref.read(notificationListProvider.notifier).markAsRead(item.id),
+          );
         }
       },
       borderRadius: BorderRadius.circular(AppRadius.card),
@@ -150,20 +164,11 @@ class NotificationsScreen extends ConsumerWidget {
             Container(
               width: 44,
               height: 44,
-              decoration: BoxDecoration(
-                color: iconBg,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Icon(
-                  iconData,
-                  color: iconColor,
-                  size: 20,
-                ),
-              ),
+              decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+              child: Center(child: Icon(iconData, color: iconColor, size: 20)),
             ),
             const SizedBox(width: AppSpacing.md),
-            
+
             // Middle text contents
             Expanded(
               child: Column(
@@ -176,7 +181,9 @@ class NotificationsScreen extends ConsumerWidget {
                         child: Text(
                           item.title,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: item.isRead ? FontWeight.bold : FontWeight.w800,
+                            fontWeight: item.isRead
+                                ? FontWeight.bold
+                                : FontWeight.w800,
                             color: theme.colorScheme.onSurface,
                             fontSize: 14,
                           ),
@@ -198,7 +205,9 @@ class NotificationsScreen extends ConsumerWidget {
                   Text(
                     item.body,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.85),
+                      color: theme.colorScheme.onSurfaceVariant.withOpacity(
+                        0.85,
+                      ),
                       height: 1.3,
                       fontSize: 12.5,
                     ),
@@ -207,7 +216,9 @@ class NotificationsScreen extends ConsumerWidget {
                   Text(
                     timeAgo,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+                      color: theme.colorScheme.onSurfaceVariant.withOpacity(
+                        0.5,
+                      ),
                     ),
                   ),
                 ],

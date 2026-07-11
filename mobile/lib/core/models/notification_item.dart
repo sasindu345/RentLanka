@@ -59,9 +59,4 @@ class NotificationItem {
   }
 }
 
-enum NotificationType {
-  booking,
-  message,
-  verification,
-  system,
-}
+enum NotificationType { booking, message, verification, system }

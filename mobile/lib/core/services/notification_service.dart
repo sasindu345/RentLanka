@@ -26,7 +26,7 @@ class NotificationService {
     try {
       // 1. Initialize Firebase Core
       await Firebase.initializeApp();
-      
+
       // 2. Request notification permissions
       await requestPermissions();
 
@@ -59,7 +59,9 @@ class NotificationService {
         provisional: false,
         sound: true,
       );
-      developer.log('🔔 Notification Permission Status: ${settings.authorizationStatus}');
+      developer.log(
+        '🔔 Notification Permission Status: ${settings.authorizationStatus}',
+      );
     } catch (e) {
       developer.log('⚠️ Error requesting notification permissions: $e');
     }
@@ -80,7 +82,9 @@ class NotificationService {
     _ref.read(notificationListProvider.notifier).reset();
   }
 
-  Future<String?> _bootstrapAuthenticatedUser({required bool loadDeviceToken}) async {
+  Future<String?> _bootstrapAuthenticatedUser({
+    required bool loadDeviceToken,
+  }) async {
     final listingsApi = _ref.read(listingsApiProvider);
     final isLoggedIn = await listingsApi.isLoggedIn();
 
@@ -101,7 +105,9 @@ class NotificationService {
     if (token != null) {
       developer.log('🔔 Found FCM Device Token for user ${user.id}: $token');
       await _ref.read(notificationsApiProvider).registerDeviceToken(token);
-      developer.log('🔔 Device token successfully registered with RentLanka API.');
+      developer.log(
+        '🔔 Device token successfully registered with RentLanka API.',
+      );
     } else {
       developer.log('⚠️ FCM Device Token was null.');
     }
@@ -113,17 +119,23 @@ class NotificationService {
   void _setupMessageListeners() {
     // 1. Listen for foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      developer.log('🔔 Foreground message received: ${message.notification?.title}');
+      developer.log(
+        '🔔 Foreground message received: ${message.notification?.title}',
+      );
       _showForegroundAlert(message);
     });
 
     // 2. Listen for tap action when app is opened via notification from background state
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       developer.log('🔔 App opened via notification: ${message.data}');
-      
+
       final title = message.notification?.title ?? 'Notification Alert';
       final body = message.notification?.body ?? '';
-      unawaited(_ref.read(notificationListProvider.notifier).addNotification(title, body));
+      unawaited(
+        _ref
+            .read(notificationListProvider.notifier)
+            .addNotification(title, body),
+      );
     });
   }
 
@@ -133,7 +145,9 @@ class NotificationService {
     final body = message.notification?.body ?? '';
 
     // Add to history
-    unawaited(_ref.read(notificationListProvider.notifier).addNotification(title, body));
+    unawaited(
+      _ref.read(notificationListProvider.notifier).addNotification(title, body),
+    );
 
     developer.log('🔔 SHOW ALERT: [$title] - $body');
   }
