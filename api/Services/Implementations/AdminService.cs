@@ -311,14 +311,102 @@ public class AdminService : IAdminService
         var activeListings = await _context.Listings.CountAsync(l => !l.IsDeleted && !l.IsPaused);
         var pendingKycCount = await _context.Users.CountAsync(u => u.KycStatus == KycStatus.PendingApproval && !u.IsBanned);
         var totalBookings = await _context.Bookings.CountAsync();
+        var openDisputes = await _context.Disputes.CountAsync(d => !d.IsResolved);
+
+        // 7-day timeseries (daily)
+        var today = DateTime.UtcNow.Date;
+        var timeSeries7d = new List<TimeSeriesPoint>();
+        for (int i = 6; i >= 0; i--)
+        {
+            var day = today.AddDays(-i);
+            var dayStart = day;
+            var dayEnd = day.AddDays(1);
+            var bookings = await _context.Bookings
+                .Where(b => b.CreatedAt >= dayStart && b.CreatedAt < dayEnd)
+                .ToListAsync();
+            var bookingsCount = bookings.Count;
+            var revenue = bookings.Sum(b => b.TotalPrice);
+            timeSeries7d.Add(new TimeSeriesPoint(day.ToString("ddd"), bookingsCount, revenue, day.ToString("yyyy-MM-dd")));
+        }
+
+        // 30-day timeseries grouped by week (5 weeks)
+        var timeSeries30d = new List<TimeSeriesPoint>();
+        var start30 = today.AddDays(-29);
+        for (int w = 0; w < 5; w++)
+        {
+            var weekStart = start30.AddDays(w * 7);
+            var weekEnd = weekStart.AddDays(7);
+            var bookings = await _context.Bookings
+                .Where(b => b.CreatedAt >= weekStart && b.CreatedAt < weekEnd)
+                .ToListAsync();
+            var bookingsCount = bookings.Count;
+            var revenue = bookings.Sum(b => b.TotalPrice);
+            var label = $"W{w + 1}";
+            var rangeLabel = weekStart.ToString("MMM d") + " - " + weekEnd.AddDays(-1).ToString("MMM d");
+            timeSeries30d.Add(new TimeSeriesPoint(label, bookingsCount, revenue, rangeLabel));
+        }
+
+        // Category share
+        var categoryGroups = await _context.Listings
+            .Where(l => !l.IsDeleted)
+            .GroupBy(l => l.Category)
+            .Select(g => new { Category = g.Key, Count = g.Count() })
+            .ToListAsync();
+        var totalCat = categoryGroups.Sum(g => g.Count);
+        var categories = categoryGroups.Select(g => new CategoryShare(g.Category, g.Count, totalCat == 0 ? 0 : (int)Math.Round((double)g.Count / totalCat * 100))).ToList();
+
+        // Verification distribution
+        var fullyTrusted = await _context.Users.CountAsync(u => u.KycStatus == KycStatus.Approved);
+        var unverified = await _context.Users.CountAsync(u => u.KycStatus == KycStatus.None);
+        var basic = totalUsers - fullyTrusted - unverified;
+        var verifs = new List<VerificationSegment>
+        {
+            new VerificationSegment("Fully Trusted (KYC Verified)", totalUsers == 0 ? 0 : (int)Math.Round((double)fullyTrusted / totalUsers * 100)),
+            new VerificationSegment("Basic Authenticated (Email/Phone)", totalUsers == 0 ? 0 : (int)Math.Round((double)basic / totalUsers * 100)),
+            new VerificationSegment("Unverified (New Registrants)", totalUsers == 0 ? 0 : (int)Math.Round((double)unverified / totalUsers * 100)),
+        };
+
+        // Escrow / payments
+        var totalPayments = await _context.Payments.SumAsync(p => (decimal?)p.Amount) ?? 0m;
+        var escrowReserves = await _context.Payments.Where(p => p.Status == PaymentStatus.Authorized || p.Status == PaymentStatus.Captured).SumAsync(p => (decimal?)p.Amount) ?? 0m;
+        var releasedPayments = await _context.Payments.Where(p => p.Status == PaymentStatus.Released).SumAsync(p => (decimal?)p.Amount) ?? 0m;
+        var payoutsPaid = await _context.Payouts.Where(p => p.Status == PayoutStatus.Paid).SumAsync(p => (decimal?)p.Amount) ?? 0m;
+        var releasedToOwners = releasedPayments + payoutsPaid;
+        var escrowPercent = totalPayments == 0 ? 0 : (int)Math.Round((double)escrowReserves / (double)totalPayments * 100);
+        var payoutsPercent = totalPayments == 0 ? 0 : (int)Math.Round((double)payoutsPaid / (double)totalPayments * 100);
+        var disputesPercent = 100 - escrowPercent - payoutsPercent;
+        var escrowStats = new EscrowStats(totalPayments, escrowReserves, releasedToOwners, escrowPercent, payoutsPercent, disputesPercent);
+
+        // Recent events (simple synthesized list)
+        var recentEvents = new List<SystemEvent>();
+        var recentKyc = await _context.Users.Where(u => u.KycStatus == KycStatus.PendingApproval).OrderByDescending(u => u.UpdatedAt ?? u.CreatedAt).Take(2).ToListAsync();
+        foreach (var u in recentKyc)
+        {
+            recentEvents.Add(new SystemEvent($"Verification requested by {u.FirstName} {u.LastName}", ((u.UpdatedAt ?? u.CreatedAt).ToLocalTime()).ToString("g"), "kyc"));
+        }
+        var recentListings = await _context.Listings.Where(l => !l.IsDeleted).OrderByDescending(l => l.CreatedAt).Take(2).ToListAsync();
+        foreach (var l in recentListings)
+        {
+            recentEvents.Add(new SystemEvent($"New Listing: {l.Title} registered", l.CreatedAt.ToLocalTime().ToString("g"), "listing"));
+        }
+        var recentPayouts = await _context.Payouts.OrderByDescending(p => p.CreatedAt).Take(2).ToListAsync();
+        foreach (var p in recentPayouts)
+        {
+            recentEvents.Add(new SystemEvent($"Payout {p.Id.ToString().Split('-').First()} amount LKR {p.Amount} status {p.Status}", p.CreatedAt.ToLocalTime().ToString("g"), "payout"));
+        }
 
         return new AdminDashboardStats(
             totalUsers,
             activeListings,
             pendingKycCount,
             totalBookings,
-            0
-        );
+            openDisputes,
+            timeSeries7d,
+            timeSeries30d,
+            categories,
+            verifs,
+            escrowStats,
+            recentEvents);
     }
 
     private static UserResponse MapUserToResponse(User user)

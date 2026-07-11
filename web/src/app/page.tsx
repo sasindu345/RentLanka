@@ -1,13 +1,19 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+"use client";
 
-export default async function HomePage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("rentlanka_token")?.value;
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { getToken } from "@/lib/auth/token";
 
-  if (token) {
-    redirect("/admin");
-  } else {
-    redirect("/login");
-  }
+export default function HomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace(getToken() ? "/admin" : "/login");
+  }, [router]);
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-100">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-700 border-t-indigo-500" />
+    </div>
+  );
 }

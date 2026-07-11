@@ -70,6 +70,19 @@ export interface AdminDashboardStats {
   pendingKycCount: number;
   totalBookingsCount: number;
   openDisputesCount: number;
+  timeSeries7d?: { label: string; bookings: number; revenue: number; date: string }[];
+  timeSeries30d?: { label: string; bookings: number; revenue: number; date: string }[];
+  categories?: { label: string; count: number; percentage: number }[];
+  verifications?: { label: string; percentage: number }[];
+  escrow?: {
+    totalTransacted: number;
+    escrowReserves: number;
+    releasedToOwners: number;
+    escrowPercent: number;
+    payoutsPercent: number;
+    disputesPercent: number;
+  } | null;
+  recentEvents?: { message: string; time: string; type: string }[];
 }
 
 export interface PaginatedUsers {

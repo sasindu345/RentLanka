@@ -48,25 +48,11 @@ export default function AdminDashboardOverview() {
   }
 
   // Simulated metrics data
-  const data7d: ChartPoint[] = [
-    { label: "Mon", bookings: 1, revenue: 3500, date: "July 2" },
-    { label: "Tue", bookings: 2, revenue: 7200, date: "July 3" },
-    { label: "Wed", bookings: 1, revenue: 4100, date: "July 4" },
-    { label: "Thu", bookings: 3, revenue: 12500, date: "July 5" },
-    { label: "Fri", bookings: 4, revenue: 16800, date: "July 6" },
-    { label: "Sat", bookings: 2, revenue: 9500, date: "July 7" },
-    { label: "Sun", bookings: stats?.totalBookingsCount ?? 5, revenue: (stats?.totalBookingsCount ?? 5) * 4500, date: "July 8 (Today)" },
-  ];
+  // Chart data comes from backend if available; fallback to empty arrays
+  const data7d: ChartPoint[] = (stats?.timeSeries7d ?? []).map((p) => ({ label: p.label, bookings: p.bookings, revenue: p.revenue, date: p.date }));
+  const data30d: ChartPoint[] = (stats?.timeSeries30d ?? []).map((p) => ({ label: p.label, bookings: p.bookings, revenue: p.revenue, date: p.date }));
 
-  const data30d: ChartPoint[] = [
-    { label: "W1", bookings: 4, revenue: 18000, date: "June 9 - June 15" },
-    { label: "W2", bookings: 8, revenue: 36500, date: "June 16 - June 22" },
-    { label: "W3", bookings: 14, revenue: 64200, date: "June 23 - June 29" },
-    { label: "W4", bookings: 22, revenue: 98400, date: "June 30 - July 6" },
-    { label: "W5", bookings: stats?.totalBookingsCount ?? 26, revenue: (stats?.totalBookingsCount ?? 26) * 4800, date: "July 7 - July 8" },
-  ];
-
-  const chartData = activeTab === "7d" ? data7d : data30d;
+  const chartData = activeTab === "7d" ? (data7d.length ? data7d : data30d) : (data30d.length ? data30d : data7d);
 
   // Scales for Area Chart
   const maxBookings = Math.max(...chartData.map((d) => d.bookings), 1);
@@ -122,28 +108,13 @@ export default function AdminDashboardOverview() {
     },
   ];
 
-  const categories = [
-    { label: "Vehicles & Transport", count: 4, percentage: 36, color: "bg-indigo-500" },
-    { label: "Power Tools & Construction", count: 3, percentage: 27, color: "bg-emerald-500" },
-    { label: "Cameras & Optic Gear", count: 2, percentage: 18, color: "bg-amber-500" },
-    { label: "Camping & Outdoor", count: 1, percentage: 9, color: "bg-sky-500" },
-    { label: "Event & Party Supplies", count: 1, percentage: 10, color: "bg-rose-500" },
-  ];
+  const categories = (stats?.categories ?? []).map((c) => ({ label: c.label, count: c.count, percentage: c.percentage, color: "bg-indigo-500" }));
 
   // User Verification Distribution Pie Segment Data (Total: 440 circumference)
-  const verifications = [
-    { label: "Fully Trusted (KYC Verified)", percentage: 40, color: "bg-indigo-500", stroke: "stroke-indigo-500", dash: "176 440", offset: "0" },
-    { label: "Basic Authenticated (Email/Phone)", percentage: 45, color: "bg-emerald-500", stroke: "stroke-emerald-500", dash: "198 440", offset: "-176" },
-    { label: "Unverified (New Registrants)", percentage: 15, color: "bg-amber-500", stroke: "stroke-amber-500", dash: "66 440", offset: "-374" }
-  ];
+  const verifications = (stats?.verifications ?? []).map((v) => ({ label: v.label, percentage: v.percentage, color: "bg-indigo-500", stroke: "stroke-indigo-500" }));
 
   // Recent Event Log Entries (Useful visual admin log)
-  const systemEvents = [
-    { message: "Verification requested by Sasindu W.", time: "10 mins ago", type: "kyc" },
-    { message: "New Listing: Honda Trail 125 registered", time: "1 hour ago", type: "listing" },
-    { message: "Booking #BL-483 payout released to owner", time: "2 hours ago", type: "payout" },
-    { message: "User account registered: Ruwan K.", time: "4 hours ago", type: "user" }
-  ];
+  const systemEvents = stats?.recentEvents ?? [];
 
   return (
     <div className="space-y-8">
@@ -326,12 +297,34 @@ export default function AdminDashboardOverview() {
 
           <div className="my-6 flex justify-center items-center relative">
             <svg className="w-36 h-36 transform -rotate-90" viewBox="0 0 200 200">
-              {/* Donut arcs */}
-              <circle cx="100" cy="100" r="70" fill="none" strokeWidth="18" className="stroke-indigo-500" strokeDasharray="158 440" strokeDashoffset="0" />
-              <circle cx="100" cy="100" r="70" fill="none" strokeWidth="18" className="stroke-emerald-500" strokeDasharray="119 440" strokeDashoffset="-158" />
-              <circle cx="100" cy="100" r="70" fill="none" strokeWidth="18" className="stroke-amber-500" strokeDasharray="79 440" strokeDashoffset="-277" />
-              <circle cx="100" cy="100" r="70" fill="none" strokeWidth="18" className="stroke-sky-500" strokeDasharray="40 440" strokeDashoffset="-356" />
-              <circle cx="100" cy="100" r="70" fill="none" strokeWidth="18" className="stroke-rose-500" strokeDasharray="44 440" strokeDashoffset="-396" />
+              {/* Donut arcs from backend percentages */}
+              {
+                (() => {
+                  const circumference = 440;
+                  let acc = 0;
+                  const palette = ["stroke-indigo-500", "stroke-emerald-500", "stroke-amber-500", "stroke-sky-500", "stroke-rose-500"];
+                  return (stats?.categories ?? []).map((c, i) => {
+                    const used = Math.round((c.percentage / 100) * circumference);
+                    const dash = `${used} ${circumference}`;
+                    const offset = -acc;
+                    acc += used;
+                    const strokeClass = palette[i % palette.length];
+                    return (
+                      <circle
+                        key={i}
+                        cx="100"
+                        cy="100"
+                        r="70"
+                        fill="none"
+                        strokeWidth="18"
+                        className={strokeClass}
+                        strokeDasharray={dash}
+                        strokeDashoffset={String(offset)}
+                      />
+                    );
+                  });
+                })()
+              }
             </svg>
             <div className="absolute text-center">
               <span className="text-2xl font-black text-slate-100">{stats?.activeListings ?? 11}</span>
@@ -366,19 +359,34 @@ export default function AdminDashboardOverview() {
 
           <div className="my-6 flex justify-center items-center relative">
             <svg className="w-36 h-36 transform -rotate-90" viewBox="0 0 200 200">
-              {verifications.map((v, i) => (
-                <circle
-                  key={i}
-                  cx="100"
-                  cy="100"
-                  r="70"
-                  fill="none"
-                  strokeWidth="18"
-                  className={v.stroke}
-                  strokeDasharray={v.dash}
-                  strokeDashoffset={v.offset}
-                />
-              ))}
+              {
+                // compute circle dash values from percentages
+                (() => {
+                  const circumference = 440;
+                  let acc = 0;
+                  const palette = ["stroke-indigo-500", "stroke-emerald-500", "stroke-amber-500", "stroke-sky-500", "stroke-rose-500"];
+                  return verifications.map((v, i) => {
+                    const used = Math.round((v.percentage / 100) * circumference);
+                    const dash = `${used} ${circumference}`;
+                    const offset = -acc;
+                    acc += used;
+                    const strokeClass = palette[i % palette.length];
+                    return (
+                      <circle
+                        key={i}
+                        cx="100"
+                        cy="100"
+                        r="70"
+                        fill="none"
+                        strokeWidth="18"
+                        className={strokeClass}
+                        strokeDasharray={dash}
+                        strokeDashoffset={String(offset)}
+                      />
+                    );
+                  });
+                })()
+              }
             </svg>
             <div className="absolute text-center">
               <span className="text-2xl font-black text-slate-100">{stats?.totalUsers ?? 5}</span>
@@ -411,14 +419,14 @@ export default function AdminDashboardOverview() {
             {/* Visual stacked horizontal progress bar */}
             <div>
               <div className="flex h-4 overflow-hidden rounded-full bg-slate-950 border border-slate-800">
-                <div className="bg-indigo-500 h-full" style={{ width: "65%" }}></div>
-                <div className="bg-emerald-500 h-full" style={{ width: "25%" }}></div>
-                <div className="bg-rose-500 h-full" style={{ width: "10%" }}></div>
+                <div className="bg-indigo-500 h-full" style={{ width: `${stats?.escrow?.escrowPercent ?? 0}%` }}></div>
+                <div className="bg-emerald-500 h-full" style={{ width: `${stats?.escrow?.payoutsPercent ?? 0}%` }}></div>
+                <div className="bg-rose-500 h-full" style={{ width: `${stats?.escrow?.disputesPercent ?? 0}%` }}></div>
               </div>
               <div className="flex justify-between text-[10px] text-slate-500 font-semibold mt-2">
-                <span>Escrow Held (65%)</span>
-                <span>Payouts (25%)</span>
-                <span>Disputes (10%)</span>
+                <span>Escrow Held ({stats?.escrow?.escrowPercent ?? 0}%)</span>
+                <span>Payouts ({stats?.escrow?.payoutsPercent ?? 0}%)</span>
+                <span>Disputes ({stats?.escrow?.disputesPercent ?? 0}%)</span>
               </div>
             </div>
 
@@ -426,15 +434,15 @@ export default function AdminDashboardOverview() {
             <div className="space-y-2 pt-2 border-t border-slate-800/60">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-400">Total transacted LKR</span>
-                <span className="font-bold text-slate-100">LKR 450,000</span>
+                <span className="font-bold text-slate-100">LKR {Number(stats?.escrow?.totalTransacted ?? 0).toLocaleString()}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-400">Escrow reserves</span>
-                <span className="font-bold text-indigo-400">LKR 292,500</span>
+                <span className="font-bold text-indigo-400">LKR {Number(stats?.escrow?.escrowReserves ?? 0).toLocaleString()}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-400">Released to owners</span>
-                <span className="font-bold text-emerald-400">LKR 112,500</span>
+                <span className="font-bold text-emerald-400">LKR {Number(stats?.escrow?.releasedToOwners ?? 0).toLocaleString()}</span>
               </div>
             </div>
           </div>
