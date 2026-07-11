@@ -68,6 +68,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final googleSignIn = GoogleSignIn(scopes: ['email']);
+      await googleSignIn.signOut();
       final googleUser = await googleSignIn.signIn();
 
       if (googleUser == null) {
@@ -129,6 +130,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           }
         }
       }
+
+      await googleSignIn.signOut();
 
       if (mounted) {
         setState(() {

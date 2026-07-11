@@ -83,6 +83,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     try {
       final googleSignIn = GoogleSignIn(scopes: ['email']);
+      await googleSignIn.signOut();
       final googleUser = await googleSignIn.signIn();
 
       if (googleUser == null) {
@@ -100,6 +101,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             lastName: googleUser.displayName?.split(' ').skip(1).join(' ') ?? (role ?? 'User'),
             role: role,
           );
+
+      await googleSignIn.signOut();
 
       if (mounted) {
         setState(() {
