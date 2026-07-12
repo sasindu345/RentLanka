@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,20 +62,35 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
   }
 
   Future<void> _openGoogleMaps(double latitude, double longitude, String title) async {
-    final googleMapsUrl = Uri.parse('https://www.google.com/maps/search/?api=1&query=$latitude,$longitude');
-    final appleMapsUrl = Uri.parse('maps://?q=$latitude,$longitude');
+    // Platform-specific URI schemes to open native map apps directly
+    final List<Uri> urisToTry = [];
+
+    if (Platform.isAndroid) {
+      // Android: google.navigation opens Google Maps in navigation mode
+      urisToTry.add(Uri.parse('google.navigation:q=$latitude,$longitude'));
+      // Fallback: geo intent opens any map app
+      urisToTry.add(Uri.parse('geo:$latitude,$longitude?q=$latitude,$longitude'));
+    } else if (Platform.isIOS) {
+      // iOS: comgooglemaps opens Google Maps app if installed
+      urisToTry.add(Uri.parse('comgooglemaps://?daddr=$latitude,$longitude&directionsmode=driving'));
+      // Fallback: Apple Maps
+      urisToTry.add(Uri.parse('maps://?daddr=$latitude,$longitude'));
+    }
+
+    // Final web fallback for both platforms
+    urisToTry.add(Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude'));
 
     try {
-      if (await canLaunchUrl(googleMapsUrl)) {
-        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
-      } else if (await canLaunchUrl(appleMapsUrl)) {
-        await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not open map applications.')),
-          );
+      for (final uri in urisToTry) {
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          return;
         }
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open map applications.')),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -777,13 +793,21 @@ class FullscreenMapScreen extends StatelessWidget {
                 elevation: 6.0,
               ),
               onPressed: () async {
-                final googleMapsUrl = Uri.parse('https://www.google.com/maps/search/?api=1&query=$latitude,$longitude');
-                final appleMapsUrl = Uri.parse('maps://?q=$latitude,$longitude');
+                final List<Uri> urisToTry = [];
+                if (Platform.isAndroid) {
+                  urisToTry.add(Uri.parse('google.navigation:q=$latitude,$longitude'));
+                  urisToTry.add(Uri.parse('geo:$latitude,$longitude?q=$latitude,$longitude'));
+                } else if (Platform.isIOS) {
+                  urisToTry.add(Uri.parse('comgooglemaps://?daddr=$latitude,$longitude&directionsmode=driving'));
+                  urisToTry.add(Uri.parse('maps://?daddr=$latitude,$longitude'));
+                }
+                urisToTry.add(Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude'));
                 try {
-                  if (await canLaunchUrl(googleMapsUrl)) {
-                    await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
-                  } else if (await canLaunchUrl(appleMapsUrl)) {
-                    await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
+                  for (final uri in urisToTry) {
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      return;
+                    }
                   }
                 } catch (_) {}
               },

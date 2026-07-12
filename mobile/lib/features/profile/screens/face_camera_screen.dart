@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:camera/camera.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/theme/app_spacing.dart';
 import 'package:mobile/core/theme/app_radius.dart';
@@ -13,8 +13,10 @@ class FaceCameraScreen extends StatefulWidget {
 }
 
 class _FaceCameraScreenState extends State<FaceCameraScreen> with SingleTickerProviderStateMixin {
-  final _picker = ImagePicker();
-  File? _imageFile;
+  CameraController? _cameraController;
+  bool _isCameraReady = false;
+  bool _isCameraError = false;
+  File? _capturedImage;
   bool _scanning = false;
   late AnimationController _scannerController;
 
@@ -25,44 +27,74 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> with SingleTickerPr
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
+    _initCamera();
+  }
+
+  Future<void> _initCamera() async {
+    try {
+      final cameras = await availableCameras();
+      // Find front camera; fall back to first available
+      final frontCamera = cameras.firstWhere(
+        (cam) => cam.lensDirection == CameraLensDirection.front,
+        orElse: () => cameras.first,
+      );
+
+      _cameraController = CameraController(
+        frontCamera,
+        ResolutionPreset.medium,
+        enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.jpeg,
+      );
+
+      await _cameraController!.initialize();
+      if (mounted) {
+        setState(() => _isCameraReady = true);
+      }
+    } catch (e) {
+      debugPrint('Camera initialization failed: $e');
+      if (mounted) {
+        setState(() => _isCameraError = true);
+      }
+    }
   }
 
   @override
   void dispose() {
+    _cameraController?.dispose();
     _scannerController.dispose();
     super.dispose();
   }
 
-  Future<void> _captureFace() async {
+  Future<void> _capturePhoto() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) return;
+    if (_cameraController!.value.isTakingPicture) return;
+
     try {
-      final XFile? photo = await _picker.pickImage(
-        source: ImageSource.camera,
-        preferredCameraDevice: CameraDevice.front,
-        maxWidth: 600,
-        imageQuality: 85,
-      );
+      final XFile photo = await _cameraController!.takePicture();
+      setState(() {
+        _capturedImage = File(photo.path);
+        _scanning = true;
+      });
 
-      if (photo != null) {
-        setState(() {
-          _imageFile = File(photo.path);
-          _scanning = true;
-        });
-
-        // Simulate a sleek biometric node verification scanning animation for 1.5 seconds
-        await Future<void>.delayed(const Duration(milliseconds: 1500));
-        if (mounted) {
-          setState(() {
-            _scanning = false;
-          });
-        }
+      // Brief scanning animation to give visual feedback
+      await Future<void>.delayed(const Duration(milliseconds: 1500));
+      if (mounted) {
+        setState(() => _scanning = false);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error launching camera: $e')),
+          SnackBar(content: Text('Failed to capture photo: $e')),
         );
       }
     }
+  }
+
+  void _retake() {
+    setState(() {
+      _capturedImage = null;
+      _scanning = false;
+    });
   }
 
   @override
@@ -76,7 +108,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> with SingleTickerPr
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Biometric Verification'),
+        title: const Text('Face Verification'),
       ),
       body: Column(
         children: [
@@ -84,43 +116,64 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> with SingleTickerPr
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // 1. Camera View or Oval Photo display
-                if (_imageFile == null)
+                // 1. Live Camera Preview or Captured Image
+                if (_capturedImage != null)
+                  Positioned.fill(
+                    child: Image.file(
+                      _capturedImage!,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                else if (_isCameraReady && _cameraController != null)
+                  Positioned.fill(
+                    child: FittedBox(
+                      fit: BoxFit.cover,
+                      clipBehavior: Clip.hardEdge,
+                      child: SizedBox(
+                        width: _cameraController!.value.previewSize!.height,
+                        height: _cameraController!.value.previewSize!.width,
+                        child: CameraPreview(_cameraController!),
+                      ),
+                    ),
+                  )
+                else if (_isCameraError)
                   Container(
                     width: double.infinity,
                     color: Colors.grey[900],
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(LucideIcons.camera, color: Colors.white.withOpacity(0.4), size: 48),
+                        Icon(LucideIcons.cameraOff, color: Colors.white.withOpacity(0.4), size: 48),
                         const SizedBox(height: AppSpacing.md),
                         Text(
-                          'Prepare for Face Scan',
+                          'Camera Unavailable',
                           style: theme.textTheme.titleMedium?.copyWith(color: Colors.white),
                         ),
                         const SizedBox(height: AppSpacing.xs),
                         Text(
-                          'We will use your front camera to verify identity',
+                          'Please grant camera permissions and try again.',
                           style: theme.textTheme.labelMedium?.copyWith(color: Colors.white70),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
                   )
                 else
-                  Positioned.fill(
-                    child: Image.file(
-                      _imageFile!,
-                      fit: BoxFit.cover,
+                  Container(
+                    width: double.infinity,
+                    color: Colors.grey[900],
+                    child: const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
                     ),
                   ),
 
-                // 2. Custom Painted Oval Guide Frame Overlay Mask
+                // 2. Oval Guide Frame Overlay (always visible)
                 Positioned.fill(
                   child: CustomPaint(
                     painter: _OvalMaskPainter(
                       borderColor: _scanning
                           ? theme.colorScheme.primary
-                          : (_imageFile != null ? Colors.green : Colors.white.withOpacity(0.8)),
+                          : (_capturedImage != null ? Colors.green : Colors.white.withOpacity(0.8)),
                     ),
                   ),
                 ),
@@ -130,7 +183,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> with SingleTickerPr
                   AnimatedBuilder(
                     animation: _scannerController,
                     builder: (context, child) {
-                      final topOffset = size.height * 0.25 + (_scannerController.value * size.height * 0.35);
+                      final topOffset = size.height * 0.15 + (_scannerController.value * size.height * 0.35);
                       return Positioned(
                         top: topOffset,
                         left: size.width * 0.15,
@@ -165,7 +218,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> with SingleTickerPr
                     child: Text(
                       _scanning
                           ? 'ANALYZING FACIAL FEATURES...'
-                          : (_imageFile != null ? 'SCAN COMPLETED' : 'ALIGN FACE WITHIN OVAL'),
+                          : (_capturedImage != null ? 'SCAN COMPLETED' : 'ALIGN FACE WITHIN OVAL'),
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -186,18 +239,35 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> with SingleTickerPr
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (_imageFile == null)
-                  FilledButton.icon(
-                    onPressed: _captureFace,
-                    icon: const Icon(LucideIcons.scan),
-                    label: const Text('Start Face Scan'),
+                if (_capturedImage == null)
+                  // Capture button (large circular shutter)
+                  GestureDetector(
+                    onTap: (_isCameraReady && !_isCameraError) ? _capturePhoto : null,
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 4),
+                      ),
+                      child: Center(
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
                   )
                 else ...[
                   Row(
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: _captureFace,
+                          onPressed: _retake,
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white,
                             side: const BorderSide(color: Colors.white30),
@@ -212,7 +282,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> with SingleTickerPr
                           onPressed: _scanning
                               ? null
                               : () {
-                                  Navigator.pop(context, _imageFile!.path);
+                                  Navigator.pop(context, _capturedImage!.path);
                                 },
                           style: FilledButton.styleFrom(
                             backgroundColor: Colors.green,
@@ -226,7 +296,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> with SingleTickerPr
                 ],
                 const SizedBox(height: AppSpacing.md),
                 Text(
-                  'Make sure your face is clearly lit and visible without hats or glasses.',
+                  'Position your face within the oval frame and ensure good lighting. No hats or glasses.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.labelMedium?.copyWith(color: Colors.white60),
                 ),
